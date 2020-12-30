@@ -9,16 +9,18 @@
 class IProcessMessage;
 class IFirmware;
 
-extern unsigned long millis();
+//extern unsigned long millis();
 
+#include "ffpro_cfg.h"
 #include <WString.h>
+#include <Arduino.h>
 
 class IFirmwareProcess {
 	public:
 		IFirmwareProcess(String id, IProcessMessage* msg) {
 			this->processId = id;
 			this->lastUpdate = millis();
-			#if defined(DEBUG_PRO_MS)
+			#ifdef DEBUG_PRO_MS
 			this->resetUsedMs();
 			#endif
 		}
@@ -42,7 +44,7 @@ class IFirmwareProcess {
 			}
 			this->update(ms);
 			unsigned long endTime = millis();
-			#if defined(DEBUG_PRO_MS)
+			#ifdef DEBUG_PRO_MS
 			this->usedMs += endTime - start;
 			#endif
 			this->lastUpdate = endTime;
@@ -70,15 +72,15 @@ class IFirmwareProcess {
 		unsigned long lastUpdate;
 		unsigned long *pausedUpTo;
 		
-		//#if DEBUG_PRO_MS
+		#ifdef DEBUG_PRO_MS
 		unsigned long usedMs;
-		//#endif
+		#endif
 	
 	protected:
 		IFirmware* getHost();	// in cpp
 
 	public:
-		//#if defined(DEBUG_PRO_MS)
+		#ifdef DEBUG_PRO_MS
 		unsigned long getUsedMs() {
 		  return this->usedMs;
 		}
@@ -86,7 +88,7 @@ class IFirmwareProcess {
 		void resetUsedMs() {
 		  this->usedMs = 0;
 		}
-		//#endif
+		#endif
 };
 
 

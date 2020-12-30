@@ -1,3 +1,6 @@
+#define MSG_COMMAND_ALL "COMMAND_MESSAGE"
+#define MSG_TEXT_ALL "TEXT_MESSAGE"
+
 #ifndef _METEO_MESSAGES_H
 #define _METEO_MESSAGES_H
 
@@ -5,22 +8,27 @@ class IFirmwareProcess;
 
 #include "ffpro_message.h"
 
-class TextMessage: public IProcessMessage {
+class CmdMessage: public IProcessMessage {
 	public:
-		TextMessage(IFirmwareProcess* from, String text): IProcessMessage(from, "TEXT_MESSAGE") {
-			this->text = text;
+		enum Cmd {
+			UNPAUSE_ALL,
+			PAUSE_ALL
+		};
+		
+		CmdMessage(IFirmwareProcess* from, CmdMessage::Cmd cmd): IProcessMessage(from, MSG_COMMAND_ALL) {
+			this->cmd = cmd;
 		}
 		
-		TextMessage(String text): IProcessMessage(NULL, "TEXT_MESSAGE") {
-			this->text = text;
+		CmdMessage(CmdMessage::Cmd cmd): IProcessMessage(NULL, MSG_COMMAND_ALL) {
+			this->cmd = cmd;
 		}
 		
-		String getText() {
-			return this->text;
+		Cmd getCmd() {
+			return this->cmd;
 		}
 
 	private:
-		String text;
+		Cmd cmd;
 };
 
 #endif

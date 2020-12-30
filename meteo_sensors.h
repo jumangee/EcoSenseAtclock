@@ -8,6 +8,10 @@
 #include "ffpro.h"
 #include "ffpro_process.h"
 
+#include "meteo.h"
+
+#include <Arduino.h>
+
 class SensorsProcess: public IMeteoClockProcess {
   public:
   	SensorsProcess(String id, IProcessMessage* msg): IMeteoClockProcess(id, msg) {
@@ -23,7 +27,7 @@ class SensorsProcess: public IMeteoClockProcess {
 		this->log("SensorsProcess::run");
 		this->readSensors();
 		if (this->sensor1Value == 50) {
-			this->getHost()->sendMessage(new TextMessage("UNPAUSE ALL"));
+			this->getHost()->sendMessage(new CmdMessage(CmdMessage::Cmd::UNPAUSE_ALL));
 		}
   	}
   	

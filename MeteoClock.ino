@@ -1,6 +1,4 @@
 #include "meteo.h"
-#include "meteo_main.h"
-#include "meteo_sensors.h"
 
 void setup() {
 }

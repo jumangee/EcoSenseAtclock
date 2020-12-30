@@ -5,6 +5,8 @@
 #ifndef _METEOCLOCK_PROCESS_H
 #define _METEOCLOCK_PROCESS_H
 
+#include "ffpro_process.h"
+
 class MeteoClockFirmware;
 
 class IMeteoClockProcess: public IFirmwareProcess {
@@ -12,9 +14,7 @@ class IMeteoClockProcess: public IFirmwareProcess {
     IMeteoClockProcess(String id, IProcessMessage* msg) : IFirmwareProcess(id, msg) {
     }
     
-  	/*MeteoClockFirmware* getHost() {
-  		return (MeteoClockFirmware*)getHost();
-  	}*/
+  	//MeteoClockFirmware* getHost(); // in cpp
 };
 
 

@@ -8,10 +8,7 @@
 
 #include "LinkedList/LinkedList.h"
 
-#define DEBUG_PRO_MS 1
-#define DEBUG_PRO_PERIOD_MS 1000
-#define DEBUG_SERIAL 1
-
+#include "ffpro_cfg.h"
 #include "ffpro_process.h"
 #include "ffpro_message.h"
 #include <WString.h>

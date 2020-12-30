@@ -8,7 +8,11 @@
 #include "ffpro.h"
 #include "ffpro_process.h"
 
+#include "meteo.h"
+#include "meteo_process.h"
 #include "meteo_messages.h"
+
+#include <Arduino.h>
 
 class MainProcess: public IMeteoClockProcess {
   public:
@@ -29,15 +33,15 @@ class MainProcess: public IMeteoClockProcess {
   	}
 	
 	bool handleMessage(IProcessMessage* msg) {
-		if (msg->getType() == "TEXT_MESSAGE") {
-			TextMessage* cmd = (TextMessage*)msg;
-			if (cmd->getText() == "UNPAUSE_ALL") {
+		if (msg->getType() == MSG_COMMAND_ALL) {
+			CmdMessage* cmd = (CmdMessage*)msg;
+			if (cmd->getCmd() == CmdMessage::Cmd::UNPAUSE_ALL) {
 				this->unPause();
-				return true; // message handling done
+				return false; // continue handling by others
 			}
-			if (cmd->getText() == "STOP_ALL") {
-				this->getHost()->stopAll();
-				return true; // message handling done
+			if (cmd->getCmd() == CmdMessage::Cmd::PAUSE_ALL) {
+				this->pause();
+				return false; // continue handling by others
 			}
 		}
 		return false;

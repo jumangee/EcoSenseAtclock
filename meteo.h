@@ -7,10 +7,13 @@
 #ifndef _METEOCLOCK_FFPRO_H
 #define _METEOCLOCK_FFPRO_H
 
+#include "ffpro_cfg.h"
 #include "ffpro.h"
+
 #include "meteo_process.h"
 #include "meteo_main.h"
 #include "meteo_sensors.h"
+
 
 class MeteoClockFirmware: public IFirmware {
 	MeteoClockFirmware(): IFirmware() {
@@ -28,7 +31,7 @@ class MeteoClockFirmware: public IFirmware {
 		
 		this->pauseProcess(PRC_SENSORS, 1000);
 			
-		#if (DEBUG_SERIAL == 1)
+		#ifdef DEBUG_SERIAL
 		Serial.begin(9600);
 		#endif
 	}
@@ -36,7 +39,7 @@ class MeteoClockFirmware: public IFirmware {
 	public:
 	
 		void log(String msg) {
-			#if (DEBUG_SERIAL == 1)
+			#ifdef DEBUG_SERIAL
 			Serial.println(msg);
 			#endif
 		}
@@ -47,7 +50,7 @@ class MeteoClockFirmware: public IFirmware {
 				IFirmware::instance = new MeteoClockFirmware();
 			}
 			return f;
-		}
+		}		
 };
 
 #endif
