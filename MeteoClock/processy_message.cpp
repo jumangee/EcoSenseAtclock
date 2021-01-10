@@ -1,5 +1,4 @@
-
-#include "ffpro_message.h"
+#include "processy_message.h"
 
 String IProcessMessage::getSenderId() {
 	return sender->getId();
