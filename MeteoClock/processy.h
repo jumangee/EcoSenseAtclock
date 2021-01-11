@@ -22,10 +22,10 @@ class ProcessFactoryReg {
 		FactoryFunction factory;
 		bool isDefault;
 
-		ProcessFactoryReg(String id, FactoryFunction factory, bool isDefault) {
-			this->id = id;
-			this->factory = factory;
-			this->isDefault = isDefault;
+		ProcessFactoryReg(String name, FactoryFunction f, bool isDef) {
+			this->id = name;
+			this->factory = f;
+			this->isDefault = isDef;
 		}
 };
 
@@ -84,11 +84,7 @@ class IFirmware {
 		}
 		#endif
 
-		/*** OVERRIDE THIS! ***/
-		bool update(unsigned long ms) {
-			return true;
-		};
-		/*** end: OVERRIDE ***/
+		bool update(unsigned long ms);
 
 		IFirmwareProcess* createProcess(String name, IProcessMessage* msg);
 
@@ -99,7 +95,5 @@ class IFirmware {
 		ProcessFactoryReg* findDefaultFactoryRegistration();
 
 };
-
-IFirmware* getFirmwareHost();
 
 #endif

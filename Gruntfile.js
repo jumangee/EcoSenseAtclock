@@ -29,7 +29,7 @@ module.exports = function(grunt) {
 			exec: '"e:/Projects/!DIY/Arduino/IDE/arduino-cli.exe" compile --fqbn arduino:avr:nano MeteoClock',
 		},
 		upload_sketch: {
-			exec: '"e:/Projects/!DIY/Arduino/IDE/arduino-cli.exe" upload -p COM6 --fqbn arduino:avr:nano MeteoClock'
+			exec: '"e:/Projects/!DIY/Arduino/IDE/arduino-cli.exe" upload -p COM5 --fqbn arduino:avr:nano MeteoClock'
 		}
 	},
 

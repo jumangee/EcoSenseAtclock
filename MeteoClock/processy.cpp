@@ -7,9 +7,7 @@ IFirmware* IFirmware::instance = NULL;
 
 IFirmware::IFirmware() {
 	this->processList = LinkedList<IFirmwareProcess*>();
-	this->processList.clear();
 	this->factoryList = LinkedList<ProcessFactoryReg*>();
-	this->factoryList.clear();
 	#ifdef DEBUG_PRO_MS
 	this->resetMsDebugTimer(millis());
 	#endif
@@ -74,17 +72,15 @@ void IFirmware::run() {
 		if (registration) {
 			this->addProcess(registration->id);	// do something or stop
 		} else {
+			TRACE("NOTHING TO DO!")
 			return;
 		}
 	}
 	unsigned long curTime = millis();
 	if (this->update(curTime)) {	// true - auto process, false - manual process
 		for (int i = 0; i < this->processList.size(); i++) {
-			//this->log("processy:process...");
 			IFirmwareProcess* process = this->processList.get(i);
-			//this->log("processy:process run");
 			curTime = process->run(curTime);
-			//this->log("processy:process done");
 		}
 	}
 	#ifdef DEBUG_PRO_MS
@@ -98,13 +94,13 @@ void IFirmware::run() {
 }
 
 void IFirmware::addProcess(String name, IProcessMessage* msg) {
-      		TRACE("IFirmware::addProcess//1")
+      		//TRACE("IFirmware::addProcess//1")
 	if (this->findProcess(name) > -1) {
 		return;	// only 1 instance of process
 	}
-      		TRACE("IFirmware::addProcess//2")
+      		//TRACE("IFirmware::addProcess//2")
 	IFirmwareProcess* newProcess = this->createProcess(name, msg);
-	if (!newProcess) {
+	if (newProcess == NULL) {
         		TRACE("IFirmware::addProcess//!newProcess")
 		return;
 	}
@@ -130,13 +126,25 @@ void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
 	this->log("end: PROCESS SUMMARY <<<");
 }
 
+bool IFirmware::update(unsigned long ms) {
+	return true;
+};
+
 IFirmwareProcess* IFirmware::createProcess(String name, IProcessMessage* msg) {
 	TRACE( S("IFirmware::createProcess::findFactoryRegistration: ", name.c_str()) );
 	ProcessFactoryReg* factoryReg = this->findFactoryRegistration(name);
 	TRACE("IFirmware::createProcess//factory/!")
 	if (factoryReg != NULL) {
         		TRACE("IFirmware::createProcess//factory")
-		return factoryReg->factory(name, msg);
+		IFirmwareProcess* t = factoryReg->factory(name, msg);
+		TRACE("factory state:")
+		if (t == NULL) {
+			TRACE("factory ERR")
+		}
+		else {
+			TRACE("factory OK")
+		}
+		return t;
 	}
       		TRACE(S("IFirmware::createProcess//!factoryReg:", name.c_str()))
 	return NULL;

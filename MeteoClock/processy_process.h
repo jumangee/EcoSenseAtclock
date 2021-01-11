@@ -38,7 +38,7 @@ class IFirmwareProcess {
 	private:
 		String processId;
 		unsigned long lastUpdate;
-		unsigned long *pausedUpTo;
+		unsigned long pausedUpTo;
 
 		#ifdef DEBUG_PRO_MS
 		unsigned long usedMs;

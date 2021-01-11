@@ -11,11 +11,10 @@ IFirmwareProcess::IFirmwareProcess(String id, IProcessMessage* msg) {
 	this->resetUsedMs();
 	#endif
 	//TRACE(S("IFirmwareProcess::",this->processId.c_str(),"/", (this->pausedUpTo == NULL ? "NULL" : (String(*this->pausedUpTo)).c_str()) ))
-	this->unPause();
+	this->pausedUpTo = 0;
 }
 
 IFirmwareProcess::~IFirmwareProcess() {
-	this->unPause();
 }
 
 void IFirmwareProcess::log(String msg) {
@@ -27,14 +26,16 @@ bool IFirmwareProcess::isId(String compareTo) {
 }
 
 unsigned long IFirmwareProcess::run(unsigned long start) {
+	//TRACE(S("IFirmwareProcess//start=", String(start).c_str(), ", lastUpdate=", String(this->lastUpdate).c_str() ))
 	unsigned long ms = start - this->lastUpdate;
-	//TRACE(S("IFirmwareProcess::run/",this->processId.c_str(),"/", (this->pausedUpTo == NULL ? "NULL" : (String(*this->pausedUpTo)).c_str()) ))
-	if (this->pausedUpTo != NULL && start < this->pausedUpTo) {
-		return start;	// no time wasting
-	} else if (this->pausedUpTo) {
-		this->unPause();
+	//TRACE(S("IFirmwareProcess::run/",this->processId.c_str(),"/start=", String(start).c_str(),", pause=", String(this->pausedUpTo).c_str()) )
+	if (this->pausedUpTo != 0) {
+		if (start < this->pausedUpTo) {
+			return start;	// no time wasting
+		}
 	}
-	this->update(ms);
+	this->unPause();
+	this->update(1);
 	unsigned long endTime = millis();
 	#ifdef DEBUG_PRO_MS
 	this->usedMs += endTime - start;
@@ -44,14 +45,11 @@ unsigned long IFirmwareProcess::run(unsigned long start) {
 }
 
 void IFirmwareProcess::pause(unsigned long upTo = 0) {
-	this->pausedUpTo = new unsigned long(millis() + upTo);
+	this->pausedUpTo = millis() + upTo;
 }
 
 void IFirmwareProcess::unPause() {
-	if (this->pausedUpTo != NULL) {
-		delete this->pausedUpTo;
-		this->pausedUpTo = NULL;
-	}
+	this->pausedUpTo = 0;
 }
 
 bool IFirmwareProcess::handleMessage(IProcessMessage* msg) {

@@ -12,11 +12,13 @@
 
 //#include <Arduino.h>
 //#include <Adafruit_Sensor.h>
-#include <Adafruit_BME280.h>
+//#include <Adafruit_BME280.h>
+
+//class Adafruit_BME280;
 
 class EnvironmentSensorsProcess: public IFirmwareProcess {
 	private:
-		Adafruit_BME280* bme;
+		//Adafruit_BME280* bme;
 		bool ready;
 		bool initDone;
 
@@ -26,7 +28,7 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 		~EnvironmentSensorsProcess() {
 			// stop process
 			this->log("EnvironmentSensorsProcess::stop");
-			delete this->bme;
+			//delete this->bme;
 		}
 
 		void init();

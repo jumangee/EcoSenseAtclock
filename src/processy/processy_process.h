@@ -24,12 +24,11 @@ class IFirmwareProcess {
 			this->resetUsedMs();
 			#endif
 			//TRACE(S("IFirmwareProcess::",this->processId.c_str(),"/", (this->pausedUpTo == NULL ? "NULL" : (String(*this->pausedUpTo)).c_str()) ))
-			this->unPause();
+			this->pausedUpTo = 0;
 		}
 
 		//@implement
 		~IFirmwareProcess() {
-			this->unPause();
 		}
 
 		String getId() {
@@ -52,14 +51,16 @@ class IFirmwareProcess {
 		//@include "stuff.h"
 		//@include <Arduino.h>
 		unsigned long run(unsigned long start) {
+			//TRACE(S("IFirmwareProcess//start=", String(start).c_str(), ", lastUpdate=", String(this->lastUpdate).c_str() ))
 			unsigned long ms = start - this->lastUpdate;
-			//TRACE(S("IFirmwareProcess::run/",this->processId.c_str(),"/", (this->pausedUpTo == NULL ? "NULL" : (String(*this->pausedUpTo)).c_str()) ))
-			if (this->pausedUpTo != NULL && start < this->pausedUpTo) {
-				return start;	// no time wasting
-			} else if (this->pausedUpTo) {
-				this->unPause();
+			//TRACE(S("IFirmwareProcess::run/",this->processId.c_str(),"/start=", String(start).c_str(),", pause=", String(this->pausedUpTo).c_str()) )
+			if (this->pausedUpTo != 0) {
+				if (start < this->pausedUpTo) {
+					return start;	// no time wasting
+				}
 			}
-			this->update(ms);
+			this->unPause();
+			this->update(1);
 			unsigned long endTime = millis();
 			#ifdef DEBUG_PRO_MS
 			this->usedMs += endTime - start;
@@ -72,15 +73,12 @@ class IFirmwareProcess {
 
 		//@implement
 		void pause(unsigned long upTo = 0) {
-			this->pausedUpTo = new unsigned long(millis() + upTo);
+			this->pausedUpTo = millis() + upTo;
 		}
 
 		//@implement
 		void unPause() {
-			if (this->pausedUpTo != NULL) {
-				delete this->pausedUpTo;
-				this->pausedUpTo = NULL;
-			}
+			this->pausedUpTo = 0;
 		}
 
 		//@implement
@@ -91,7 +89,7 @@ class IFirmwareProcess {
 	private:
 		String processId;
 		unsigned long lastUpdate;
-		unsigned long *pausedUpTo;
+		unsigned long pausedUpTo;
 
 		#ifdef DEBUG_PRO_MS
 		unsigned long usedMs;

@@ -1,7 +1,6 @@
 #include "meteo.h"
 #include <Arduino.h>
 #include "processy_cfg.h"
-#include "meteo_main.h"
 
 MeteoClockFirmware::MeteoClockFirmware() : IFirmware(){
 	#ifdef DEBUG_SERIAL
@@ -9,12 +8,15 @@ MeteoClockFirmware::MeteoClockFirmware() : IFirmware(){
 	#endif
 };
 
+		//!@include "meteo_main.h"
 void MeteoClockFirmware::init() {
 	FACTORY_DEFAULT(PRC_MAIN, MainProcess)
-	FACTORY(PRC_SENSORS, EnvironmentSensorsProcess)
+	//FACTORY(PRC_SENSORS, EnvironmentSensorsProcess)
+	//FACTORY_DEFAULT(PRC_I2CSCANNER, i2cPortScannerProcess)
+	//this->registerFactory(PRC_MAIN, [](String id, IProcessMessage* msg){return new MainProcess(id, msg);}, true);
 	
-	this->addProcess(PRC_MAIN);
-	this->addProcess(PRC_SENSORS);
+	//this->addProcess(PRC_MAIN);
+	//this->addProcess(PRC_SENSORS);
 }
 
 void MeteoClockFirmware::log(String msg) {
@@ -25,13 +27,9 @@ void MeteoClockFirmware::log(String msg) {
 
 static IFirmware* MeteoClockFirmware::get() {
 	if (IFirmware::instance == NULL) {
-		Serial.begin(9600);
-		delay(1000);
         		Serial.println("new MeteoClockFirmware");
-		MeteoClockFirmware* meteo = new MeteoClockFirmware();
-		meteo->init();
-		IFirmware::instance = meteo;
-        		return meteo;
+		IFirmware::instance = new MeteoClockFirmware();
+		((MeteoClockFirmware*)IFirmware::instance)->init();
 	}
 	return IFirmware::instance;
 }

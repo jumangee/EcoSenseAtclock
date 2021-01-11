@@ -1,5 +1,5 @@
 {
-    "port": "COM6",
+    "port": "COM5",
     "board": "arduino:avr:nano",
     "configuration": "cpu=atmega328",
     "programmer": "AVRISP mkII"

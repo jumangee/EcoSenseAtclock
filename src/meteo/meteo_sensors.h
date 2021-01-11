@@ -12,18 +12,18 @@
 
 //#include <Arduino.h>
 //#include <Adafruit_Sensor.h>
-#include <Adafruit_BME280.h>
+//#include <Adafruit_BME280.h>
+
+//class Adafruit_BME280;
 
 class EnvironmentSensorsProcess: public IFirmwareProcess {
 	private:
-		Adafruit_BME280* bme;
+		//Adafruit_BME280* bme;
 		bool ready;
 		bool initDone;
 
 	public:
 		//@implement
-		//@include <Wire.h>
-		//@include <Adafruit_Sensor.h>
 		//@include <Adafruit_BME280.h>
 		//@include "meteo_cfg.h"
 		EnvironmentSensorsProcess(String id, IProcessMessage* msg): IFirmwareProcess(id, msg) {
@@ -31,7 +31,7 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 
 			this->ready = false;
 			this->initDone = false;
-			this->bme = new Adafruit_BME280();
+			//this->bme = new Adafruit_BME280();
 			/*Wire.begin(); // Wire communication begin
 
 			if (bme.begin(CLOCK2BME280_ADDRESS)) {
@@ -53,19 +53,18 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 		~EnvironmentSensorsProcess() {
 			// stop process
 			this->log("EnvironmentSensorsProcess::stop");
-			delete this->bme;
+			//delete this->bme;
 		}
 
 		//@implement
-		//@include <Arduino.h>
-		//@include <Adafruit_Sensor.h>
+		//!@include <Arduino.h>
 		//@include <Adafruit_BME280.h>
 		//@include "processy_cfg.h"
 		//@include "meteo_cfg.h"
 		//@include "stuff.h"
 		void init() {
 			this->log("EnvironmentSensorsProcess::init");
-			Wire.begin(); // Wire communication begin
+			/*Wire.begin(); // Wire communication begin
 
 			if (bme->begin(CLOCK2BME280_ADDRESS)) {
 				bme->setSampling(Adafruit_BME280::MODE_FORCED,
@@ -80,7 +79,7 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 				this->ready = true;
 			} else {
 				this->log("BME: ERROR");
-			}
+			}*/
 			this->initDone = true;
 		}
 
@@ -95,23 +94,23 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 				return;	// work - next run
 			}
 			if (this->ready) {
-				IProcessMessage* msg = readBME280();
+				/*IProcessMessage* msg = readBME280();
 				if (msg != NULL) {
 					this->getHost()->sendMessage(msg);
-				}
+				}*/
 			} else {
-				this->getHost()->sendMessage(new EnvDataMessage(this));
+				//this->getHost()->sendMessage(new EnvDataMessage(this));
 			}
 
 			this->pause(ENVSENSORS_TIMEOUT);
 		}
 
 		//@implement
-		//@include <Arduino.h>
-		//@include <Adafruit_Sensor.h>
-		//@include <Adafruit_BME280.h>
+		//!@include <Arduino.h>
+		//!@include <Adafruit_Sensor.h>
+		//!@include <Adafruit_BME280.h>
 		IProcessMessage* readBME280() {
-			this->log("GET BME DATA...");
+			/*this->log("GET BME DATA...");
 
 			Wire.begin(); // Wire communication begin
 			bme->takeForcedMeasurement();
@@ -122,7 +121,8 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 			int pres = (float)bme->readPressure() * 0.00750062;
 			alt = ((float)alt * 1 + bme->readAltitude(SEALEVELPRESSURE_HPA)) / 2;  // усреднение, чтобы не было резких скачков (с)НР
 
-			return new EnvDataMessage(this, temp, hum, pres, alt);
+			return new EnvDataMessage(this, temp, hum, pres, alt);*/
+			return NULL;
 		}
 };
 

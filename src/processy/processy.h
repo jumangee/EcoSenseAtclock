@@ -11,7 +11,7 @@
 #include "processy_cfg.h"
 #include "processy_process.h"
 #include "processy_message.h"
-#include <WString.h>
+#include <SafeString.h>
 #include <math.h>
 
 typedef IFirmwareProcess* (*FactoryFunction)(String, IProcessMessage*);
@@ -22,10 +22,10 @@ class ProcessFactoryReg {
 		FactoryFunction factory;
 		bool isDefault;
 
-		ProcessFactoryReg(String id, FactoryFunction factory, bool isDefault) {
-			this->id = id;
-			this->factory = factory;
-			this->isDefault = isDefault;
+		ProcessFactoryReg(String name, FactoryFunction f, bool isDef) {
+			this->id = name;
+			this->factory = f;
+			this->isDefault = isDef;
 		}
 };
 
@@ -37,9 +37,7 @@ class IFirmware {
 		//@include <Arduino.h>
 		IFirmware() {
 			this->processList = LinkedList<IFirmwareProcess*>();
-			this->processList.clear();
 			this->factoryList = LinkedList<ProcessFactoryReg*>();
-			this->factoryList.clear();
 			#ifdef DEBUG_PRO_MS
 			this->resetMsDebugTimer(millis());
 			#endif
@@ -103,9 +101,10 @@ class IFirmware {
 			for (int i = 0; i < processList.size(); i++) {
 				IFirmwareProcess* process = this->processList.get(i);
 				if (process->handleMessage(msg) == true) {	// message processing stop
-					return;
+					break;
 				}
 			}
+			delete msg;
 		}
 
 		//@implement
@@ -121,17 +120,15 @@ class IFirmware {
 				if (registration) {
 					this->addProcess(registration->id);	// do something or stop
 				} else {
+					TRACE("NOTHING TO DO!")
 					return;
 				}
 			}
 			unsigned long curTime = millis();
 			if (this->update(curTime)) {	// true - auto process, false - manual process
 				for (int i = 0; i < this->processList.size(); i++) {
-					//this->log("processy:process...");
 					IFirmwareProcess* process = this->processList.get(i);
-					//this->log("processy:process run");
 					curTime = process->run(curTime);
-					//this->log("processy:process done");
 				}
 			}
 			#ifdef DEBUG_PRO_MS
@@ -146,13 +143,13 @@ class IFirmware {
 
 		//@implement
 		void addProcess(String name, IProcessMessage* msg) {
-      		TRACE("IFirmware::addProcess//1")
+      		//TRACE("IFirmware::addProcess//1")
 			if (this->findProcess(name) > -1) {
 				return;	// only 1 instance of process
 			}
-      		TRACE("IFirmware::addProcess//2")
+      		//TRACE("IFirmware::addProcess//2")
 			IFirmwareProcess* newProcess = this->createProcess(name, msg);
-			if (!newProcess) {
+			if (newProcess == NULL) {
         		TRACE("IFirmware::addProcess//!newProcess")
 				return;
 			}
@@ -171,7 +168,8 @@ class IFirmware {
 
 	protected:
 		LinkedList<IFirmwareProcess*> processList;
-		LinkedList<ProcessFactoryReg*> factoryList;
+		//LinkedList<ProcessFactoryReg> factoryList;
+		ProcessFactoryReg[] *factoryList;
 		#ifdef DEBUG_PRO_MS
 		unsigned long msDebugTimerStart;
 
@@ -203,11 +201,10 @@ class IFirmware {
 		}
 		#endif
 
-		/*** OVERRIDE THIS! ***/
+		//@implement
 		bool update(unsigned long ms) {
 			return true;
 		};
-		/*** end: OVERRIDE ***/
 
 		//@implement
 		IFirmwareProcess* createProcess(String name, IProcessMessage* msg) {
@@ -216,7 +213,15 @@ class IFirmware {
 			TRACE("IFirmware::createProcess//factory/!")
 			if (factoryReg != NULL) {
         		TRACE("IFirmware::createProcess//factory")
-				return factoryReg->factory(name, msg);
+				IFirmwareProcess* t = factoryReg->factory(name, msg);
+				TRACE("factory state:")
+				if (t == NULL) {
+					TRACE("factory ERR")
+				}
+				else {
+					TRACE("factory OK")
+				}
+				return t;
 			}
       		TRACE(S("IFirmware::createProcess//!factoryReg:", name.c_str()))
 			return NULL;
@@ -257,7 +262,5 @@ class IFirmware {
 		}
 
 };
-
-IFirmware* getFirmwareHost();
 
 #endif
