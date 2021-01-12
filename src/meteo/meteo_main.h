@@ -24,23 +24,35 @@
 class MainProcess: public IFirmwareProcess {
 	private:
 		SSD1306AsciiWire oled;
+		bool updateScreen;
+
+		float	temp;
+		byte	humidity;
+		int		pressure;
+		float	altitude;  //int
 	public:
 		//@implement
 		//@include <SSD1306AsciiWire.h>
-		MainProcess(String id, IProcessMessage* msg): IFirmwareProcess(id, msg) {
-			this->log("MainProcess::start");
+		MainProcess(String & id, IProcessMessage* msg): IFirmwareProcess(id, msg) {
+			TRACELNF("MainProcess::start");
 			
 			Wire.setClock(400000L);
 			oled.begin(&Adafruit128x64, OLED_ADDR);
 			oled.setFont(System5x7);
+			oled.clear();
+			
+			this->updateScreen = false;
+		}
 
-			this->getHost()->addProcess(PRC_SENSORS);
+		static IFirmwareProcess* factory(String & name, IProcessMessage* msg) {
+			TRACELNF("MainProcess::factory");
+			return new MainProcess(name, msg);
 		}
 
 		//@implement
 		~MainProcess() {
 			// stop process
-			this->log("MainProcess::stop");
+			TRACELNF("MainProcess::stop");
 			//delete this->display;
 		}
 
@@ -48,27 +60,70 @@ class MainProcess: public IFirmwareProcess {
 		//@include <SSD1306AsciiWire.h>
 		void update(unsigned long ms) {
 			//this->log("MainProcess::run");
-			oled.clear();
-			oled.print("Hello world!");
+			if (this->updateScreen) {
+				this->render();
+				this->updateScreen = false;
+			}
+		}
 
-			this->pause(5000);
+		void render() {
+			oled.clear();
+			//oled.print(F("Hello world!"));
+			oled.setCursor(10, 2);
+			oled.print(F("T="));
+			oled.print(this->temp);
+			oled.print(F("C"));
+			oled.setCursor(10, 3);
+			oled.print(F("H="));
+			oled.print(this->humidity);
+			oled.print(F("%"));
+			oled.setCursor(10, 4);
+			oled.print(F("P="));
+			oled.print(this->pressure);
+			oled.print(F("mm"));
 		}
 
 		//@implement
 		//@include "stuff.h"
 		bool handleMessage(IProcessMessage* msg) {
-			/*if (msg->getType() == MSG_ENV_DATA) {
-				EnvDataMessage* msg = (EnvDataMessage*)msg;
-				if (msg->isActive()) {
-					this->log(S("BME data: T=", String(msg->getTemp()).c_str(),
-					"C, Hum=", String(msg->getHumidity()).c_str(), "%, Pres=", 
-					String(msg->getPressure()).c_str(), "mm, Alt=",
-					String(msg->getAltitude()).c_str(), "m"));
-				} else {
-					this->log("BME Sensors is passive!");
-				}
-			}*/
+			if (msg->getType() == ENVDATA_MESSAGE) {
+				this->handleEnvDataMsg((EnvDataMessage*)msg);
+				return true;
+			}
 			return false;
+		}
+
+		void handleEnvDataMsg(EnvDataMessage* msg) {
+			if (msg->isActive()) {
+				String s = SF("BME data: T=");
+				s += msg->getTemp();
+				s += F("C, Hum=");
+				s += msg->getHumidity();
+				s += F("%, Pres=");
+				s += msg->getPressure();
+				s += F("mm, Alt=");
+				s += msg->getAltitude();
+				s += F("m");
+				TRACELN(s);
+				if (this->temp != msg->getTemp()) {
+					this->temp = msg->getTemp();
+					this->updateScreen = true;
+				}
+				if (this->humidity != msg->getHumidity()) {
+					this->humidity = msg->getHumidity();
+					this->updateScreen = true;
+				}
+				if (this->pressure != msg->getPressure()) {
+					this->pressure = msg->getPressure();
+					this->updateScreen = true;
+				}
+				if (this->altitude != msg->getAltitude()) {
+					this->altitude = msg->getAltitude();
+					this->updateScreen = true;
+				}
+			} else {
+				TRACELNF("BME Sensors is passive!");
+			}
 		}
 };
 

@@ -13,17 +13,17 @@ class IFirmware;
 
 class IFirmwareProcess {
 	public:
-		IFirmwareProcess(String id, IProcessMessage* msg);
+		IFirmwareProcess(String & id, IProcessMessage* msg);
 
 		~IFirmwareProcess();
 
+		static IFirmwareProcess* factory(String & name, IProcessMessage* msg);
+
 		String getId() {
-			return processId;
+			return this->processId;
 		}
 
-		void log(String msg);
-
-		bool isId(String compareTo);
+		bool isId(String & compareTo);
 
 		unsigned long run(unsigned long start);
 
@@ -33,7 +33,7 @@ class IFirmwareProcess {
 
 		void unPause();
 
-		bool handleMessage(IProcessMessage* msg);
+		virtual bool handleMessage(IProcessMessage* msg);
 
 	private:
 		String processId;

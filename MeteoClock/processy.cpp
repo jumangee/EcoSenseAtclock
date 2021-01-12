@@ -7,13 +7,12 @@ IFirmware* IFirmware::instance = NULL;
 
 IFirmware::IFirmware() {
 	this->processList = LinkedList<IFirmwareProcess*>();
-	this->factoryList = LinkedList<ProcessFactoryReg*>();
 	#ifdef DEBUG_PRO_MS
 	this->resetMsDebugTimer(millis());
 	#endif
 }
 
-IFirmwareProcess* IFirmware::getProcess(String name) {
+IFirmwareProcess* IFirmware::getProcess(String & name) {
 	int pos = this->findProcess(name);
 	if (pos > -1) {
 		return this->processList.get(pos);
@@ -21,22 +20,22 @@ IFirmwareProcess* IFirmware::getProcess(String name) {
 	return NULL;
 }
 
-void IFirmware::stopProcess(String name) {
+void IFirmware::stopProcess(String & name) {
 	int pos = this->findProcess(name);
 	if (pos > -1) {
 		this->processList.remove(pos);
 	}
 }
 
-void IFirmware::pauseProcess(String name, unsigned long pauseTime) {
+void IFirmware::pauseProcess(String & name, unsigned long pauseTime) {
 	int pos = this->findProcess(name);
 	if (pos > -1) {
-		IFirmwareProcess *process = this->processList.get(pos);
-		process->pause(pauseTime);
+		//IFirmwareProcess *process = ;
+		this->processList.get(pos)->pause(pauseTime);
 	}
 }
 
-void IFirmware::unPauseProcess(String name) {
+void IFirmware::unPauseProcess(String & name) {
 	int pos = this->findProcess(name);
 	if (pos > -1) {
 		IFirmwareProcess *process = this->processList.get(pos);
@@ -48,39 +47,40 @@ void IFirmware::stopAll() {
 	this->processList.clear();
 }
 
-void IFirmware::soloProcess(String name) {
+void IFirmware::soloProcess(String & name) {
 	this->stopAll();
 	this->addProcess(name);
 }
 
 void IFirmware::sendMessage(IProcessMessage* msg) {
+	if (msg == NULL) return;
 	for (int i = 0; i < processList.size(); i++) {
-		IFirmwareProcess* process = this->processList.get(i);
-		if (process->handleMessage(msg) == true) {	// message processing stop
-			return;
+		//IFirmwareProcess* process = ;
+		if (this->processList.get(i)->handleMessage(msg) == true) {	// message processing stop
+			break;
 		}
 	}
+	delete msg;
 }
 
-void IFirmware::addProcess(String name) {
+void IFirmware::addProcess(String & name) {
 	this->addProcess(name, NULL);
 }
 
 void IFirmware::run() {
 	if (this->processList.size() == 0) {
-		ProcessFactoryReg* registration = this->findDefaultFactoryRegistration();
-		if (registration) {
-			this->addProcess(registration->id);	// do something or stop
-		} else {
-			TRACE("NOTHING TO DO!")
+		#ifdef DEFAULT_PROCESS
+			this->addProcess(F(DEFAULT_PROCESS));
+		#else
+			TRACELNF("NOTHING TO DO!")
 			return;
-		}
+		#endif
 	}
 	unsigned long curTime = millis();
 	if (this->update(curTime)) {	// true - auto process, false - manual process
 		for (int i = 0; i < this->processList.size(); i++) {
-			IFirmwareProcess* process = this->processList.get(i);
-			curTime = process->run(curTime);
+			//IFirmwareProcess* process = ;
+			curTime = this->processList.get(i)->run(curTime);
 		}
 	}
 	#ifdef DEBUG_PRO_MS
@@ -93,89 +93,77 @@ void IFirmware::run() {
 	#endif
 }
 
-void IFirmware::addProcess(String name, IProcessMessage* msg) {
-      		//TRACE("IFirmware::addProcess//1")
+void IFirmware::addProcess(String & name, IProcessMessage* msg) {
 	if (this->findProcess(name) > -1) {
 		return;	// only 1 instance of process
 	}
-      		//TRACE("IFirmware::addProcess//2")
 	IFirmwareProcess* newProcess = this->createProcess(name, msg);
+	if (msg != NULL) {
+		delete msg;
+	}
 	if (newProcess == NULL) {
-        		TRACE("IFirmware::addProcess//!newProcess")
+        		TRACELNF("IFirmware::addProcess//!newProcess")
 		return;
 	}
-      		TRACE("IFirmware::addProcess//newProcess")
+      		TRACELNF("IFirmware::addProcess//newProcess")
 	this->processList.add(newProcess);
 }
 
-void IFirmware::registerFactory(String id, FactoryFunction factory, bool isDefault = false) {
-	//if (this->findFactoryRegistration(id) == NULL) {
-		factoryList.add(new ProcessFactoryReg(id, factory, isDefault));
-	//}
-}
-
 		//*** OVERRIDE THIS ***/
+		//!@include "MemoryFree.h"
 void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
-	this->log(S(">>> PROC SUMMARY (for ", String(dT).c_str(), "ms)"));
+	{
+		String s = F("----- PROC SUMMARY (for ");
+		s += dT;
+		s += F("ms) -----");
+		TRACELN(s);
+	}
 	for (int i = 0; i < this->processList.size(); i++) {
 		IFirmwareProcess* process = processList.get(i);
 		unsigned long spentMs = process->getUsedMs();
-		this->log(S(process->getId().c_str(), ": ", String(round((spentMs * 100) / dT)).c_str(), "%"));
+		{
+			String s = String(process->getId());
+			s += F(": ");
+			s += round((spentMs * 100) / dT);
+			s += F("%");
+			TRACELN(s);
+		}
 		process->resetUsedMs();
 	}
-	this->log("end: PROCESS SUMMARY <<<");
+	//String s = String(F("MEMORY STATUS"));
+	//TRACEF("[!] MEMORY STATUS: ");
+	//TRACELN(freeMemory())
+	//TRACELNF("--------------------------------------");
 }
 
 bool IFirmware::update(unsigned long ms) {
 	return true;
 };
 
-IFirmwareProcess* IFirmware::createProcess(String name, IProcessMessage* msg) {
-	TRACE( S("IFirmware::createProcess::findFactoryRegistration: ", name.c_str()) );
-	ProcessFactoryReg* factoryReg = this->findFactoryRegistration(name);
-	TRACE("IFirmware::createProcess//factory/!")
-	if (factoryReg != NULL) {
-        		TRACE("IFirmware::createProcess//factory")
-		IFirmwareProcess* t = factoryReg->factory(name, msg);
-		TRACE("factory state:")
+IFirmwareProcess* IFirmware::createProcess(String & name, IProcessMessage* msg) {
+	ProcessFactory factory = this->getFactory(name);
+	TRACELNF("IFirmware::createProcess//factory/!")
+	if (factory != NULL) {
+        		TRACELNF("IFirmware::createProcess//factory")
+		IFirmwareProcess* t = factory(name, msg);
+		TRACEF("factory state: ")
 		if (t == NULL) {
-			TRACE("factory ERR")
+			TRACELNF("ERR")
 		}
 		else {
-			TRACE("factory OK")
+			TRACELNF("OK")
 		}
 		return t;
 	}
-      		TRACE(S("IFirmware::createProcess//!factoryReg:", name.c_str()))
 	return NULL;
 }
 
-int IFirmware::findProcess(String name) {
+int IFirmware::findProcess(String & name) {
 	for (int i = 0; i < this->processList.size(); i++) {
-		IFirmwareProcess* process = this->processList.get(i);
-		if (process->isId(name)) {
+		//IFirmwareProcess* process = this->processList.get(i);
+		if (this->processList.get(i)->isId(name)) {
 			return i;
 		}
 	}
 	return -1;
-}
-
-ProcessFactoryReg* IFirmware::findFactoryRegistration(String id) {
-	for (int i = 0; i < this->factoryList.size(); i++) {
-		ProcessFactoryReg* registration = this->factoryList.get(i);
-		if (registration->id.equals(id)) {
-			return registration;
-		}
-	}
-	return NULL;
-}
-
-ProcessFactoryReg* IFirmware::findDefaultFactoryRegistration() {
-	for (int i = 0; i < this->factoryList.size(); i++) {
-		ProcessFactoryReg* registration = this->factoryList.get(i);
-		if (registration->isDefault) {
-			return registration;
-		}
-	}
-	return NULL;
 }

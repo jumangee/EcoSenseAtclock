@@ -1,9 +1,13 @@
 #include "processy_message.h"
 
 String IProcessMessage::getSenderId() {
-	return sender->getId();
+	if (this->sender)
+		return sender->getId();
+	return String("");
 }
 
-bool IProcessMessage::isSenderId(String compareTo) {
-	return sender->isId(compareTo);
+bool IProcessMessage::isSenderId(String & compareTo) {
+	if (this->sender)
+		return sender->isId(compareTo);
+	return false;
 }

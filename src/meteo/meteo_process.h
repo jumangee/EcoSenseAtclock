@@ -7,7 +7,7 @@ class MeteoClockFirmware;
 
 class IMeteoClockProcess: public IFirmwareProcess {
   public:
-    IMeteoClockProcess(String id, IProcessMessage* msg) : IFirmwareProcess(id, msg) {
+    IMeteoClockProcess(String & id, IProcessMessage* msg) : IFirmwareProcess(id, msg) {
     }
 
 	//@implement

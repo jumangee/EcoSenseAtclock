@@ -4,25 +4,22 @@
 #include <Arduino.h>
 #include "processy.h"
 
-IFirmwareProcess::IFirmwareProcess(String id, IProcessMessage* msg) {
-	this->processId = id;
+IFirmwareProcess::IFirmwareProcess(String & id, IProcessMessage* msg) {
+	this->processId = String(id);
 	this->lastUpdate = millis();
 	#ifdef DEBUG_PRO_MS
 	this->resetUsedMs();
 	#endif
 	//TRACE(S("IFirmwareProcess::",this->processId.c_str(),"/", (this->pausedUpTo == NULL ? "NULL" : (String(*this->pausedUpTo)).c_str()) ))
 	this->pausedUpTo = 0;
+	this->handleMessage(msg);
 }
 
 IFirmwareProcess::~IFirmwareProcess() {
 }
 
-void IFirmwareProcess::log(String msg) {
-	this->getHost()->log(msg);
-}
-
-bool IFirmwareProcess::isId(String compareTo) {
-	return this->processId == compareTo;
+bool IFirmwareProcess::isId(String & compareTo) {
+	return this->processId.equals(compareTo);
 }
 
 unsigned long IFirmwareProcess::run(unsigned long start) {
@@ -53,8 +50,8 @@ void IFirmwareProcess::unPause() {
 }
 
 bool IFirmwareProcess::handleMessage(IProcessMessage* msg) {
-	return false;	// override this
-}
+	return false;
+};
 
 IFirmware* IFirmwareProcess::getHost() {
 	return IFirmware::get();

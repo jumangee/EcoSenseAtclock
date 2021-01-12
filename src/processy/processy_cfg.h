@@ -7,6 +7,11 @@
     #define DEBUG_SERIAL
 
     /*** processy inlines ***/
-    #define TRACE(t) this->log(t);
+    #define S(t) String(t)
+    #define SF(t) String(F(t))
+    #define TRACELN(t) Serial.println(t);
+    #define TRACELNF(t) Serial.println(String(F(t)));
+    #define TRACE(t) Serial.print(t);
+    #define TRACEF(t) Serial.print(String(F(t)));
 
 #endif

@@ -19,7 +19,8 @@
 			"xtree": "cpp",
 			"xutility": "cpp",
 			"string": "cpp",
-			"unordered_map": "cpp"
+			"unordered_map": "cpp",
+			"cmath": "cpp"
 		}
 	}
 }

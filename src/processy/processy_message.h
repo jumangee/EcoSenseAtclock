@@ -12,19 +12,23 @@ class IFirmwareProcess;
 
 class IProcessMessage {
 	public:
-		IProcessMessage(IFirmwareProcess* from, String type) {
+		IProcessMessage(IFirmwareProcess* from, int type) {
 			this->sender = from;
 			this->type = type;
 		}
 
 		//@implement
 		String getSenderId() {
-			return sender->getId();
+			if (this->sender)
+				return sender->getId();
+			return String("");
 		}
 
 		//@implement
-		bool isSenderId(String compareTo) {
-			return sender->isId(compareTo);
+		bool isSenderId(String & compareTo) {
+			if (this->sender)
+				return sender->isId(compareTo);
+			return false;
 		}
 
 		IFirmwareProcess* getSender() {
@@ -35,13 +39,13 @@ class IProcessMessage {
 			return getSender() == NULL;
 		}
 
-		String getType() {
+		int getType() {
 			return this->type;
 		}
 
 	private:
 		IFirmwareProcess* sender;
-		String type;
+		int type;
 };
 
 #endif

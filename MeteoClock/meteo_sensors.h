@@ -14,22 +14,20 @@
 //#include <Adafruit_Sensor.h>
 //#include <Adafruit_BME280.h>
 
-//class Adafruit_BME280;
+class Adafruit_BME280;
 
 class EnvironmentSensorsProcess: public IFirmwareProcess {
 	private:
-		//Adafruit_BME280* bme;
+		Adafruit_BME280* bme;
 		bool ready;
 		bool initDone;
 
 	public:
 		EnvironmentSensorsProcess(String id, IProcessMessage* msg);
 
-		~EnvironmentSensorsProcess() {
-			// stop process
-			this->log("EnvironmentSensorsProcess::stop");
-			//delete this->bme;
-		}
+		static IFirmwareProcess* factory(String & name, IProcessMessage* msg);
+
+		~EnvironmentSensorsProcess();
 
 		void init();
 

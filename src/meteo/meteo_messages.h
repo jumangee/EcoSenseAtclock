@@ -1,6 +1,3 @@
-#define MSG_COMMAND "COMMAND_MESSAGE"
-#define MSG_ENV_DATA "ENVDATA_MESSAGE"
-
 #ifndef _METEO_MESSAGES_H
 #define _METEO_MESSAGES_H
 
@@ -9,40 +6,21 @@ class IFirmwareProcess;
 #include "processy_message.h"
 #include <Arduino.h>
 
-class CmdMessage: public IProcessMessage {
-	public:
-		enum Cmd {
-			UNPAUSE_ALL,
-			PAUSE_ALL
-		};
-
-		CmdMessage(IFirmwareProcess* from, CmdMessage::Cmd cmd): IProcessMessage(from, MSG_COMMAND) {
-			this->cmd = cmd;
-		}
-
-		CmdMessage(CmdMessage::Cmd cmd): IProcessMessage(NULL, MSG_COMMAND) {
-			this->cmd = cmd;
-		}
-
-		Cmd getCmd() {
-			return this->cmd;
-		}
-
-	private:
-		Cmd cmd;
-};
+//--- MSG TYPES -------------------
+#define ENVDATA_MESSAGE 1001
+//---------------------------------
 
 class EnvDataMessage: public IProcessMessage {
 	public:
-		EnvDataMessage(IFirmwareProcess* from, float temp, byte humidity, int pressure, float altitude): IProcessMessage(from, MSG_ENV_DATA) {
+		EnvDataMessage(IFirmwareProcess* from, float t, byte h, int p, float a): IProcessMessage(from, ENVDATA_MESSAGE) {
 			this->active = true;
-			this->temp =  temp;
-			this->humidity = humidity;
-			this->pressure = pressure;
-			this->altitude = altitude;
+			this->temp =  t;
+			this->humidity = h;
+			this->pressure = p;
+			this->altitude = a;
 		}
 
-		EnvDataMessage(IFirmwareProcess* from): IProcessMessage(NULL, MSG_ENV_DATA) {
+		EnvDataMessage(IFirmwareProcess* from): IProcessMessage(from, ENVDATA_MESSAGE) {
 			this->active = false;
 		}
 

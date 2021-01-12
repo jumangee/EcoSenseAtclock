@@ -14,22 +14,23 @@
 #include <WString.h>
 #include <math.h>
 
-typedef IFirmwareProcess* (*FactoryFunction)(String, IProcessMessage*);
+typedef IFirmwareProcess* (*ProcessFactory)(String&, IProcessMessage*);
 
 class ProcessFactoryReg {
 	public:
 		String id;
-		FactoryFunction factory;
-		bool isDefault;
+		ProcessFactory factory;
 
-		ProcessFactoryReg(String name, FactoryFunction f, bool isDef) {
-			this->id = name;
+		ProcessFactoryReg(String & name, ProcessFactory f) {
+			this->id = String(name);
 			this->factory = f;
-			this->isDefault = isDef;
 		}
 };
 
 class IFirmware {
+	enum PROCESS {
+	};
+
 	protected:
 		static IFirmware* instance;
 
@@ -40,33 +41,31 @@ class IFirmware {
 			return IFirmware::instance;
 		}
 
-		IFirmwareProcess* getProcess(String name);
+		virtual ProcessFactory getFactory(String & name) = 0;
 
-		virtual void log(String msg) = 0;
+		IFirmwareProcess* getProcess(String & name);
 
-		void stopProcess(String name);
+		void stopProcess(String & name);
 
-		void pauseProcess(String name, unsigned long pauseTime);
+		void pauseProcess(String & name, unsigned long pauseTime);
 
-		void unPauseProcess(String name);
+		void unPauseProcess(String & name);
 
 		void stopAll();
 
-		void soloProcess(String name);
+		void soloProcess(String & name);
 
 		void sendMessage(IProcessMessage* msg);
 
-		void addProcess(String name);
+		void addProcess(String & name);
 
 		void run();
 
-		void addProcess(String name, IProcessMessage* msg);
-
-		void registerFactory(String id, FactoryFunction factory, bool isDefault = false);
+		void addProcess(String & name, IProcessMessage* msg);
 
 	protected:
 		LinkedList<IFirmwareProcess*> processList;
-		LinkedList<ProcessFactoryReg*> factoryList;
+
 		#ifdef DEBUG_PRO_MS
 		unsigned long msDebugTimerStart;
 
@@ -78,21 +77,17 @@ class IFirmware {
 
 		void resetProcessMsTotal() {
 			for (int i = 0; i < this->processList.size(); i++) {
-				IFirmwareProcess* process = this->processList.get(i);
-				process->resetUsedMs();
+				//IFirmwareProcess* process = ;
+				this->processList.get(i)->resetUsedMs();
 			}
 		}
 		#endif
 
 		bool update(unsigned long ms);
 
-		IFirmwareProcess* createProcess(String name, IProcessMessage* msg);
+		IFirmwareProcess* createProcess(String & name, IProcessMessage* msg);
 
-		int findProcess(String name);
-
-		ProcessFactoryReg* findFactoryRegistration(String id);
-
-		ProcessFactoryReg* findDefaultFactoryRegistration();
+		int findProcess(String & name);
 
 };
 

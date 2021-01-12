@@ -17,33 +17,30 @@ class IFirmwareProcess {
 		//@include "processy_cfg.h"
 		//@include "stuff.h"
 		//@include <Arduino.h>
-		IFirmwareProcess(String id, IProcessMessage* msg) {
-			this->processId = id;
+		IFirmwareProcess(String & id, IProcessMessage* msg) {
+			this->processId = String(id);
 			this->lastUpdate = millis();
 			#ifdef DEBUG_PRO_MS
 			this->resetUsedMs();
 			#endif
 			//TRACE(S("IFirmwareProcess::",this->processId.c_str(),"/", (this->pausedUpTo == NULL ? "NULL" : (String(*this->pausedUpTo)).c_str()) ))
 			this->pausedUpTo = 0;
+			this->handleMessage(msg);
 		}
 
 		//@implement
 		~IFirmwareProcess() {
 		}
 
+		static IFirmwareProcess* factory(String & name, IProcessMessage* msg);
+
 		String getId() {
-			return processId;
+			return this->processId;
 		}
 
 		//@implement
-    	//@include "processy.h"
-		void log(String msg){
-			this->getHost()->log(msg);
-		}
-
-		//@implement
-		bool isId(String compareTo) {
-			return this->processId == compareTo;
+		bool isId(String & compareTo) {
+			return this->processId.equals(compareTo);
 		}
 
 		//@implement
@@ -82,9 +79,9 @@ class IFirmwareProcess {
 		}
 
 		//@implement
-		bool handleMessage(IProcessMessage* msg) {
-			return false;	// override this
-		}
+		virtual bool handleMessage(IProcessMessage* msg) {
+			return false;
+		};
 
 	private:
 		String processId;
@@ -97,6 +94,7 @@ class IFirmwareProcess {
 
 	protected:
 		//@implement
+		//@include "processy.h"
 		IFirmware* getHost(){
 			return IFirmware::get();
 		}
