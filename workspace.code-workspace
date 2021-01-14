@@ -20,7 +20,16 @@
 			"xutility": "cpp",
 			"string": "cpp",
 			"unordered_map": "cpp",
-			"cmath": "cpp"
+			"cmath": "cpp",
+			"cstddef": "cpp",
+			"random": "cpp",
+			"functional": "cpp",
+			"memory": "cpp",
+			"tuple": "cpp",
+			"type_traits": "cpp",
+			"utility": "cpp",
+			"xmemory0": "cpp",
+			"xtr1common": "cpp"
 		}
 	}
 }

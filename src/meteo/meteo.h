@@ -7,9 +7,14 @@
 // PROCESSES NAMES
 
 // MAX 14 CHARS!!!
-#define PRC_MAIN "PRC_MAIN"
-#define PRC_SENSORS "PRC_SENSORS"
-//#define PRC_I2CSCANNER "PRC_I2CSCANNER"
+#define PRC_MAIN		101
+#define PRC_SENSORS		102
+#define PRC_I2CSCANNER	103
+#define PRC_MQ136SENSOR	104
+#define PRC_MQ4SENSOR	105
+#define PRC_RTC			106
+#define PRC_WIFI		107
+
 
 // END: NAMES
 //////////////////////////////////////////////////
@@ -22,8 +27,9 @@
 
 #include "meteo_process.h"
 #include "meteo_main.h"
-#include "meteo_sensors.h"
-//#include "meteo_i2c_scanner.h"
+#include "meteo_mq136sensor.h"
+#include "meteo_mq4sensor.h"
+#include "rtcprocess.h"
 
 #include "stuff.h"
 
@@ -32,12 +38,6 @@
 
 
 class MeteoClockFirmware: public IFirmware {
-
-	enum PROCESS {
-		MAIN		= (1),
-		SENSORS		= (2)
-	};
-
 	//@implement
 	//@include <Arduino.h>
 	MeteoClockFirmware(): IFirmware() {
@@ -45,32 +45,30 @@ class MeteoClockFirmware: public IFirmware {
 		TRACELNF("START");
 		#endif
 
-		{
-			String s = SF(PRC_MAIN);
-			this->addProcess(s);
-		}
-		{
-			String s = SF(PRC_SENSORS);
-			this->addProcess(s);
-		}
+		this->addProcess(PRC_MAIN);
+
+		this->addProcess(PRC_MQ136SENSOR);
+		this->addProcess(PRC_MQ4SENSOR);
+		this->addProcess(PRC_MQ4SENSOR);
+		this->addProcess(PRC_RTC);
+		this->addProcess(PRC_WIFI);
 	};
-
+	
 	public:
-
 		//@implement
 		//@include "meteo_main.h"
-		ProcessFactory getFactory(String & name) {
-			String PRC_MAINs = SF(PRC_MAIN);
-			String PRC_SENSORSs = SF(PRC_SENSORS);
-
-			const static byte size PROGMEM = {2};
-			const static ProcessFactoryReg factoryList[size] = {
-				FACTORY(PRC_MAINs, MainProcess),
-				FACTORY(PRC_SENSORSs, EnvironmentSensorsProcess)
+		ProcessFactory getFactory(int pId) {
+			const static byte size PROGMEM = {5};					//	factories count!
+			const static ProcessFactoryReg factoryList[size] = {	//	factories list
+				FACTORY(PRC_MAIN, MainProcess),
+				FACTORY(PRC_MQ136SENSOR, MQ136SensorProcess),
+				FACTORY(PRC_MQ4SENSOR, MQ4SensorProcess),
+				FACTORY(PRC_RTC, RTClockProcess),
+				FACTORY(PRC_WIFI, WifiProcess)
 			};
 
 			for (byte i = 0; i < size; i++) {
-				if (factoryList[i].id.equals(name)) {
+				if (factoryList[i].id == pId) {
 					return factoryList[i].factory;
 				}
 			}
@@ -82,7 +80,6 @@ class MeteoClockFirmware: public IFirmware {
 			if (IFirmware::instance == NULL) {
         		TRACELNF("new MeteoClockFirmware");
 				IFirmware::instance = new MeteoClockFirmware();
-				//((MeteoClockFirmware*)IFirmware::instance)->init();
 			}
 			return IFirmware::instance;
 		}

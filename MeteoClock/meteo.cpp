@@ -6,26 +6,23 @@ MeteoClockFirmware::MeteoClockFirmware() : IFirmware(){
 	#ifdef DEBUG_SERIAL
 	TRACELNF("START");
 	#endif
-	{
-		String s = SF(PRC_MAIN);
-		this->addProcess(s);
-	}
-	{
-		String s = SF(PRC_SENSORS);
-		this->addProcess(s);
-	}
+	this->addProcess(PRC_MAIN);
+	this->addProcess(PRC_MQ136SENSOR);
+	this->addProcess(PRC_MQ4SENSOR);
+	this->addProcess(PRC_MQ4SENSOR);
+	this->addProcess(PRC_RTC);
 };
 
-ProcessFactory MeteoClockFirmware::getFactory(String & name) {
-	String PRC_MAINs = SF(PRC_MAIN);
-	String PRC_SENSORSs = SF(PRC_SENSORS);
-	const static byte size PROGMEM = {2};
+ProcessFactory MeteoClockFirmware::getFactory(int pId) {
+	const static byte size PROGMEM = {4};
 	const static ProcessFactoryReg factoryList[size] = {
-		FACTORY(PRC_MAINs, MainProcess),
-		FACTORY(PRC_SENSORSs, EnvironmentSensorsProcess)
+		FACTORY(PRC_MAIN, MainProcess),
+		FACTORY(PRC_MQ136SENSOR, MQ136SensorProcess),
+		FACTORY(PRC_MQ4SENSOR, MQ4SensorProcess),
+		FACTORY(PRC_RTC, RTClockProcess)
 	};
 	for (byte i = 0; i < size; i++) {
-		if (factoryList[i].id.equals(name)) {
+		if (factoryList[i].id == pId) {
 			return factoryList[i].factory;
 		}
 	}
@@ -36,7 +33,6 @@ static IFirmware* MeteoClockFirmware::get() {
 	if (IFirmware::instance == NULL) {
         		TRACELNF("new MeteoClockFirmware");
 		IFirmware::instance = new MeteoClockFirmware();
-		//((MeteoClockFirmware*)IFirmware::instance)->init();
 	}
 	return IFirmware::instance;
 }

@@ -7,9 +7,13 @@
 // PROCESSES NAMES
 
 // MAX 14 CHARS!!!
-#define PRC_MAIN "PRC_MAIN"
-#define PRC_SENSORS "PRC_SENSORS"
-//#define PRC_I2CSCANNER "PRC_I2CSCANNER"
+#define PRC_MAIN		101
+#define PRC_SENSORS		102
+#define PRC_I2CSCANNER	103
+#define PRC_MQ136SENSOR	104
+#define PRC_MQ4SENSOR	105
+#define PRC_RTC			106
+
 
 // END: NAMES
 //////////////////////////////////////////////////
@@ -22,8 +26,9 @@
 
 #include "meteo_process.h"
 #include "meteo_main.h"
-#include "meteo_sensors.h"
-//#include "meteo_i2c_scanner.h"
+#include "meteo_mq136sensor.h"
+#include "meteo_mq4sensor.h"
+#include "rtcprocess.h"
 
 #include "stuff.h"
 
@@ -32,17 +37,10 @@
 
 
 class MeteoClockFirmware: public IFirmware {
-
-	enum PROCESS {
-		MAIN		= (1),
-		SENSORS		= (2)
-	};
-
 	MeteoClockFirmware();
-
+	
 	public:
-
-		ProcessFactory getFactory(String & name);
+		ProcessFactory getFactory(int pId);
 
 		static IFirmware* get();
 

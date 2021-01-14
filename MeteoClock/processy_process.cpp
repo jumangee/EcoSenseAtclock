@@ -4,8 +4,8 @@
 #include <Arduino.h>
 #include "processy.h"
 
-IFirmwareProcess::IFirmwareProcess(String & id, IProcessMessage* msg) {
-	this->processId = String(id);
+IFirmwareProcess::IFirmwareProcess(int pId, IProcessMessage* msg) {
+	this->processId = pId;
 	this->lastUpdate = millis();
 	#ifdef DEBUG_PRO_MS
 	this->resetUsedMs();
@@ -18,21 +18,21 @@ IFirmwareProcess::IFirmwareProcess(String & id, IProcessMessage* msg) {
 IFirmwareProcess::~IFirmwareProcess() {
 }
 
-bool IFirmwareProcess::isId(String & compareTo) {
-	return this->processId.equals(compareTo);
+bool IFirmwareProcess::isId(int compareTo) {
+	return this->processId == compareTo;
 }
 
 unsigned long IFirmwareProcess::run(unsigned long start) {
 	//TRACE(S("IFirmwareProcess//start=", String(start).c_str(), ", lastUpdate=", String(this->lastUpdate).c_str() ))
-	unsigned long ms = start - this->lastUpdate;
 	//TRACE(S("IFirmwareProcess::run/",this->processId.c_str(),"/start=", String(start).c_str(),", pause=", String(this->pausedUpTo).c_str()) )
 	if (this->pausedUpTo != 0) {
 		if (start < this->pausedUpTo) {
 			return start;	// no time wasting
 		}
 	}
+	unsigned long ms = start - this->lastUpdate;
 	this->unPause();
-	this->update(1);
+	this->update(ms);
 	unsigned long endTime = millis();
 	#ifdef DEBUG_PRO_MS
 	this->usedMs += endTime - start;

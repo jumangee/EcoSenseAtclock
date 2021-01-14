@@ -205,7 +205,7 @@ module.exports = function(grunt) {
 					if (methodInfo.length == 1) {	//methodIsConstructor(methodDesc, className) // class constructor
 						line = (className ? (className + "::") : '') + methodDesc + " " + str; //str.substr(bracket);
 					} else {
-						grunt.log.writeln(methodDesc.substr(methodInfo[2]).trim());
+						//grunt.log.writeln(methodDesc.substr(methodInfo[2]).trim());
 						line = methodInfo[0] + " " + (className ? (className + "::") : '') + methodDesc.substr(methodInfo[2]).trim() + " " + str;	//methodInfo[0].length
 					}
 					

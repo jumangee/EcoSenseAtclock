@@ -16,8 +16,11 @@
 
 #include <SSD1306Ascii.h>
 #include <SSD1306AsciiWire.h>
+#include <math.h>
+#include "meteoclockicons.h"
 
 #define OLED_ADDR   0x3C
+#define ANIM_WAIT_TIME 50
 
 //class Adafruit_SSD1306;
 
@@ -26,72 +29,64 @@ class MainProcess: public IFirmwareProcess {
 		SSD1306AsciiWire oled;
 		bool updateScreen;
 
-		float	temp;
+		int		temp;
 		byte	humidity;
 		int		pressure;
-		float	altitude;  //int
-	public:
-		MainProcess(String & id, IProcessMessage* msg);
+		byte	freeMem;
 
-		static IFirmwareProcess* factory(String & name, IProcessMessage* msg) {
-			TRACELNF("MainProcess::factory");
-			return new MainProcess(name, msg);
-		}
+		byte waitAnimPos;
+		int animTimer;
+	public:
+		MainProcess(int pId, IProcessMessage* msg);
+
+		static IFirmwareProcess* factory(int pId, IProcessMessage* msg);
 
 		~MainProcess();
 
 		void update(unsigned long ms);
 
-		void render() {
-			oled.clear();
-			//oled.print(F("Hello world!"));
-			oled.setCursor(10, 2);
-			oled.print(F("T="));
-			oled.print(this->temp);
-			oled.print(F("C"));
-			oled.setCursor(10, 3);
-			oled.print(F("H="));
-			oled.print(this->humidity);
-			oled.print(F("%"));
-			oled.setCursor(10, 4);
-			oled.print(F("P="));
-			oled.print(this->pressure);
-			oled.print(F("mm"));
-		}
+		void render();
 
 		bool handleMessage(IProcessMessage* msg);
 
-		void handleEnvDataMsg(EnvDataMessage* msg) {
-			if (msg->isActive()) {
-				String s = SF("BME data: T=");
-				s += msg->getTemp();
-				s += F("C, Hum=");
-				s += msg->getHumidity();
-				s += F("%, Pres=");
-				s += msg->getPressure();
-				s += F("mm, Alt=");
-				s += msg->getAltitude();
-				s += F("m");
-				TRACELN(s);
-				if (this->temp != msg->getTemp()) {
-					this->temp = msg->getTemp();
-					this->updateScreen = true;
+		void handleEnvDataMsg(EnvDataMessage* msg);
+
+		void handleMemUsageMsg(MemUsageMessage* msg);
+
+		void handleTimeMsg(CurrentTimeMsg* msg);
+
+		void handleAirQualityMsg(AirQualityMsg* msg) {
+			String gasInfo;
+			gasInfo.reserve(1);
+			oled.setFont(meteoclockicons);
+			byte y;
+
+			switch (msg->gasType())
+			{
+				case H2S: {
+					gasInfo = F("R");
+					y = 3;
+					break;
 				}
-				if (this->humidity != msg->getHumidity()) {
-					this->humidity = msg->getHumidity();
-					this->updateScreen = true;
+				case CH4: {
+					gasInfo = F("P");
+					y = 5;
+					break;
 				}
-				if (this->pressure != msg->getPressure()) {
-					this->pressure = msg->getPressure();
-					this->updateScreen = true;
-				}
-				if (this->altitude != msg->getAltitude()) {
-					this->altitude = msg->getAltitude();
-					this->updateScreen = true;
-				}
-			} else {
-				TRACELNF("BME Sensors is passive!");
 			}
+
+			oled.setCursor(95, y);
+			oled.print(gasInfo);
+
+			if (msg->getQuality() == 0) {
+				gasInfo = F("O");
+			} else if (msg->getQuality() == 1) {
+				gasInfo = F("!");
+			} else
+				gasInfo = F(" ");
+
+			oled.setCursor(111, y);
+			oled.print(gasInfo);
 		}
 };
 

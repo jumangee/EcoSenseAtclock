@@ -3,7 +3,7 @@
 
     /*** processy config ***/
     #define DEBUG_PRO_MS
-    #define DEBUG_PRO_PERIOD_MS 30000
+    #define DEBUG_PRO_PERIOD_MS 10000
     #define DEBUG_SERIAL
 
     /*** processy inlines ***/

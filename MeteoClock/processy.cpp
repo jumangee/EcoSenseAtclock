@@ -4,6 +4,7 @@ IFirmware* IFirmware::instance = NULL;
 #include <Arduino.h>
 #include "processy_cfg.h"
 #include "stuff.h"
+#include "MemoryFree.h"
 
 IFirmware::IFirmware() {
 	this->processList = LinkedList<IFirmwareProcess*>();
@@ -12,31 +13,31 @@ IFirmware::IFirmware() {
 	#endif
 }
 
-IFirmwareProcess* IFirmware::getProcess(String & name) {
-	int pos = this->findProcess(name);
+IFirmwareProcess* IFirmware::getProcess(int pId) {
+	int pos = this->findProcess(pId);
 	if (pos > -1) {
 		return this->processList.get(pos);
 	}
 	return NULL;
 }
 
-void IFirmware::stopProcess(String & name) {
-	int pos = this->findProcess(name);
+void IFirmware::stopProcess(int pId) {
+	int pos = this->findProcess(pId);
 	if (pos > -1) {
 		this->processList.remove(pos);
 	}
 }
 
-void IFirmware::pauseProcess(String & name, unsigned long pauseTime) {
-	int pos = this->findProcess(name);
+void IFirmware::pauseProcess(int pId, unsigned long pauseTime) {
+	int pos = this->findProcess(pId);
 	if (pos > -1) {
 		//IFirmwareProcess *process = ;
 		this->processList.get(pos)->pause(pauseTime);
 	}
 }
 
-void IFirmware::unPauseProcess(String & name) {
-	int pos = this->findProcess(name);
+void IFirmware::unPauseProcess(int pId) {
+	int pos = this->findProcess(pId);
 	if (pos > -1) {
 		IFirmwareProcess *process = this->processList.get(pos);
 		process->unPause();
@@ -47,9 +48,9 @@ void IFirmware::stopAll() {
 	this->processList.clear();
 }
 
-void IFirmware::soloProcess(String & name) {
+void IFirmware::soloProcess(int pId) {
 	this->stopAll();
-	this->addProcess(name);
+	this->addProcess(pId);
 }
 
 void IFirmware::sendMessage(IProcessMessage* msg) {
@@ -63,8 +64,8 @@ void IFirmware::sendMessage(IProcessMessage* msg) {
 	delete msg;
 }
 
-void IFirmware::addProcess(String & name) {
-	this->addProcess(name, NULL);
+void IFirmware::addProcess(int pId) {
+	this->addProcess(pId, NULL);
 }
 
 void IFirmware::run() {
@@ -78,6 +79,7 @@ void IFirmware::run() {
 	}
 	unsigned long curTime = millis();
 	if (this->update(curTime)) {	// true - auto process, false - manual process
+		curTime = millis();
 		for (int i = 0; i < this->processList.size(); i++) {
 			//IFirmwareProcess* process = ;
 			curTime = this->processList.get(i)->run(curTime);
@@ -93,11 +95,11 @@ void IFirmware::run() {
 	#endif
 }
 
-void IFirmware::addProcess(String & name, IProcessMessage* msg) {
-	if (this->findProcess(name) > -1) {
+void IFirmware::addProcess(int pId, IProcessMessage* msg) {
+	if (this->findProcess(pId) > -1) {
 		return;	// only 1 instance of process
 	}
-	IFirmwareProcess* newProcess = this->createProcess(name, msg);
+	IFirmwareProcess* newProcess = this->createProcess(pId, msg);
 	if (msg != NULL) {
 		delete msg;
 	}
@@ -110,7 +112,6 @@ void IFirmware::addProcess(String & name, IProcessMessage* msg) {
 }
 
 		//*** OVERRIDE THIS ***/
-		//!@include "MemoryFree.h"
 void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
 	{
 		String s = F("----- PROC SUMMARY (for ");
@@ -120,32 +121,34 @@ void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
 	}
 	for (int i = 0; i < this->processList.size(); i++) {
 		IFirmwareProcess* process = processList.get(i);
-		unsigned long spentMs = process->getUsedMs();
 		{
 			String s = String(process->getId());
 			s += F(": ");
-			s += round((spentMs * 100) / dT);
-			s += F("%");
-			TRACELN(s);
+			s += round((process->getUsedMs() * 100) / dT);
+			s += F("% ");
+			TRACELN(s + process->getUsedMs());
 		}
 		process->resetUsedMs();
 	}
-	//String s = String(F("MEMORY STATUS"));
-	//TRACEF("[!] MEMORY STATUS: ");
-	//TRACELN(freeMemory())
-	//TRACELNF("--------------------------------------");
+	TRACEF("[!] MEMORY STATUS: ");
+	{
+		int free = freeMemory();
+		this->sendMessage(new MemUsageMessage(free));
+		TRACELN(free)
+	}
+	TRACELNF("--------------------------------------");
 }
 
 bool IFirmware::update(unsigned long ms) {
 	return true;
 };
 
-IFirmwareProcess* IFirmware::createProcess(String & name, IProcessMessage* msg) {
-	ProcessFactory factory = this->getFactory(name);
+IFirmwareProcess* IFirmware::createProcess(int pId, IProcessMessage* msg) {
+	ProcessFactory factory = this->getFactory(pId);
 	TRACELNF("IFirmware::createProcess//factory/!")
 	if (factory != NULL) {
         		TRACELNF("IFirmware::createProcess//factory")
-		IFirmwareProcess* t = factory(name, msg);
+		IFirmwareProcess* t = factory(pId, msg);
 		TRACEF("factory state: ")
 		if (t == NULL) {
 			TRACELNF("ERR")
@@ -158,10 +161,10 @@ IFirmwareProcess* IFirmware::createProcess(String & name, IProcessMessage* msg) 
 	return NULL;
 }
 
-int IFirmware::findProcess(String & name) {
+int IFirmware::findProcess(int pId) {
 	for (int i = 0; i < this->processList.size(); i++) {
 		//IFirmwareProcess* process = this->processList.get(i);
-		if (this->processList.get(i)->isId(name)) {
+		if (this->processList.get(i)->isId(pId)) {
 			return i;
 		}
 	}

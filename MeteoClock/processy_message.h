@@ -9,6 +9,12 @@
 class IFirmwareProcess;
 
 #include "processy_process.h"
+#include <Arduino.h>
+#include <math.h>
+
+//--- MSG TYPES -------------------
+#define FREEMEM_MESSAGE 1000
+//---------------------------------
 
 class IProcessMessage {
 	public:
@@ -17,9 +23,9 @@ class IProcessMessage {
 			this->type = type;
 		}
 
-		String getSenderId();
+		int getSenderId();
 
-		bool isSenderId(String & compareTo);
+		bool isSenderId(int compareTo);
 
 		IFirmwareProcess* getSender() {
 			return sender;
@@ -36,6 +42,20 @@ class IProcessMessage {
 	private:
 		IFirmwareProcess* sender;
 		int type;
+};
+
+class MemUsageMessage: public IProcessMessage {
+	public:
+		MemUsageMessage(int free): IProcessMessage(NULL, FREEMEM_MESSAGE) {
+			this->free = byte(round(((float)free * 100.0)/2048));
+		}
+
+		byte getFreemem() {
+			return this->free;
+		}
+
+	private:
+		byte	free;
 };
 
 #endif

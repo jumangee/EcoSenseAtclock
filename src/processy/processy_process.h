@@ -9,7 +9,7 @@ class IProcessMessage;
 class IFirmware;
 
 #include "processy_cfg.h"
-#include <WString.h>
+//#include <WString.h>
 
 class IFirmwareProcess {
 	public:
@@ -17,8 +17,8 @@ class IFirmwareProcess {
 		//@include "processy_cfg.h"
 		//@include "stuff.h"
 		//@include <Arduino.h>
-		IFirmwareProcess(String & id, IProcessMessage* msg) {
-			this->processId = String(id);
+		IFirmwareProcess(int pId, IProcessMessage* msg) {
+			this->processId = pId;
 			this->lastUpdate = millis();
 			#ifdef DEBUG_PRO_MS
 			this->resetUsedMs();
@@ -32,15 +32,15 @@ class IFirmwareProcess {
 		~IFirmwareProcess() {
 		}
 
-		static IFirmwareProcess* factory(String & name, IProcessMessage* msg);
+		static IFirmwareProcess* factory(int pId, IProcessMessage* msg);
 
-		String getId() {
+		int getId() {
 			return this->processId;
 		}
 
 		//@implement
-		bool isId(String & compareTo) {
-			return this->processId.equals(compareTo);
+		bool isId(int compareTo) {
+			return this->processId == compareTo;
 		}
 
 		//@implement
@@ -49,15 +49,15 @@ class IFirmwareProcess {
 		//@include <Arduino.h>
 		unsigned long run(unsigned long start) {
 			//TRACE(S("IFirmwareProcess//start=", String(start).c_str(), ", lastUpdate=", String(this->lastUpdate).c_str() ))
-			unsigned long ms = start - this->lastUpdate;
 			//TRACE(S("IFirmwareProcess::run/",this->processId.c_str(),"/start=", String(start).c_str(),", pause=", String(this->pausedUpTo).c_str()) )
 			if (this->pausedUpTo != 0) {
 				if (start < this->pausedUpTo) {
 					return start;	// no time wasting
 				}
 			}
+			unsigned long ms = start - this->lastUpdate;
 			this->unPause();
-			this->update(1);
+			this->update(ms);
 			unsigned long endTime = millis();
 			#ifdef DEBUG_PRO_MS
 			this->usedMs += endTime - start;
@@ -84,7 +84,7 @@ class IFirmwareProcess {
 		};
 
 	private:
-		String processId;
+		int processId;
 		unsigned long lastUpdate;
 		unsigned long pausedUpTo;
 

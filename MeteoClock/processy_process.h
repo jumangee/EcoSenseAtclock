@@ -9,21 +9,21 @@ class IProcessMessage;
 class IFirmware;
 
 #include "processy_cfg.h"
-#include <WString.h>
+//#include <WString.h>
 
 class IFirmwareProcess {
 	public:
-		IFirmwareProcess(String & id, IProcessMessage* msg);
+		IFirmwareProcess(int pId, IProcessMessage* msg);
 
 		~IFirmwareProcess();
 
-		static IFirmwareProcess* factory(String & name, IProcessMessage* msg);
+		static IFirmwareProcess* factory(int pId, IProcessMessage* msg);
 
-		String getId() {
+		int getId() {
 			return this->processId;
 		}
 
-		bool isId(String & compareTo);
+		bool isId(int compareTo);
 
 		unsigned long run(unsigned long start);
 
@@ -36,7 +36,7 @@ class IFirmwareProcess {
 		virtual bool handleMessage(IProcessMessage* msg);
 
 	private:
-		String processId;
+		int processId;
 		unsigned long lastUpdate;
 		unsigned long pausedUpTo;
 
