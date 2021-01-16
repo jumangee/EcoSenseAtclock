@@ -26,19 +26,10 @@ void RTClockProcess::update(unsigned long ms) {
 		return;
 	}
             dotFlag = !dotFlag;
-            /*if (dotFlag) {            // каждую секунду пересчёт времени
-                secs++;
-                if (secs > 59) {        // каждую минуту
-                    secs = 0;
-                    mins++;
-                }
-                if (mins > 59) {        // каждый час*/
-                    DateTime now = rtc.now();
-                    //secs = now.second();
-                    /*if (hrs > 23) hrs = 0;
-                }
-            }*/
+            DateTime now = rtc.now();
             this->getHost()->sendMessage(new CurrentTimeMsg(now.hour(), now.minute(), dotFlag));
+            if (!dotFlag)
+                this->getHost()->sendMessage(new EnvDataMessage(NULL, rtc.getTemperature() - 1.4, 0, 0));
 	this->pause(950);
 }
 

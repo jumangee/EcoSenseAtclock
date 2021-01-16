@@ -14,10 +14,8 @@
 
 //#include <Arduino.h>
 
-//#define MQ4_ANALOG_PIN 15
-//#define MQ4_DIGITAL_PIN 8
-
-#define MQ136_ANALOG_PIN 16
+#define MQ136_ANALOG_PIN A1
+//16
 #define MQ136_DIGITAL_PIN 7
 
 #define READINGS_PER_RESULT 50
@@ -29,8 +27,8 @@
 //const float H2S_CURVE[2] PROGMEM = {-1.51, 1.088};		// m: [log(ppm1 / "RsRo1") - log(ppm2 / "RsRo2")], b: [log("RsRo3") - m * log(ppm3)]
 //const float CO_CURVE[2] PROGMEM = {-1.24, 0.7562};		// m: [log(ppm1 / "RsRo1") - log(ppm2 / "RsRo2")], b: [log("RsRo3") - m * log(ppm3)]
 
-const float H2S_CURVE[2] PROGMEM = {40.44109566, -1.085728557};
-const float CO_CURVE[2] PROGMEM = {2142.297846, -2.751369226};
+//const float H2S_CURVE[2] PROGMEM = {40.44109566, -1.085728557};
+//const float CO_CURVE[2] PROGMEM = {2142.297846, -2.751369226};
 
 class MQ136SensorProcess: public MQSensorProcess {
 	public:
@@ -38,7 +36,7 @@ class MQ136SensorProcess: public MQSensorProcess {
 		//@include "meteo_cfg.h"
 		MQ136SensorProcess(int pId, IProcessMessage* msg): MQSensorProcess(pId, msg) {
 			pinMode(MQ136_ANALOG_PIN, INPUT) ;
-			//pinMode(MQ136_DIGITAL_PIN, INPUT) ;
+			pinMode(MQ136_DIGITAL_PIN, INPUT) ;
 
 			TRACELNF("MQ136SensorProcess::init");
 		}
@@ -58,18 +56,20 @@ class MQ136SensorProcess: public MQSensorProcess {
 				return;
 			}
 
-			TRACELNF("---[ MQ-136 ]---");
-
 			{
-				TRACEF("[RAW] analog=");
+				TRACEF("[ MQ-136 ] analog=");
 				TRACE(this->getValue());
 				//TRACEF(", dig=");
 				//TRACE(this->mq136dig);
 				TRACEF(", V=");
-				TRACELN( this->getVoltage() );
+				TRACE( this->getVoltage() );
+				TRACEF(", instant=");
+				TRACE( this->instantValue(MQ136_ANALOG_PIN) );
+				TRACEF(", Dig=");
+				TRACELN( digitalRead(MQ136_DIGITAL_PIN) );
 			}
 
-			this->getHost()->sendMessage(new AirQualityMsg(H2S, this->getQuality(.6)));
+			this->getHost()->sendMessage(new AirQualityMsg(H2S, this->getQuality(.6), this->getVoltage()));
 
 			this->pause(ENVSENSORS_TIMEOUT);
 		}

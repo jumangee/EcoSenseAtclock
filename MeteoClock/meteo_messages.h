@@ -11,13 +11,14 @@ class IFirmwareProcess;
 #define ENVDATA_MESSAGE		1001
 #define CURTIME_MESSAGE		1002
 #define AIRQUALITY_MESSAGE	1003
+#define WIFISTATE_MESSAGE	1004
 //---------------------------------
 
 class EnvDataMessage: public IProcessMessage {
 	public:
 		EnvDataMessage(IFirmwareProcess* from, float t, byte h, int p): IProcessMessage(from, ENVDATA_MESSAGE) {
 			this->active = true;
-			this->temp =  int(round(t));
+			this->temp =  t;
 			this->humidity = h;
 			this->pressure = p;
 		}
@@ -31,6 +32,10 @@ class EnvDataMessage: public IProcessMessage {
 		}
 
 		int getTemp() {
+			return int(round(this->temp));
+		}
+
+		float getTempF() {
 			return this->temp;
 		}
 
@@ -44,7 +49,7 @@ class EnvDataMessage: public IProcessMessage {
 
 	private:
 		bool	active;
-		int		temp;
+		float	temp;
 		byte	humidity;
 		int		pressure;
 };
@@ -105,9 +110,10 @@ class AirQualityMsg: public IProcessMessage {
 		 * gasType: measured type
 		 * quality: 0-42 - norm, 43-84 - high, 84-127 - danger
 		 */
-		AirQualityMsg(AirQualityGasType gasType, byte quality): IProcessMessage(NULL, AIRQUALITY_MESSAGE) {
+		AirQualityMsg(AirQualityGasType gasType, byte quality, float v): IProcessMessage(NULL, AIRQUALITY_MESSAGE) {
 			this->gas =  gasType;
 			this->quality = quality;
+			this->voltage = v;
 		}
 
 		AirQualityGasType gasType() {
@@ -118,9 +124,28 @@ class AirQualityMsg: public IProcessMessage {
 			return this->quality / 42;
 		}
 
+		float getVoltage() {
+			return this->voltage;
+		}
+
 	private:
 		AirQualityGasType gas;
 		byte	quality;
+		float	voltage;
+};
+
+class WiFiStateMsg: public IProcessMessage {
+	public:
+		WiFiStateMsg(bool active): IProcessMessage(NULL, WIFISTATE_MESSAGE) {
+			this->active =  active;
+		}
+
+		bool isActive() {
+			return this->active;
+		}
+
+	private:
+		bool active;
 };
 
 #endif

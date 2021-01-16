@@ -56,7 +56,6 @@ void IFirmware::soloProcess(int pId) {
 void IFirmware::sendMessage(IProcessMessage* msg) {
 	if (msg == NULL) return;
 	for (int i = 0; i < processList.size(); i++) {
-		//IFirmwareProcess* process = ;
 		if (this->processList.get(i)->handleMessage(msg) == true) {	// message processing stop
 			break;
 		}
@@ -92,6 +91,8 @@ void IFirmware::run() {
 		handlerProcessDebugTimer(dT);
 		this->resetMsDebugTimer(millis());
 	}
+	#else
+		handlerProcessDebugTimer(0);
 	#endif
 }
 
@@ -113,6 +114,7 @@ void IFirmware::addProcess(int pId, IProcessMessage* msg) {
 
 		//*** OVERRIDE THIS ***/
 void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
+	#ifdef DEBUG_PRO_MS
 	{
 		String s = F("----- PROC SUMMARY (for ");
 		s += dT;
@@ -130,6 +132,7 @@ void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
 		}
 		process->resetUsedMs();
 	}
+	#endif
 	TRACEF("[!] MEMORY STATUS: ");
 	{
 		int free = freeMemory();
@@ -149,13 +152,6 @@ IFirmwareProcess* IFirmware::createProcess(int pId, IProcessMessage* msg) {
 	if (factory != NULL) {
         		TRACELNF("IFirmware::createProcess//factory")
 		IFirmwareProcess* t = factory(pId, msg);
-		TRACEF("factory state: ")
-		if (t == NULL) {
-			TRACELNF("ERR")
-		}
-		else {
-			TRACELNF("OK")
-		}
 		return t;
 	}
 	return NULL;

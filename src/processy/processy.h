@@ -1,7 +1,6 @@
-/*
-* Processy Firmware Framework
-*
-*/
+/**
+ * Processy Firmware Framework Core
+ */
 
 #ifndef _FIRMWARE_FRAMEWORK_H
 #define _FIRMWARE_FRAMEWORK_H
@@ -13,6 +12,8 @@
 #include "processy_message.h"
 //#include <WString.h>
 #include <math.h>
+
+#define FACTORY(name, className) ProcessFactoryReg(name, &className::factory)
 
 typedef IFirmwareProcess* (*ProcessFactory)(int, IProcessMessage*);
 
@@ -42,10 +43,6 @@ class IFirmware {
 		}
 
 	public:
-		enum class ProcessId {
-			IDLE = (0)
-		};
-
 		static IFirmware* get() {
 			return IFirmware::instance;
 		}
@@ -103,7 +100,6 @@ class IFirmware {
 			if (msg == NULL) return;
 
 			for (int i = 0; i < processList.size(); i++) {
-				//IFirmwareProcess* process = ;
 				if (this->processList.get(i)->handleMessage(msg) == true) {	// message processing stop
 					break;
 				}
@@ -142,6 +138,8 @@ class IFirmware {
 				handlerProcessDebugTimer(dT);
 				this->resetMsDebugTimer(millis());
 			}
+			#else
+				handlerProcessDebugTimer(0);
 			#endif
 		}
 
@@ -172,6 +170,7 @@ class IFirmware {
 		void resetMsDebugTimer(unsigned long val) {
 			this->msDebugTimerStart = val;
 		}
+		#endif
 
 		//@implement
 		//*** OVERRIDE THIS ***/
@@ -179,6 +178,7 @@ class IFirmware {
 		//@include "processy_cfg.h"
 		//@include "MemoryFree.h"
 		void handlerProcessDebugTimer(unsigned long dT) {
+			#ifdef DEBUG_PRO_MS
 			{
 				String s = F("----- PROC SUMMARY (for ");
 				s += dT;
@@ -196,6 +196,7 @@ class IFirmware {
 				}
 				process->resetUsedMs();
 			}
+			#endif
 			TRACEF("[!] MEMORY STATUS: ");
 			{
 				int free = freeMemory();
@@ -205,6 +206,7 @@ class IFirmware {
 			TRACELNF("--------------------------------------");
 		}
 
+		#ifdef DEBUG_PRO_MS
 		void resetProcessMsTotal() {
 			for (int i = 0; i < this->processList.size(); i++) {
 				//IFirmwareProcess* process = ;
@@ -225,13 +227,6 @@ class IFirmware {
 			if (factory != NULL) {
         		TRACELNF("IFirmware::createProcess//factory")
 				IFirmwareProcess* t = factory(pId, msg);
-				TRACEF("factory state: ")
-				if (t == NULL) {
-					TRACELNF("ERR")
-				}
-				else {
-					TRACELNF("OK")
-				}
 				return t;
 			}
 			return NULL;

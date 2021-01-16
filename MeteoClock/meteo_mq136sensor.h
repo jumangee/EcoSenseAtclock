@@ -14,10 +14,8 @@
 
 //#include <Arduino.h>
 
-//#define MQ4_ANALOG_PIN 15
-//#define MQ4_DIGITAL_PIN 8
-
-#define MQ136_ANALOG_PIN 16
+#define MQ136_ANALOG_PIN A1
+//16
 #define MQ136_DIGITAL_PIN 7
 
 #define READINGS_PER_RESULT 50
@@ -29,8 +27,8 @@
 //const float H2S_CURVE[2] PROGMEM = {-1.51, 1.088};		// m: [log(ppm1 / "RsRo1") - log(ppm2 / "RsRo2")], b: [log("RsRo3") - m * log(ppm3)]
 //const float CO_CURVE[2] PROGMEM = {-1.24, 0.7562};		// m: [log(ppm1 / "RsRo1") - log(ppm2 / "RsRo2")], b: [log("RsRo3") - m * log(ppm3)]
 
-const float H2S_CURVE[2] PROGMEM = {40.44109566, -1.085728557};
-const float CO_CURVE[2] PROGMEM = {2142.297846, -2.751369226};
+//const float H2S_CURVE[2] PROGMEM = {40.44109566, -1.085728557};
+//const float CO_CURVE[2] PROGMEM = {2142.297846, -2.751369226};
 
 class MQ136SensorProcess: public MQSensorProcess {
 	public:

@@ -1,7 +1,6 @@
-/*
-* Processy Firmware Framework
-*
-*/
+/**
+ * Processy Firmware Framework Core
+ */
 
 #ifndef _FIRMWARE_FRAMEWORK_H
 #define _FIRMWARE_FRAMEWORK_H
@@ -13,6 +12,8 @@
 #include "processy_message.h"
 //#include <WString.h>
 #include <math.h>
+
+#define FACTORY(name, className) ProcessFactoryReg(name, &className::factory)
 
 typedef IFirmwareProcess* (*ProcessFactory)(int, IProcessMessage*);
 
@@ -34,10 +35,6 @@ class IFirmware {
 		IFirmware();
 
 	public:
-		enum class ProcessId {
-			IDLE = (0)
-		};
-
 		static IFirmware* get() {
 			return IFirmware::instance;
 		}
@@ -73,9 +70,11 @@ class IFirmware {
 		void resetMsDebugTimer(unsigned long val) {
 			this->msDebugTimerStart = val;
 		}
+		#endif
 
 		void handlerProcessDebugTimer(unsigned long dT);
 
+		#ifdef DEBUG_PRO_MS
 		void resetProcessMsTotal() {
 			for (int i = 0; i < this->processList.size(); i++) {
 				//IFirmwareProcess* process = ;

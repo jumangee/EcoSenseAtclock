@@ -1,6 +1,7 @@
-/*
-* MeteClock Firmware MAIN process
-*/
+/**
+ * Display process
+ * for Processy Firmware Framework
+ */
 
 #ifndef _METEOCLOCK_MAIN_H
 #define _METEOCLOCK_MAIN_H
@@ -9,33 +10,53 @@
 #include "processy_process.h"
 
 #include "meteo.h"
-#include "meteo_process.h"
 #include "meteo_messages.h"
 
 #include <Arduino.h>
 
+#define INCLUDE_SCROLLING 0
+
 #include <SSD1306Ascii.h>
+
+#undef OPTIMIZE_I2C
+#define OPTIMIZE_I2C 0
+#undef INCLUDE_SCROLLING
+#define INCLUDE_SCROLLING 0
+
 #include <SSD1306AsciiWire.h>
+
+
 #include <math.h>
 #include "meteoclockicons.h"
 
 #define OLED_ADDR   0x3C
-#define ANIM_WAIT_TIME 50
 
-//class Adafruit_SSD1306;
+//#define MAIN_FONT System5x7
+#define MAIN_FONT Stang5x7
+#define ICONS_FONT meteoclockicons
+
+#define SPRITE_GAS_CH4	0x2A
+#define SPRITE_GAS_H2S	0x24
+#define SPRITE_OK		0x2C
+#define SPRITE_WARNING	0x21
+#define SPRITE_DANGER	0x2E
+#define SPRITE_SPC		0x20
+#define SPRITE_WIFI		0x22
+
 
 class MainProcess: public IFirmwareProcess {
 	private:
 		SSD1306AsciiWire oled;
-		bool updateScreen;
+		bool	updateScreen;
 
 		int		temp;
 		byte	humidity;
 		int		pressure;
-		byte	freeMem;
+		byte	gasH2S;
+		byte	gasCH4;
 
-		byte waitAnimPos;
-		int animTimer;
+		bool	clocktick;
+
 	public:
 		//@implement
 		//@include <SSD1306AsciiWire.h>
@@ -46,26 +67,15 @@ class MainProcess: public IFirmwareProcess {
 			oled.begin(&Adafruit128x64, OLED_ADDR);
 			oled.clear();
 
-			waitAnimPos = 0;
-			animTimer = 0;
+			temp = 0;
 
-			
-			/*oled.setFont(meteoclockicons);
-			oled.setCursor(0, 2);
-			oled.print(F("0123456789!@"));
-			oled.setCursor(0, 3);
-			oled.print(F(" !\"#$%&'()*"));
-			oled.setCursor(0, 4);
-			oled.print(F("+,-./:;<=>?@"));
-			oled.setCursor(0, 5);
-			oled.print(F("ABCDEFGHI"));*/
+			clocktick = true;
+			gasH2S = 0;
+			gasCH4 = 0;
 
-			//oled.setCursor(0, 1);
-			//oled.print(F("________________________"));
-			//oled.print(F("------------------------"));
+			printGasInfo(SPRITE_GAS_H2S, 2, this->gasH2S);
+			printGasInfo(SPRITE_GAS_CH4, 5, this->gasCH4);
 
-			this->freeMem = 101;	// >100 - hide msg
-			
 			this->updateScreen = false;
 		}
 
@@ -79,82 +89,70 @@ class MainProcess: public IFirmwareProcess {
 		~MainProcess() {
 			// stop process
 			TRACELNF("MainProcess::stop");
-			//delete this->display;
 		}
 
 		//@implement
 		void update(unsigned long ms) {
-			/*this->animTimer += ms;
-			if (this->animTimer > ANIM_WAIT_TIME) {
-				this->animTimer = 0;
-				this->waitAnimPos++;
-				if (this->waitAnimPos > 7) {
-					this->waitAnimPos = 0;
-				}
-			}
-			oled.setCursor(113, 5);
-			oled.setFont(meteoclockicons);
-			oled.print(String(String(F("ABCDEFGH")).charAt(waitAnimPos)));*/
+
 
 			if (this->updateScreen) {
 				this->render();
 				this->updateScreen = false;
 			}
-			this->pause(3);
+
+			if (this->gasH2S > 0) {
+				printGasInfo(SPRITE_GAS_H2S, 2, this->gasH2S);
+			}
+			if (this->gasCH4 > 0) {
+				printGasInfo(SPRITE_GAS_CH4, 5, this->gasCH4);
+			}
+
+			this->pause(5);
 		}
 
 		//@implement
 		//@include <SSD1306AsciiWire.h>
 		void render() {
-			oled.setFont(System5x7);
-			oled.clearField(0, 0, 4);
-			{
-				bool warn = false;
-				if (this->temp > 30 || this->temp < 18) {
-					oled.setCursor(5, 0);
-					oled.print(F("!"));
-					warn = true;
-				}
-				if (this->humidity > 35 || this->humidity < 20) {
-					oled.setCursor(10, 0);
-					oled.print(F("!"));
-					warn = true;
-				}
-				if (warn) {
-					oled.setCursor(0, 0);
-					oled.print(F("["));
-					oled.setCursor(15, 0);
-					oled.print(F("]"));
-				} else {
-					oled.setCursor(0, 0);
-					oled.print(F("OK"));
-				}
+			oled.setFont(ICONS_FONT);
+			oled.setCursor(0, 2);
+			oled.print(F("( "));
+			oled.setFont(MAIN_FONT);
+			oled.set2X();
+			oled.print(this->temp);
+			oled.setFont(ICONS_FONT);
+			oled.set1X();
+			oled.print(F(")"));
+
+			oled.setCursor(0, 4);
+			oled.print(F("# "));
+			if (this->humidity > 0) {
+				oled.setFont(MAIN_FONT);
+				oled.set2X();
+				oled.print(this->humidity);
+				oled.set1X();
+				oled.setRow(oled.row()+1);
+				oled.print(F("%"));
+			} else {
+				oled.setFont(MAIN_FONT);
+				oled.set2X();
+				oled.print(F("-   "));
+				oled.set1X();
 			}
 
-			oled.clearField(0, 2, 5);
-			oled.setCursor(0, 2);
-			oled.print(F("T: "));
-			oled.print(this->temp);
-			oled.print(F(" C"));
-
-			oled.clearField(0, 3, 5);			
-			oled.setCursor(0, 3);
-			oled.print(F("H: "));
-			oled.print(this->humidity);
-			oled.print(F(" %"));
-
-			oled.clearField(0, 4, 5);
-			oled.setCursor(0, 4);			
-			oled.print(F("P: "));
-			oled.print(this->pressure);
-			oled.print(F(" mm"));
-
-			if (this->freeMem < 61) {
-				oled.clearField(8, 4, 8);
-				oled.setCursor(85, 1);
-				oled.print(F("Mem "));
-				oled.print( this->freeMem );
-				oled.print(F("%"));
+			oled.setCursor(0, 6);			
+			oled.setFont(ICONS_FONT);
+			oled.print(F("- "));
+			if (this->pressure > 0) {
+				oled.setFont(MAIN_FONT);
+				oled.set2X();
+				oled.print(this->pressure);
+				oled.setFont(ICONS_FONT);
+				oled.set1X();
+			} else {
+				oled.setFont(MAIN_FONT);
+				oled.set2X();
+				oled.print(F("-   "));
+				oled.set1X();
 			}
 		}
 
@@ -164,20 +162,21 @@ class MainProcess: public IFirmwareProcess {
 			{
 				case ENVDATA_MESSAGE: {
 					this->handleEnvDataMsg((EnvDataMessage*)msg);
-					return true;
-				}
-				case FREEMEM_MESSAGE: {
-					this->handleMemUsageMsg((MemUsageMessage*)msg);
-					return true;
+					break;
 				}
 				case AIRQUALITY_MESSAGE: {
 					this->handleAirQualityMsg((AirQualityMsg*)msg);
-					return true;
+					break;
 				}
 				case CURTIME_MESSAGE: {
 					this->handleTimeMsg((CurrentTimeMsg*)msg);
-					return true;
+					return true; // dispose
 				}
+				case WIFISTATE_MESSAGE: {
+					this->handleWifiMsg((WiFiStateMsg*)msg);
+					return true; // dispose
+				}
+				
 			}
 			return false;
 		}
@@ -210,53 +209,108 @@ class MainProcess: public IFirmwareProcess {
 		}
 
 		//@implement
-		void handleMemUsageMsg(MemUsageMessage* msg) {
-			this->freeMem = msg->getFreemem();
-		}
-
-		//@implement
 		void handleTimeMsg(CurrentTimeMsg* msg) {
 			oled.setFont(Stang5x7);
-			String time = msg->getTime();
 			oled.setCursor(0, 0);
 			oled.set2X();
 			//oled.clearField(0, 0, 5);
-			oled.print(time);
+			oled.print(msg->getTime());
 			oled.set1X();
+
+			clocktick = !clocktick;
+		}
+
+		void printGasInfo(char g, byte row, byte quality) {
+			oled.setFont(ICONS_FONT);
+			if (quality > 0) {
+				oled.setInvertMode(clocktick);
+			} else {
+				oled.setInvertMode(false);
+			}
+			oled.setCursor(90, row);
+			oled.print(g);
+			oled.print(0x20);
+
+			oled.setCol(108);
+			if (quality == 0) {
+				oled.print(SPRITE_OK);	//
+			} else if (quality == 1) {
+				oled.print(SPRITE_WARNING);
+			} else {
+				oled.print(SPRITE_DANGER);
+			}
+			oled.print(0x20);
+			oled.setInvertMode(false);
 		}
 
 		void handleAirQualityMsg(AirQualityMsg* msg) {
+			switch (msg->gasType())
+			{
+				case H2S: {
+					if (this->gasH2S != msg->getQuality()) {
+						this->gasH2S = msg->getQuality();
+						printGasInfo(SPRITE_GAS_H2S, 2, this->gasH2S);
+					}
+					return;
+				}
+				case CH4: {
+					if (this->gasCH4 != msg->getQuality()) {
+						this->gasCH4 = msg->getQuality();
+						printGasInfo(SPRITE_GAS_CH4, 5, this->gasCH4);
+					}
+					return;
+				}
+			}
+		}
+
+		/*void handleAirQualityMsg(AirQualityMsg* msg) {
 			String gasInfo;
-			gasInfo.reserve(1);
-			oled.setFont(meteoclockicons);
+			gasInfo.reserve(2);
+			oled.setFont(ICONS_FONT);
 			byte y;
+
+			if (msg->getQuality() > 0) {
+				oled.setInvertMode(clocktick);
+			}
 
 			switch (msg->gasType())
 			{
 				case H2S: {
-					gasInfo = F("R");
-					y = 3;
+					gasInfo += F("R");
+					y = 2;
 					break;
 				}
 				case CH4: {
-					gasInfo = F("P");
+					gasInfo += F("P");
 					y = 5;
 					break;
 				}
 			}
 
-			oled.setCursor(95, y);
+			oled.setCursor(90, y);
 			oled.print(gasInfo);
 
 			if (msg->getQuality() == 0) {
-				gasInfo = F("O");
+				gasInfo = F("=");
 			} else if (msg->getQuality() == 1) {
 				gasInfo = F("!");
-			} else
-				gasInfo = F(" ");
-
+			} else {
+				gasInfo = F(")");
+			}
 			oled.setCursor(111, y);
 			oled.print(gasInfo);
+
+			oled.setInvertMode(false);			
+		}*/
+
+		void handleWifiMsg(WiFiStateMsg* msg) {
+			oled.setFont(ICONS_FONT);
+			oled.setCursor(90, 0);
+			if (msg->isActive()) {
+				oled.print(SPRITE_WIFI);
+			} else {
+				oled.print(F("   "));
+			}
 		}
 };
 

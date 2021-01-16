@@ -30,16 +30,16 @@
 class MQSensorProcess: public IFirmwareProcess {
 	private:
 		byte readingsCount;
-        int value;
+        uint16_t value;
 
 	public:
 		MQSensorProcess(int pId, IProcessMessage* msg);
 
-        int instantValue(byte pin) {
+        uint16_t instantValue(byte pin) {
             return analogRead(pin);
         }
 
-        int getValue() {
+        uint16_t getValue() {
             return value;
         }
 
@@ -47,10 +47,10 @@ class MQSensorProcess: public IFirmwareProcess {
          * Calc V from analog value
          */
         float getVoltage(float Vfull = 5) {
-            return float(Vfull * value) / 1024;
+            return (value + .5) * (5.0 / 1023.0);
         }
 
-		float getRatio(float airR0, float Rl, float V = 5) {
+		/*float getRatio(float airR0, float Rl, float V = 5) {
 			float Vrl = this->getVoltage(V);
 
 			float Rs0 = ((V/Vrl)-1) * Rl;
@@ -63,7 +63,7 @@ class MQSensorProcess: public IFirmwareProcess {
 			//TRACELN(actualR0);
 
 			return rs / actualR0;
-		}        
+		}*/
 
 		bool readingsDone(byte pin, byte countPerResult) {
 			if (readingsCount >= countPerResult) {
@@ -75,7 +75,7 @@ class MQSensorProcess: public IFirmwareProcess {
 			readingsCount++;
 
 			if (readingsCount >= countPerResult) {
-				value = value / readingsCount;
+				value = round(value / float(readingsCount));
 				return true;
 			}
 			return false;
@@ -83,18 +83,18 @@ class MQSensorProcess: public IFirmwareProcess {
 
 		~MQSensorProcess();
 
-		float cosh(float x) {
+		/*float cosh(float x) {
 			return ( expf(x) + expf(-x) ) / 2;
-		}
+		}*/
 
 		byte getQuality(float k = .6) {
 			return exp((getVoltage()-5)*k)*127;
 		}
 
-		int MQGetConcentration(float airR0, float Rl, const float *pcurve, float V = 5) {
+		/*int MQGetConcentration(float airR0, float Rl, const float *pcurve, float V = 5) {
             return pow(10, ( double(log10( this->getRatio(airR0, Rl, V) ) - pcurve[1]) / pcurve[0]));
 			//return (double)(pcurve[0] * pow(((double)this->getRatio(airR0, Rl, V)), pcurve[1]));
-		}
+		}*/
 };
 
 #endif

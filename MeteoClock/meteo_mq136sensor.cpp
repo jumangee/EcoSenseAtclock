@@ -5,7 +5,7 @@
 
 MQ136SensorProcess::MQ136SensorProcess(int pId, IProcessMessage* msg) : MQSensorProcess(pId, msg){
 	pinMode(MQ136_ANALOG_PIN, INPUT) ;
-	//pinMode(MQ136_DIGITAL_PIN, INPUT) ;
+	pinMode(MQ136_DIGITAL_PIN, INPUT) ;
 	TRACELNF("MQ136SensorProcess::init");
 }
 
@@ -18,15 +18,18 @@ void MQ136SensorProcess::update(unsigned long ms) {
 	if (!readingsDone(MQ136_ANALOG_PIN, READINGS_PER_RESULT)) {
 		return;
 	}
-	TRACELNF("---[ MQ-136 ]---");
 	{
-		TRACEF("[RAW] analog=");
+		TRACEF("[ MQ-136 ] analog=");
 		TRACE(this->getValue());
 		//TRACEF(", dig=");
 		//TRACE(this->mq136dig);
 		TRACEF(", V=");
-		TRACELN( this->getVoltage() );
+		TRACE( this->getVoltage() );
+		TRACEF(", instant=");
+		TRACE( this->instantValue(MQ136_ANALOG_PIN) );
+		TRACEF(", Dig=");
+		TRACELN( digitalRead(MQ136_DIGITAL_PIN) );
 	}
-	this->getHost()->sendMessage(new AirQualityMsg(H2S, this->getQuality(.6)));
+	this->getHost()->sendMessage(new AirQualityMsg(H2S, this->getQuality(.6), this->getVoltage()));
 	this->pause(ENVSENSORS_TIMEOUT);
 }
