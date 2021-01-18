@@ -1,6 +1,5 @@
 #include "meteo_mq136sensor.h"
 #include "meteo_cfg.h"
-#include "processy_cfg.h"
 #include "mqsensor_process.h"
 
 MQ136SensorProcess::MQ136SensorProcess(int pId, IProcessMessage* msg) : MQSensorProcess(pId, msg){

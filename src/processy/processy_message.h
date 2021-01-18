@@ -18,40 +18,22 @@ class IFirmwareProcess;
 
 class IProcessMessage {
 	public:
-		IProcessMessage(IFirmwareProcess* from, int type) {
+		IProcessMessage(IFirmwareProcess* from, uint16_t type) {
 			this->sender = from;
 			this->type = type;
-		}
-
-		//@implement
-		int getSenderId() {
-			if (this->sender)
-				return sender->getId();
-			return -1;
-		}
-
-		//@implement
-		bool isSenderId(int compareTo) {
-			if (this->sender)
-				return sender->isId(compareTo);
-			return false;
 		}
 
 		IFirmwareProcess* getSender() {
 			return sender;
 		}
 
-		bool isAnonymous() {
-			return getSender() == NULL;
-		}
-
-		int getType() {
+		uint16_t getType() {
 			return this->type;
 		}
 
 	private:
 		IFirmwareProcess* sender;
-		int type;
+		uint16_t type;
 };
 
 class MemUsageMessage: public IProcessMessage {

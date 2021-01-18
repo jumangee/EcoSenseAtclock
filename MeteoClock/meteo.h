@@ -19,6 +19,7 @@
 #ifndef _METEOCLOCK_FFPRO_H
 #define _METEOCLOCK_FFPRO_H
 
+#include "meteo_cfg.h"
 #include "processy_cfg.h"
 #include "processy.h"
 
@@ -27,12 +28,12 @@
 #include "meteo_mq4sensor.h"
 #include "rtcprocess.h"
 #include "meteo_wifi_wifiesp_lite.h"
-#include "meteo_sensors_bme280.h"
+//#include "meteo_sensors_bme280.h"
 
 #include "stuff.h"
 
 //---[ IMPORTANT! ]-----------------
-#define TOTAL_FACTORIES_INCLUDED 6
+#define TOTAL_FACTORIES_INCLUDED 5
 //----------------------------------
 
 class MeteoClockFirmware: public IFirmware {

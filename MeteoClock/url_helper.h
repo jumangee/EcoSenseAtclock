@@ -4,7 +4,7 @@
     #include <Arduino.h>
     //#include <WString.h>
     #include "LinkedList/LinkedList.h"
-    #include "processy_cfg.h"
+    //#include "processy_cfg.h"
     #include "meteo_messages.h"
 
     class UrlParam {

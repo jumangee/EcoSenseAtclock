@@ -108,27 +108,26 @@ void IFirmware::addProcess(int pId, IProcessMessage* msg) {
         		TRACELNF("IFirmware::addProcess//!newProcess")
 		return;
 	}
-      		TRACELNF("IFirmware::addProcess//newProcess")
 	this->processList.add(newProcess);
 }
 
 		//*** OVERRIDE THIS ***/
+		//--@include "processy_cfg.h"
 void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
 	#ifdef DEBUG_PRO_MS
 	{
-		String s = F("----- PROC SUMMARY (for ");
-		s += dT;
-		s += F("ms) -----");
-		TRACELN(s);
+		TRACEF("----- PROC SUMMARY (for ");
+		TRACE(dT);
+		TRACELNF("ms) -----");
 	}
 	for (int i = 0; i < this->processList.size(); i++) {
 		IFirmwareProcess* process = processList.get(i);
 		{
-			String s = String(process->getId());
-			s += F(": ");
-			s += round((process->getUsedMs() * 100) / dT);
-			s += F("% ");
-			TRACELN(s + process->getUsedMs());
+			TRACE(process->getId());
+			TRACEF(": ");
+			TRACE(round((process->getUsedMs() * 100) / dT));
+			TRACE(process->getUsedMs());
+			TRACELNF("% ");
 		}
 		process->resetUsedMs();
 	}
@@ -159,7 +158,6 @@ IFirmwareProcess* IFirmware::createProcess(int pId, IProcessMessage* msg) {
 
 int IFirmware::findProcess(int pId) {
 	for (int i = 0; i < this->processList.size(); i++) {
-		//IFirmwareProcess* process = this->processList.get(i);
 		if (this->processList.get(i)->isId(pId)) {
 			return i;
 		}

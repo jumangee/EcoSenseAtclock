@@ -5,6 +5,9 @@
 MQSensorProcess::MQSensorProcess(int pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
 	readingsCount = 0;
             value = 0;
+	preHeated = false;
+	startTime = millis();
+	this->pause(PREHEAT_TIME);
 	TRACELNF("MQSensorProcess::init");
 }
 

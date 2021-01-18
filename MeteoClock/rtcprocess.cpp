@@ -2,13 +2,15 @@
 #include <Arduino.h>
 
 RTClockProcess::RTClockProcess(int pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
+            dotFlag = false;
             if (rtc.begin()) {
                 this->active = true;
                 if (RESET_CLOCK || rtc.lostPower())
-                    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));                
-                dotFlag = false;
+                    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+		// TODO: http://worldtimeapi.org/api/timezone/Europe/Moscow.txt
+		TRACELNF("[RTC] OK")
             } else {
-                TRACELNF("RTC disabled")
+                TRACELNF("[RTC] FAIL")
                 active = false;
             }
 	TRACELNF("RTClockProcess::init");
@@ -27,9 +29,14 @@ void RTClockProcess::update(unsigned long ms) {
 	}
             dotFlag = !dotFlag;
             DateTime now = rtc.now();
+	//TRACEF("[RTC] Time: ")
+	//TRACELN(now.timestamp())
             this->getHost()->sendMessage(new CurrentTimeMsg(now.hour(), now.minute(), dotFlag));
-            if (!dotFlag)
-                this->getHost()->sendMessage(new EnvDataMessage(NULL, rtc.getTemperature() - 1.4, 0, 0));
+            if (!dotFlag) {
+		//TRACEF("[RTC] TEMPERATURE: ")
+		//TRACELN(rtc.getTemperature())
+                this->getHost()->sendMessage(new EnvDataMessage(rtc.getTemperature() - 1.4, 0, 0));
+	}
 	this->pause(950);
 }
 

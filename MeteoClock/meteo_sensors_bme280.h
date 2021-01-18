@@ -11,11 +11,23 @@
 
 #include "meteo.h"
 
+#define CO2_SENSOR
+
+#ifdef CO2_SENSOR
+	#include "MHZ19_uart/MHZ19_uart.h"
+	#define MHZ19_RXPIN 3
+	#define MHZ19_TXPIN 4
+#endif
+
 class Adafruit_BME280;
 
 class EnvironmentSensorsProcess: public IFirmwareProcess {
 	private:
 		Adafruit_BME280* bme;
+		#ifdef CO2_SENSOR
+		MHZ19_uart		mhz19;
+		bool			mhz19active;
+		#endif
 		bool ready;
 		bool initDone;
 

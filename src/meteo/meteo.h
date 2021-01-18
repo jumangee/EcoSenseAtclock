@@ -19,6 +19,7 @@
 #ifndef _METEOCLOCK_FFPRO_H
 #define _METEOCLOCK_FFPRO_H
 
+#include "meteo_cfg.h"
 #include "processy_cfg.h"
 #include "processy.h"
 
@@ -27,19 +28,19 @@
 #include "meteo_mq4sensor.h"
 #include "rtcprocess.h"
 #include "meteo_wifi_wifiesp_lite.h"
-#include "meteo_sensors_bme280.h"
+//#include "meteo_sensors_bme280.h"
 
 #include "stuff.h"
 
 //---[ IMPORTANT! ]-----------------
-#define TOTAL_FACTORIES_INCLUDED 6
+#define TOTAL_FACTORIES_INCLUDED 5
 //----------------------------------
 
 class MeteoClockFirmware: public IFirmware {
 	//@implement
 	//@include <Arduino.h>
 	MeteoClockFirmware(): IFirmware() {
-		#ifdef DEBUG_SERIAL
+		#ifdef PROCESSY_DEBUG_SERIAL
 		TRACELNF("START");
 		#endif
 
@@ -56,12 +57,12 @@ class MeteoClockFirmware: public IFirmware {
 		//@include "meteo_main.h"
 		ProcessFactory getFactory(int pId) {
 			const static ProcessFactoryReg factoryList[TOTAL_FACTORIES_INCLUDED] = {	//	factories list
-				FACTORY(PRC_MAIN, MainProcess),
-				FACTORY(PRC_MQ136SENSOR, MQ136SensorProcess),
-				FACTORY(PRC_MQ4SENSOR, MQ4SensorProcess),
-				FACTORY(PRC_RTC, RTClockProcess),
-				FACTORY(PRC_WIFI, WifiProcess),
-				FACTORY(PRC_BME280SENSOR, EnvironmentSensorsProcess),
+				FACTORY(PRC_MAIN, MainProcess)
+				,FACTORY(PRC_MQ136SENSOR, MQ136SensorProcess)
+				,FACTORY(PRC_MQ4SENSOR, MQ4SensorProcess)
+				,FACTORY(PRC_RTC, RTClockProcess)
+				,FACTORY(PRC_WIFI, WifiProcess)
+				//,FACTORY(PRC_BME280SENSOR, EnvironmentSensorsProcess),
 			}; //--[ size must be eq TOTAL_FACTORIES_INCLUDED ]--
 
 			for (byte i = 0; i < TOTAL_FACTORIES_INCLUDED; i++) {

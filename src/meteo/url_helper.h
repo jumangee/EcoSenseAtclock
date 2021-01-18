@@ -4,7 +4,7 @@
     #include <Arduino.h>
     //#include <WString.h>
     #include "LinkedList/LinkedList.h"
-    #include "processy_cfg.h"
+    //#include "processy_cfg.h"
     #include "meteo_messages.h"
 
     class UrlParam {
@@ -23,7 +23,7 @@
             
         public:
             //@implement
-            //@include "processy_cfg.h"
+            //--@include "processy_cfg.h"
             //@include "LinkedList/LinkedList.h"
             UrlParam() {
                 this->active = false;
@@ -149,37 +149,37 @@
             //@implement
             void setParam(byte id, byte v) {
                 UrlParam* param = this->getParam(id);
-                if (!param) {
-                    UrlParam *p = new UrlParam();
-                    p->setValue(id, v);
-                    this->params.add(p);
-                } else {
+                if (param) {
                     param->setValue(id, v);
+                    return;
                 }
+                param = new UrlParam();
+                param->setValue(id, v);
+                this->params.add(param);
             }
 
             //@implement
             void setParam(byte id, uint16_t v) {
                 UrlParam* param = this->getParam(id);
-                if (!param) {
-                    UrlParam *p = new UrlParam();
-                    p->setValue(id, v);
-                    this->params.add(p);
-                } else {
+                if (param) {
                     param->setValue(id, v);
+                    return;
                 }
+                param = new UrlParam();
+                param->setValue(id, v);
+                this->params.add(param);
             }
 
             //@implement
             void setParam(byte id, float v) {
                 UrlParam* param = this->getParam(id);
-                if (!param) {
-                    UrlParam *p = new UrlParam();
-                    p->setValue(id, v);
-                    this->params.add(p);
-                } else {
+                if (param) {
                     param->setValue(id, v);
+                    return;
                 }
+                param = new UrlParam();
+                param->setValue(id, v);
+                this->params.add(param);
             }
 
             //@implement

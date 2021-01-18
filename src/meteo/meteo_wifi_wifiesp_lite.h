@@ -17,6 +17,7 @@
 
 #define _ESPLOGLEVEL_ 0
 
+#include "meteo_cfg.h"
 #include "meteo_messages.h"
 #include "url_helper.h"
 
@@ -25,11 +26,6 @@
 #define RX_PIN 2
 #define TX_PIN 3
 
-#define REPORT_TIMEOUT 60000
-
-#define THINGSPEAK_CHANNEL_KEY "xxx"
-#define WIFI_SSID "yyy"
-#define WIFI_PWD "zzz"
 
 class WifiProcess: public IFirmwareProcess {
 	private:
@@ -55,15 +51,16 @@ class WifiProcess: public IFirmwareProcess {
 			espSerial = new SoftwareSerial(RX_PIN, TX_PIN); // RX, TX
 			espSerial->begin(19200);
 
-			TRACELN("Initializing ESP module")
+			TRACELN("Initializing ESP module...")
 			EspDrv::wifiDriverInit(espSerial); 
 
 			// check for the presence of the shield
 			if (EspDrv::getConnectionStatus() == WL_NO_SHIELD) {
-				TRACELNF("WiFi shield not present");
+				TRACELNF("[WiFi] FAIL");
 				delete this->espSerial;
 				this->espSerial = NULL;
 			} else {
+				TRACELNF("[WiFi] OK");
 				this->ready = true;
 			}
 			this->pause(ENVSENSORS_TIMEOUT);
@@ -92,22 +89,19 @@ class WifiProcess: public IFirmwareProcess {
 		//@include "EspDrv/EspDrv.h"
 		void update(unsigned long ms) {
 			if (!this->ready) return;
-
+			
 			unsigned long now = millis();
+			
 			if (this->dataSendTask.size() && now - lastReportTime > REPORT_TIMEOUT) {
 				if (WiFiConnect()) {
-					{
-						//String url = dataSendTask.getUrl(F(THINGSPEAK_CHANNEL_KEY));
-						//String server = dataSendTask.getServer();
-						simpleSendData(/*server, url*/);
-					}
+					simpleSendData();
 					dataSendTask.clear();
 					WiFiDisconnect();
 					TRACELN("[WIFI] Send packets done")
 
 					lastReportTime = millis();
 				} else {
-					TRACELNF("[WIFI] Failed to clearing tasks buf!")
+					//TRACELNF("[WIFI] Failed to clearing tasks buf!")
 					dataSendTask.clear();
 				}
 			}
@@ -115,6 +109,7 @@ class WifiProcess: public IFirmwareProcess {
 			this->pause(ENVSENSORS_TIMEOUT);
 		}
 
+		//@implement
 		bool WiFiConnect() {
 			if (this->ready) {
 				// attempt to connect to WiFi network
@@ -122,8 +117,8 @@ class WifiProcess: public IFirmwareProcess {
 				if (EspDrv::getConnectionStatus() != WL_CONNECTED) {
 					TRACELNF("[WIFI] Attempting to connect");
 					if (EspDrv::wifiConnect(SF(WIFI_SSID).c_str(), SF(WIFI_PWD).c_str())) {
-						TRACELNF("[WIFI] Connected to the network");
-						this->dataSendTask.setParam(7, uint16_t(EspDrv::getCurrentRSSI() / 1000));
+						//TRACELNF("[WIFI] Connected to the network");
+						this->dataSendTask.setParam(7, uint16_t(abs(EspDrv::getCurrentRSSI())));	//byte((double(EspDrv::getCurrentRSSI()) / 65535.0*100.0))
 						return true;
 					} else {
 						TRACELNF("[WIFI] Connection error");
@@ -136,31 +131,48 @@ class WifiProcess: public IFirmwareProcess {
 			return false;
 		}
 
+		//@implement
 		void WiFiDisconnect() {
 			EspDrv::disconnect();
 			this->getHost()->sendMessage(new WiFiStateMsg(false));
 		}
 
+		//@implement
 		void simpleSendData() {
 			uint8_t _sock = 1;
-			String server = dataSendTask.getUrl(F(THINGSPEAK_CHANNEL_KEY));
+			String server = dataSendTask.getServer();
 			if (EspDrv::startClient(server.c_str(), 80, _sock, TCP_MODE)) {
-				TRACELNF("Connected to server");
+				TRACEF("Connected to server ");
+				TRACELN(server);
 				{
 					String buf = SF("GET ");
-					buf += server;
+					buf += dataSendTask.getUrl(F(THINGSPEAK_CHANNEL_KEY)); 
 					buf += F(" HTTP/1.1\r\nHost: ");
-					buf += dataSendTask.getServer(); 
+					buf += server;
 					buf += F("\r\nConnection: close\r\n\r\n");
 					TRACELN(buf);
-					EspDrv::sendData(_sock, buf.c_str(), buf.length());
-					/*if (!EspDrv::sendData(_sock, buf.c_str(), buf.length())) {
+					if (!EspDrv::sendData(_sock, buf.c_str(), buf.length())) {
 						TRACELNF("[simpleSendData] Error");
-					}*/
+					}
 				}
 				EspDrv::stopClient(_sock);
 			}
 		}
+
+		/*String receiveData() {
+			String buf;
+			bool connClose = false;
+			while (!connClose) {
+				int bytes = EspDrv::availData(_sock);
+				buf.reserve(bytes);
+				for (int i = 0; i < bytes; i++) {
+					char c;
+					EspDrv::getData(_sock, &c, false, &connClose);
+					buf += c;
+				}
+			}
+			return buf;
+		}*/
 
 		/*//@implement
 		//!@include "meteo_messages.h"
@@ -216,7 +228,7 @@ class WifiProcess: public IFirmwareProcess {
 
 		//@implement
 		bool handleMessage(IProcessMessage* msg) {
-			if (!this->ready) return;
+			if (!this->ready) return false;
 
 			switch (msg->getType())
 			{
@@ -225,7 +237,7 @@ class WifiProcess: public IFirmwareProcess {
 					if (env->isActive()) {
 						this->dataSendTask.setParam(1, env->getTempF());
 					}
-					return false;
+					break;
 				}
 				case FREEMEM_MESSAGE: {
 					this->dataSendTask.setParam(6, ((MemUsageMessage*)msg)->getFreemem());

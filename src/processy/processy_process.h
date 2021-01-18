@@ -9,7 +9,6 @@ class IProcessMessage;
 class IFirmware;
 
 #include "processy_cfg.h"
-//#include <WString.h>
 
 class IFirmwareProcess {
 	public:

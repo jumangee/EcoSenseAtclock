@@ -16,14 +16,14 @@ class IFirmwareProcess;
 
 class EnvDataMessage: public IProcessMessage {
 	public:
-		EnvDataMessage(IFirmwareProcess* from, float t, byte h, int p): IProcessMessage(from, ENVDATA_MESSAGE) {
+		EnvDataMessage(float t, byte h, int p): IProcessMessage(NULL, ENVDATA_MESSAGE) {
 			this->active = true;
 			this->temp =  t;
 			this->humidity = h;
 			this->pressure = p;
 		}
 
-		EnvDataMessage(IFirmwareProcess* from): IProcessMessage(from, ENVDATA_MESSAGE) {
+		EnvDataMessage(): IProcessMessage(NULL, ENVDATA_MESSAGE) {
 			this->active = false;
 		}
 
@@ -47,11 +47,20 @@ class EnvDataMessage: public IProcessMessage {
 			return this->pressure;
 		}
 
+		void setCO2(int co2) {
+			this->co2 = co2;
+		}
+
+		int getCO2() {
+			return co2;
+		}
+
 	private:
 		bool	active;
 		float	temp;
 		byte	humidity;
 		int		pressure;
+		int		co2;
 };
 
 
@@ -121,7 +130,7 @@ class AirQualityMsg: public IProcessMessage {
 		}
 
 		byte getQuality() {
-			return this->quality / 42;
+			return (float(this->quality) / 42) + 1;
 		}
 
 		float getVoltage() {

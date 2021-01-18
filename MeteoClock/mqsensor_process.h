@@ -27,10 +27,14 @@
 #include "processy.h"
 #include "processy_process.h"
 
+#define PREHEAT_TIME 45000
+
 class MQSensorProcess: public IFirmwareProcess {
 	private:
 		byte readingsCount;
         uint16_t value;
+		uint32_t startTime;
+		bool preHeated;
 
 	public:
 		MQSensorProcess(int pId, IProcessMessage* msg);
@@ -66,6 +70,13 @@ class MQSensorProcess: public IFirmwareProcess {
 		}*/
 
 		bool readingsDone(byte pin, byte countPerResult) {
+			if (!preHeated) {
+				if (PREHEAT_TIME > (millis() - startTime)) {
+					return false;
+				}
+				preHeated = true;
+			}
+
 			if (readingsCount >= countPerResult) {
 				readingsCount = 0;
 				value = 0;

@@ -12,10 +12,7 @@
 #include "meteo.h"
 #include "mqsensor_process.h"
 
-//#include <Arduino.h>
-
-#define MQ136_ANALOG_PIN A1
-//16
+#define MQ136_ANALOG_PIN 22	// READ-ONLY PIN!
 #define MQ136_DIGITAL_PIN 7
 
 #define READINGS_PER_RESULT 50

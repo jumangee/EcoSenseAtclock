@@ -12,20 +12,13 @@
 #include "meteo.h"
 #include "mqsensor_process.h"
 
-//#include <Arduino.h>
-
-#define MQ4_ANALOG_PIN A2
-//15
+#define MQ4_ANALOG_PIN 19	// READ-ONLY PIN!
 #define MQ4_DIGITAL_PIN 8
 
 #define READINGS_PER_RESULT 50
 
 #define MQ136_RL 2.3
 #define MQ136_FRESH_RO 1
-
-// curve params calculated using article: https://circuitdigest.com/microcontroller-projects/arduino-mq137-ammonia-sensor
-//const float CH4_CURVE[2] PROGMEM = {-0.2840, -0.9672};
-//const float H2_CURVE[2] PROGMEM = {-1.24, 0.7562};
 
 class MQ4SensorProcess: public MQSensorProcess {
 	public:
@@ -45,7 +38,6 @@ class MQ4SensorProcess: public MQSensorProcess {
 		}
 
 		//@implement
-		//@include "processy_cfg.h"
 		//@include "meteo_cfg.h"
 		//@include "mqsensor_process.h"
 		void update(unsigned long ms) {

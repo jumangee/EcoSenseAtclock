@@ -10,7 +10,6 @@
 #include "processy_cfg.h"
 #include "processy_process.h"
 #include "processy_message.h"
-//#include <WString.h>
 #include <math.h>
 
 #define FACTORY(name, className) ProcessFactoryReg(name, &className::factory)

@@ -37,7 +37,12 @@
 			"sstream": "cpp",
 			"algorithm": "cpp",
 			"atomic": "cpp",
-			"xiosbase": "cpp"
+			"xiosbase": "cpp",
+			"istream": "cpp",
+			"xlocmes": "cpp",
+			"xlocmon": "cpp",
+			"xlocnum": "cpp",
+			"xloctime": "cpp"
 		},
 		"files.exclude": {
 			"**/_stuff": true,

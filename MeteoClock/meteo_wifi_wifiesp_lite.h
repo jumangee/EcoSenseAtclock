@@ -17,6 +17,7 @@
 
 #define _ESPLOGLEVEL_ 0
 
+#include "meteo_cfg.h"
 #include "meteo_messages.h"
 #include "url_helper.h"
 
@@ -25,11 +26,6 @@
 #define RX_PIN 2
 #define TX_PIN 3
 
-#define REPORT_TIMEOUT 60000
-
-#define THINGSPEAK_CHANNEL_KEY "43RGUGMOBYBHCJV2"
-#define WIFI_SSID "Jumangee"
-#define WIFI_PWD "54d75bc245"
 
 class WifiProcess: public IFirmwareProcess {
 	private:
@@ -46,52 +42,26 @@ class WifiProcess: public IFirmwareProcess {
 
 		void update(unsigned long ms);
 
-		bool WiFiConnect() {
-			if (this->ready) {
-				// attempt to connect to WiFi network
-				this->getHost()->sendMessage(new WiFiStateMsg(true));
-				if (EspDrv::getConnectionStatus() != WL_CONNECTED) {
-					TRACELNF("[WIFI] Attempting to connect");
-					if (EspDrv::wifiConnect(SF(WIFI_SSID).c_str(), SF(WIFI_PWD).c_str())) {
-						TRACELNF("[WIFI] Connected to the network");
-						this->dataSendTask.setParam(7, uint16_t(EspDrv::getCurrentRSSI() / 1000));
-						return true;
-					} else {
-						TRACELNF("[WIFI] Connection error");
-					}
-				} else {
-					return true;
+		bool WiFiConnect();
+
+		void WiFiDisconnect();
+
+		void simpleSendData();
+
+		/*String receiveData() {
+			String buf;
+			bool connClose = false;
+			while (!connClose) {
+				int bytes = EspDrv::availData(_sock);
+				buf.reserve(bytes);
+				for (int i = 0; i < bytes; i++) {
+					char c;
+					EspDrv::getData(_sock, &c, false, &connClose);
+					buf += c;
 				}
 			}
-			this->getHost()->sendMessage(new WiFiStateMsg(false));
-			return false;
-		}
-
-		void WiFiDisconnect() {
-			EspDrv::disconnect();
-			this->getHost()->sendMessage(new WiFiStateMsg(false));
-		}
-
-		void simpleSendData() {
-			uint8_t _sock = 1;
-			String server = dataSendTask.getUrl(F(THINGSPEAK_CHANNEL_KEY));
-			if (EspDrv::startClient(server.c_str(), 80, _sock, TCP_MODE)) {
-				TRACELNF("Connected to server");
-				{
-					String buf = SF("GET ");
-					buf += server;
-					buf += F(" HTTP/1.1\r\nHost: ");
-					buf += dataSendTask.getServer(); 
-					buf += F("\r\nConnection: close\r\n\r\n");
-					TRACELN(buf);
-					EspDrv::sendData(_sock, buf.c_str(), buf.length());
-					/*if (!EspDrv::sendData(_sock, buf.c_str(), buf.length())) {
-						TRACELNF("[simpleSendData] Error");
-					}*/
-				}
-				EspDrv::stopClient(_sock);
-			}
-		}
+			return buf;
+		}*/
 
 		/*//@implement
 		//!@include "meteo_messages.h"

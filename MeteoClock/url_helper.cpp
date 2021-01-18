@@ -1,7 +1,7 @@
 #include "url_helper.h"
-#include "processy_cfg.h"
 #include "LinkedList/LinkedList.h"
 
+            //--@include "processy_cfg.h"
 UrlParam::UrlParam() {
     this->active = false;
 }
@@ -94,35 +94,35 @@ String ThingspeakWebSendTask::getUrl(String key) {
 
 void ThingspeakWebSendTask::setParam(byte id, byte v) {
     UrlParam* param = this->getParam(id);
-    if (!param) {
-        UrlParam *p = new UrlParam();
-        p->setValue(id, v);
-        this->params.add(p);
-    } else {
+    if (param) {
         param->setValue(id, v);
+        return;
     }
+    param = new UrlParam();
+    param->setValue(id, v);
+    this->params.add(param);
 }
 
 void ThingspeakWebSendTask::setParam(byte id, uint16_t v) {
     UrlParam* param = this->getParam(id);
-    if (!param) {
-        UrlParam *p = new UrlParam();
-        p->setValue(id, v);
-        this->params.add(p);
-    } else {
+    if (param) {
         param->setValue(id, v);
+        return;
     }
+    param = new UrlParam();
+    param->setValue(id, v);
+    this->params.add(param);
 }
 
 void ThingspeakWebSendTask::setParam(byte id, float v) {
     UrlParam* param = this->getParam(id);
-    if (!param) {
-        UrlParam *p = new UrlParam();
-        p->setValue(id, v);
-        this->params.add(p);
-    } else {
+    if (param) {
         param->setValue(id, v);
+        return;
     }
+    param = new UrlParam();
+    param->setValue(id, v);
+    this->params.add(param);
 }
 
 byte ThingspeakWebSendTask::size() {
