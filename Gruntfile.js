@@ -6,7 +6,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     // Before generating any new files, remove any previously-created files.
     clean: {
-      build: ['MeteoClock']
+      build: ['EcosenseAtClock']
     },
 	
 	copy: {
@@ -14,11 +14,11 @@ module.exports = function(grunt) {
 		files: [
         // includes files within path and its sub-directories
         {
-          expand: true, cwd: 'src/processy', src: '**', dest: 'MeteoClock/'
+          expand: true, cwd: 'src/processy', src: '**', dest: 'EcosenseAtClock/'
         },
         // includes files within path and its sub-directories
         {
-          expand: true, cwd: 'src/meteo', src: '**', dest: 'MeteoClock/'
+          expand: true, cwd: 'src/ecosenseatclock', src: '**', dest: 'EcosenseAtClock/'
         }
 		  ]
 		}
@@ -26,10 +26,10 @@ module.exports = function(grunt) {
 	
 	run: {
 		build_sketch: {
-			exec: '"e:/Projects/!DIY/Arduino/IDE/arduino-cli.exe" compile --fqbn arduino:avr:nano MeteoClock',
+			exec: '"e:/Projects/!DIY/Arduino/IDE/arduino-cli.exe" compile --fqbn arduino:avr:nano EcosenseAtClock',
 		},
 		upload_sketch: {
-			exec: '"e:/Projects/!DIY/Arduino/IDE/arduino-cli.exe" upload -p COM5 --fqbn arduino:avr:nano MeteoClock'
+			exec: '"e:/Projects/!DIY/Arduino/IDE/arduino-cli.exe" upload -p COM5 --fqbn arduino:avr:nano EcosenseAtClock'
 		}
 	},
 
@@ -37,7 +37,7 @@ module.exports = function(grunt) {
     "grunt-h2cpp-parser": {
       parsesrc: {
         files: {
-          'MeteoClock': ['src/processy/*.h','src/meteo/*.h']
+          'EcosenseAtClock': ['src/processy/*.h','src/ecosenseatclock/*.h']
         }
       }
     }

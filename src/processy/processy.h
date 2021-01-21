@@ -61,7 +61,7 @@ class IFirmware {
 		void stopProcess(int pId) {
 			int pos = this->findProcess(pId);
 			if (pos > -1) {
-				this->processList.remove(pos);
+				this->processList.get(pos)->stop();
 			}
 		}
 
@@ -126,8 +126,17 @@ class IFirmware {
 			if (this->update(curTime)) {	// true - auto process, false - manual process
 				curTime = millis();
 				for (int i = 0; i < this->processList.size(); i++) {
-					//IFirmwareProcess* process = ;
-					curTime = this->processList.get(i)->run(curTime);
+					IFirmwareProcess *p = this->processList.get(i);
+					if (p->getState() != IFirmwareProcess::ProcessState::STOP) {
+						curTime = p->run(curTime);
+					}
+				}
+
+				// safely kill stopped processes
+				for (int i = this->processList.size()-1; i >= 0; i--) {
+					if (this->processList.get(i)->getState() == IFirmwareProcess::ProcessState::STOP) {
+						this->processList.remove(i);
+					}
 				}
 			}
 			#ifdef DEBUG_PRO_MS

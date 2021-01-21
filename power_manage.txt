@@ -1,0 +1,24 @@
+Input: max 700mA (650)
+
+> Constantly active devices:
+Nano: max200mA
+DS3211: <1mA
+BME280: 1mA
+ESP-01: max 120mA (3.3)
+OLED: max 15mA (5)
+Light: nax 20mA
+MH-Z19B: max 150mA (3.3 || 5)
+---
+Total: 175-320mA
+
+> Periodically powered:
+MQ-7: max 150mA (5)			// Carbon Monoxide
+MQ-136: max 150mA (5)		// Hydrogen Sulfide
+
+MQ-4: max 150mA (5)			// methane
+CJMCU-1100: max 100mA (5)	// Formaldehyde Benzene Toluene
+
+MQ-135: max 150mA (5)		// Air Quality (CO, Ammonia, Benzene, Alcohol, smoke)
+ME2-CH20: max 150?mA (5)	// formaldehyde
+---
+Total: 700mA

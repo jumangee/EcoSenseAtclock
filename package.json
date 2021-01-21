@@ -1,8 +1,8 @@
 {
-  "name": "JuMeteoClock",
-  "version": "0.1.0",
-  "description": "my meteo clock",
-  "keywords": [],
+  "name": "EcosenseAtClock",
+  "version": "1.0.0",
+  "description": "Eco monitoring using lots of sensors with sharing of results at web and OLED display",
+  "keywords": ["eco","monitoring","clocks"],
   "author": "Jumangee",
   "devDependencies": {
     "grunt": "^0.4.5",

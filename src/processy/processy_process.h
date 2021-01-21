@@ -12,6 +12,16 @@ class IFirmware;
 
 class IFirmwareProcess {
 	public:
+		enum ProcessState {
+			DUMMY,
+			ACTIVE,
+			PAUSE,
+			STOP
+		};
+	private:
+ 		ProcessState state;
+
+	public:
 		//@implement
 		//@include "processy_cfg.h"
 		//@include "stuff.h"
@@ -22,9 +32,13 @@ class IFirmwareProcess {
 			#ifdef DEBUG_PRO_MS
 			this->resetUsedMs();
 			#endif
-			//TRACE(S("IFirmwareProcess::",this->processId.c_str(),"/", (this->pausedUpTo == NULL ? "NULL" : (String(*this->pausedUpTo)).c_str()) ))
 			this->pausedUpTo = 0;
+			this->state = ProcessState::ACTIVE;
 			this->handleMessage(msg);
+		}
+
+		IFirmwareProcess::ProcessState getState() {
+			this->state;
 		}
 
 		//@implement
@@ -43,19 +57,24 @@ class IFirmwareProcess {
 		}
 
 		//@implement
+		void stop() {
+			this->state = ProcessState::STOP;
+		}
+
+		//@implement
 		//@include "processy_cfg.h"
 		//@include "stuff.h"
 		//@include <Arduino.h>
 		unsigned long run(unsigned long start) {
 			//TRACE(S("IFirmwareProcess//start=", String(start).c_str(), ", lastUpdate=", String(this->lastUpdate).c_str() ))
 			//TRACE(S("IFirmwareProcess::run/",this->processId.c_str(),"/start=", String(start).c_str(),", pause=", String(this->pausedUpTo).c_str()) )
-			if (this->pausedUpTo != 0) {
+			if (this->state == ProcessState::PAUSE) {
 				if (start < this->pausedUpTo) {
 					return start;	// no time wasting
 				}
+				this->unPause();
 			}
 			unsigned long ms = start - this->lastUpdate;
-			this->unPause();
 			this->update(ms);
 			unsigned long endTime = millis();
 			#ifdef DEBUG_PRO_MS
@@ -69,11 +88,13 @@ class IFirmwareProcess {
 
 		//@implement
 		void pause(unsigned long upTo = 0) {
+			this->state = ProcessState::PAUSE;
 			this->pausedUpTo = millis() + upTo;
 		}
 
 		//@implement
 		void unPause() {
+			this->state = ProcessState::ACTIVE;
 			this->pausedUpTo = 0;
 		}
 

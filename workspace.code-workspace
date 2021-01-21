@@ -47,7 +47,7 @@
 		"files.exclude": {
 			"**/_stuff": true,
 			"**/node_modules": true,
-			"**/MeteoClock/": true
+			"**/EcoSenseAtClock/": true
 		}
 	}
 }
