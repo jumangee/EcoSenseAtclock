@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "processy.h"
 
-IFirmwareProcess::IFirmwareProcess(int pId, IProcessMessage* msg) {
+IFirmwareProcess::IFirmwareProcess(uint16_t pId, IProcessMessage* msg) {
 	this->processId = pId;
 	this->lastUpdate = millis();
 	#ifdef DEBUG_PRO_MS
@@ -13,9 +13,6 @@ IFirmwareProcess::IFirmwareProcess(int pId, IProcessMessage* msg) {
 	this->pausedUpTo = 0;
 	this->state = ProcessState::ACTIVE;
 	this->handleMessage(msg);
-}
-
-IFirmwareProcess::~IFirmwareProcess() {
 }
 
 bool IFirmwareProcess::isId(int compareTo) {
@@ -27,14 +24,6 @@ void IFirmwareProcess::stop() {
 }
 
 unsigned long IFirmwareProcess::run(unsigned long start) {
-	//TRACE(S("IFirmwareProcess//start=", String(start).c_str(), ", lastUpdate=", String(this->lastUpdate).c_str() ))
-	//TRACE(S("IFirmwareProcess::run/",this->processId.c_str(),"/start=", String(start).c_str(),", pause=", String(this->pausedUpTo).c_str()) )
-	if (this->state == ProcessState::PAUSE) {
-		if (start < this->pausedUpTo) {
-			return start;	// no time wasting
-		}
-		this->unPause();
-	}
 	unsigned long ms = start - this->lastUpdate;
 	this->update(ms);
 	unsigned long endTime = millis();
@@ -46,11 +35,13 @@ unsigned long IFirmwareProcess::run(unsigned long start) {
 }
 
 void IFirmwareProcess::pause(unsigned long upTo = 0) {
+	if (this->state == ProcessState::STOP) return;
 	this->state = ProcessState::PAUSE;
 	this->pausedUpTo = millis() + upTo;
 }
 
 void IFirmwareProcess::unPause() {
+	if (this->state == ProcessState::STOP) return;
 	this->state = ProcessState::ACTIVE;
 	this->pausedUpTo = 0;
 }

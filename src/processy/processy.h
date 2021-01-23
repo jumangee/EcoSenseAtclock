@@ -12,16 +12,16 @@
 #include "processy_message.h"
 #include <math.h>
 
-#define FACTORY(name, className) ProcessFactoryReg(name, &className::factory)
+#define FACTORY(idnum, className) ProcessFactoryReg(idnum, &className::factory)
 
-typedef IFirmwareProcess* (*ProcessFactory)(int, IProcessMessage*);
+typedef IFirmwareProcess* (*ProcessFactory)(uint16_t, IProcessMessage*);
 
 class ProcessFactoryReg {
 	public:
-		int id;
+		uint16_t id;
 		ProcessFactory factory;
 
-		ProcessFactoryReg(int pId, ProcessFactory f) {
+		ProcessFactoryReg(uint16_t pId, ProcessFactory f) {
 			this->id = pId;
 			this->factory = f;
 		}
@@ -46,10 +46,10 @@ class IFirmware {
 			return IFirmware::instance;
 		}
 
-		virtual ProcessFactory getFactory(int pId) = 0;
+		virtual ProcessFactory getFactory(uint16_t pId) = 0;
 
 		//@implement
-		IFirmwareProcess* getProcess(int pId) {
+		IFirmwareProcess* getProcess(uint16_t pId) {
 			int pos = this->findProcess(pId);
 			if (pos > -1) {
 				return this->processList.get(pos);
@@ -58,15 +58,19 @@ class IFirmware {
 		}
 
 		//@implement
-		void stopProcess(int pId) {
+		void stopProcess(uint16_t pId) {
 			int pos = this->findProcess(pId);
 			if (pos > -1) {
+				TRACEF("stopProcess/ID=")
+				TRACE(pId)
+				TRACEF(", pos=")
+				TRACELN(pos)
 				this->processList.get(pos)->stop();
 			}
 		}
 
 		//@implement
-		void pauseProcess(int pId, unsigned long pauseTime) {
+		void pauseProcess(uint16_t pId, unsigned long pauseTime) {
 			int pos = this->findProcess(pId);
 			if (pos > -1) {
 				//IFirmwareProcess *process = ;
@@ -75,7 +79,7 @@ class IFirmware {
 		}
 
 		//@implement
-		void unPauseProcess(int pId) {
+		void unPauseProcess(uint16_t pId) {
 			int pos = this->findProcess(pId);
 			if (pos > -1) {
 				IFirmwareProcess *process = this->processList.get(pos);
@@ -89,7 +93,7 @@ class IFirmware {
 		}
 
 		//@implement
-		void soloProcess(int pId) {
+		void soloProcess(uint16_t pId) {
 			this->stopAll();
 			this->addProcess(pId);
 		}
@@ -107,7 +111,7 @@ class IFirmware {
 		}
 
 		//@implement
-		void addProcess(int pId) {
+		void addProcess(uint16_t pId) {
 			this->addProcess(pId, NULL);
 		}
 
@@ -127,7 +131,7 @@ class IFirmware {
 				curTime = millis();
 				for (int i = 0; i < this->processList.size(); i++) {
 					IFirmwareProcess *p = this->processList.get(i);
-					if (p->getState() != IFirmwareProcess::ProcessState::STOP) {
+					if (p->getState() != IFirmwareProcess::ProcessState::STOP && !p->isPaused(curTime)) {
 						curTime = p->run(curTime);
 					}
 				}
@@ -135,7 +139,7 @@ class IFirmware {
 				// safely kill stopped processes
 				for (int i = this->processList.size()-1; i >= 0; i--) {
 					if (this->processList.get(i)->getState() == IFirmwareProcess::ProcessState::STOP) {
-						this->processList.remove(i);
+						delete this->processList.remove(i);
 					}
 				}
 			}
@@ -152,7 +156,7 @@ class IFirmware {
 		}
 
 		//@implement
-		void addProcess(int pId, IProcessMessage* msg) {
+		void addProcess(uint16_t pId, IProcessMessage* msg) {
 			if (this->findProcess(pId) > -1) {
 				return;	// only 1 instance of process
 			}
@@ -161,7 +165,7 @@ class IFirmware {
 				delete msg;
 			}
 			if (newProcess == NULL) {
-        		TRACELNF("IFirmware::addProcess//!newProcess")
+        		TRACELNF("IFirmware::addProcess ERR")
 				return;
 			}
 
@@ -194,11 +198,13 @@ class IFirmware {
 			for (int i = 0; i < this->processList.size(); i++) {
 				IFirmwareProcess* process = processList.get(i);
 				{
-					TRACE(process->getId());
-					TRACEF(": ");
-					TRACE(round((process->getUsedMs() * 100) / dT));
-					TRACE(process->getUsedMs());
-					TRACELNF("% ");
+					uint32_t used = process->getUsedMs();
+					TRACE(process->getId())
+					TRACEF(": ")
+					TRACE(used)
+					TRACEF("ms (");
+					TRACE(round((used * 100) / dT))
+					TRACELNF("%)");
 				}
 				process->resetUsedMs();
 			}
@@ -227,7 +233,7 @@ class IFirmware {
 		};
 
 		//@implement
-		IFirmwareProcess* createProcess(int pId, IProcessMessage* msg) {
+		IFirmwareProcess* createProcess(uint16_t pId, IProcessMessage* msg) {
 			ProcessFactory factory = this->getFactory(pId);
 			TRACELNF("IFirmware::createProcess//factory/!")
 			if (factory != NULL) {
@@ -239,7 +245,7 @@ class IFirmware {
 		}
 
 		//@implement
-		int findProcess(int pId) {
+		int findProcess(uint16_t pId) {
 			for (int i = 0; i < this->processList.size(); i++) {
 				if (this->processList.get(i)->isId(pId)) {
 					return i;

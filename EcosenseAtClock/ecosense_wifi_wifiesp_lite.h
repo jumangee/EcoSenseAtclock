@@ -34,9 +34,9 @@ class WifiProcess: public IFirmwareProcess {
 		unsigned long lastReportTime;
 		ThingspeakWebSendTask dataSendTask;
 	public:
-		WifiProcess(int pId, IProcessMessage* msg);
+		WifiProcess(uint16_t pId, IProcessMessage* msg);
 
-		static IFirmwareProcess* factory(int pId, IProcessMessage* msg);
+		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
 
 		~WifiProcess();
 

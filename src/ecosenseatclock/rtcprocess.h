@@ -26,7 +26,7 @@ class RTClockProcess: public IFirmwareProcess {
 
 	public:
 		//@implement
-		RTClockProcess(int pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
+		RTClockProcess(uint16_t pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
             dotFlag = false;
             if (rtc.begin()) {
                 this->active = true;
@@ -45,7 +45,7 @@ class RTClockProcess: public IFirmwareProcess {
 		}
         
 		//@implement
-		static IFirmwareProcess* factory(int pId, IProcessMessage* msg) {
+		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg) {
 			TRACELNF("RTClockProcess::factory");
 			return new RTClockProcess(pId, msg);
 		}

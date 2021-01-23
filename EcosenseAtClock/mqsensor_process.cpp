@@ -2,7 +2,7 @@
 #include "ecosense_cfg.h"
 #include <Arduino.h>
 
-MQSensorProcess::MQSensorProcess(int pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
+MQSensorProcess::MQSensorProcess(uint16_t pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
 	readingsCount = 0;
             value = 0;
 	preHeated = false;

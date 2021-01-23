@@ -1,7 +1,7 @@
 #include "rtcprocess.h"
 #include <Arduino.h>
 
-RTClockProcess::RTClockProcess(int pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
+RTClockProcess::RTClockProcess(uint16_t pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
             dotFlag = false;
             if (rtc.begin()) {
                 this->active = true;
@@ -16,7 +16,7 @@ RTClockProcess::RTClockProcess(int pId, IProcessMessage* msg) : IFirmwareProcess
 	TRACELNF("RTClockProcess::init");
 }
 
-static IFirmwareProcess* RTClockProcess::factory(int pId, IProcessMessage* msg) {
+static IFirmwareProcess* RTClockProcess::factory(uint16_t pId, IProcessMessage* msg) {
 	TRACELNF("RTClockProcess::factory");
 	return new RTClockProcess(pId, msg);
 }

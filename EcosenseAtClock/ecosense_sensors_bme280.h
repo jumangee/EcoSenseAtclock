@@ -32,9 +32,9 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 		bool initDone;
 
 	public:
-		EnvironmentSensorsProcess(int pId, IProcessMessage* msg);
+		EnvironmentSensorsProcess(uint16_t pId, IProcessMessage* msg);
 
-		static IFirmwareProcess* factory(int pId, IProcessMessage* msg);
+		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
 
 		~EnvironmentSensorsProcess();
 

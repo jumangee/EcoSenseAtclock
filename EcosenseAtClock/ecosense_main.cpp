@@ -2,7 +2,7 @@
 #include <SSD1306AsciiWire.h>
 #include "stuff.h"
 
-MainProcess::MainProcess(int pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
+MainProcess::MainProcess(uint16_t pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
 	TRACELNF("MainProcess::start");
 	#if USE_WARNING_LIGHT == 1
 	pinMode(WARNLED_R_PIN, OUTPUT);
@@ -25,7 +25,7 @@ MainProcess::MainProcess(int pId, IProcessMessage* msg) : IFirmwareProcess(pId, 
 	this->updateScreen = false;
 }
 
-static IFirmwareProcess* MainProcess::factory(int pId, IProcessMessage* msg) {
+static IFirmwareProcess* MainProcess::factory(uint16_t pId, IProcessMessage* msg) {
 	TRACELNF("MainProcess::factory");
 	return new MainProcess(pId, msg);
 }

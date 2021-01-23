@@ -39,7 +39,7 @@ class MQSensorProcess: public IFirmwareProcess {
 	public:
 		//@implement
 		//@include "ecosense_cfg.h"
-		MQSensorProcess(int pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
+		MQSensorProcess(uint16_t pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
 			readingsCount = 0;
             value = 0;
 			preHeated = false;

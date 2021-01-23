@@ -38,7 +38,7 @@ class WifiProcess: public IFirmwareProcess {
 		//@include "ecosense_cfg.h"
 		//@include "EspDrv/RingBuffer.cpp"
 		//@include "EspDrv/EspDrv.cpp"
-		WifiProcess(int pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
+		WifiProcess(uint16_t pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
 			//this->log("WifiProcess::start");
 
 			TRACELNF("WifiProcess::init");
@@ -68,7 +68,7 @@ class WifiProcess: public IFirmwareProcess {
 
 		//@implement
 		//@include <Arduino.h>
-		static IFirmwareProcess* factory(int pId, IProcessMessage* msg) {
+		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg) {
 			TRACELNF("WifiProcess::factory");
 			return new WifiProcess(pId, msg);
 		}

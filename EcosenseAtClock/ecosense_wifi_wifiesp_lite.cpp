@@ -6,7 +6,7 @@
 #include "processy_cfg.h"
 #include "EspDrv/EspDrv.h"
 
-WifiProcess::WifiProcess(int pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
+WifiProcess::WifiProcess(uint16_t pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
 	//this->log("WifiProcess::start");
 	TRACELNF("WifiProcess::init");
 	pinMode(RX_PIN, INPUT);
@@ -29,7 +29,7 @@ WifiProcess::WifiProcess(int pId, IProcessMessage* msg) : IFirmwareProcess(pId, 
 	this->pause(ENVSENSORS_TIMEOUT);
 }
 
-static IFirmwareProcess* WifiProcess::factory(int pId, IProcessMessage* msg) {
+static IFirmwareProcess* WifiProcess::factory(uint16_t pId, IProcessMessage* msg) {
 	TRACELNF("WifiProcess::factory");
 	return new WifiProcess(pId, msg);
 }

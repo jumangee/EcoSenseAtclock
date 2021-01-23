@@ -12,16 +12,16 @@
 #include "processy_message.h"
 #include <math.h>
 
-#define FACTORY(name, className) ProcessFactoryReg(name, &className::factory)
+#define FACTORY(idnum, className) ProcessFactoryReg(idnum, &className::factory)
 
-typedef IFirmwareProcess* (*ProcessFactory)(int, IProcessMessage*);
+typedef IFirmwareProcess* (*ProcessFactory)(uint16_t, IProcessMessage*);
 
 class ProcessFactoryReg {
 	public:
-		int id;
+		uint16_t id;
 		ProcessFactory factory;
 
-		ProcessFactoryReg(int pId, ProcessFactory f) {
+		ProcessFactoryReg(uint16_t pId, ProcessFactory f) {
 			this->id = pId;
 			this->factory = f;
 		}
@@ -38,27 +38,27 @@ class IFirmware {
 			return IFirmware::instance;
 		}
 
-		virtual ProcessFactory getFactory(int pId) = 0;
+		virtual ProcessFactory getFactory(uint16_t pId) = 0;
 
-		IFirmwareProcess* getProcess(int pId);
+		IFirmwareProcess* getProcess(uint16_t pId);
 
-		void stopProcess(int pId);
+		void stopProcess(uint16_t pId);
 
-		void pauseProcess(int pId, unsigned long pauseTime);
+		void pauseProcess(uint16_t pId, unsigned long pauseTime);
 
-		void unPauseProcess(int pId);
+		void unPauseProcess(uint16_t pId);
 
 		void stopAll();
 
-		void soloProcess(int pId);
+		void soloProcess(uint16_t pId);
 
 		void sendMessage(IProcessMessage* msg);
 
-		void addProcess(int pId);
+		void addProcess(uint16_t pId);
 
 		void run();
 
-		void addProcess(int pId, IProcessMessage* msg);
+		void addProcess(uint16_t pId, IProcessMessage* msg);
 
 	protected:
 		LinkedList<IFirmwareProcess*> processList;
@@ -84,9 +84,9 @@ class IFirmware {
 
 		bool update(unsigned long ms);
 
-		IFirmwareProcess* createProcess(int pId, IProcessMessage* msg);
+		IFirmwareProcess* createProcess(uint16_t pId, IProcessMessage* msg);
 
-		int findProcess(int pId);
+		int findProcess(uint16_t pId);
 
 };
 

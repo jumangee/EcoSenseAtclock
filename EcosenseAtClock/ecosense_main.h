@@ -78,9 +78,9 @@ class MainProcess: public IFirmwareProcess {
 		bool	clocktick;
 
 	public:
-		MainProcess(int pId, IProcessMessage* msg);
+		MainProcess(uint16_t pId, IProcessMessage* msg);
 
-		static IFirmwareProcess* factory(int pId, IProcessMessage* msg);
+		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
 
 		~MainProcess();
 

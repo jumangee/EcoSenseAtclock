@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include "stuff.h"
 
-EnvironmentSensorsProcess::EnvironmentSensorsProcess(int pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
+EnvironmentSensorsProcess::EnvironmentSensorsProcess(uint16_t pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
 	//this->log("EnvironmentSensorsProcess::start");
 	this->ready = false;
 	
@@ -37,7 +37,7 @@ EnvironmentSensorsProcess::EnvironmentSensorsProcess(int pId, IProcessMessage* m
 	#endif
 }
 
-static IFirmwareProcess* EnvironmentSensorsProcess::factory(int pId, IProcessMessage* msg) {
+static IFirmwareProcess* EnvironmentSensorsProcess::factory(uint16_t pId, IProcessMessage* msg) {
 	TRACELNF("EnvironmentSensorsProcess::factory");
 	return new EnvironmentSensorsProcess(pId, msg);
 }

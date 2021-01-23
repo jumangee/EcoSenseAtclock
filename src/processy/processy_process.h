@@ -9,14 +9,15 @@ class IProcessMessage;
 class IFirmware;
 
 #include "processy_cfg.h"
+#include <Arduino.h>
 
 class IFirmwareProcess {
 	public:
 		enum ProcessState {
-			DUMMY,
-			ACTIVE,
-			PAUSE,
-			STOP
+			DUMMY	= 0,
+			ACTIVE	= 1,
+			PAUSE	= 2,
+			STOP	= 3
 		};
 	private:
  		ProcessState state;
@@ -26,7 +27,7 @@ class IFirmwareProcess {
 		//@include "processy_cfg.h"
 		//@include "stuff.h"
 		//@include <Arduino.h>
-		IFirmwareProcess(int pId, IProcessMessage* msg) {
+		IFirmwareProcess(uint16_t pId, IProcessMessage* msg) {
 			this->processId = pId;
 			this->lastUpdate = millis();
 			#ifdef DEBUG_PRO_MS
@@ -38,16 +39,15 @@ class IFirmwareProcess {
 		}
 
 		IFirmwareProcess::ProcessState getState() {
-			this->state;
+			return this->state;
 		}
 
-		//@implement
-		~IFirmwareProcess() {
-		}
+		virtual ~IFirmwareProcess() {
+		};
 
-		static IFirmwareProcess* factory(int pId, IProcessMessage* msg);
+		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
 
-		int getId() {
+		uint16_t getId() {
 			return this->processId;
 		}
 
@@ -61,19 +61,23 @@ class IFirmwareProcess {
 			this->state = ProcessState::STOP;
 		}
 
-		//@implement
-		//@include "processy_cfg.h"
-		//@include "stuff.h"
-		//@include <Arduino.h>
-		unsigned long run(unsigned long start) {
+		bool isPaused(unsigned long start) {
 			//TRACE(S("IFirmwareProcess//start=", String(start).c_str(), ", lastUpdate=", String(this->lastUpdate).c_str() ))
 			//TRACE(S("IFirmwareProcess::run/",this->processId.c_str(),"/start=", String(start).c_str(),", pause=", String(this->pausedUpTo).c_str()) )
 			if (this->state == ProcessState::PAUSE) {
 				if (start < this->pausedUpTo) {
-					return start;	// no time wasting
+					return true;
 				}
 				this->unPause();
 			}
+			return false;
+		}
+
+		//@implement
+		//@include "processy_cfg.h"
+		//@include "stuff.h"
+		//@include <Arduino.h>
+		virtual unsigned long run(unsigned long start) {
 			unsigned long ms = start - this->lastUpdate;
 			this->update(ms);
 			unsigned long endTime = millis();
@@ -88,12 +92,16 @@ class IFirmwareProcess {
 
 		//@implement
 		void pause(unsigned long upTo = 0) {
+			if (this->state == ProcessState::STOP) return;
+
 			this->state = ProcessState::PAUSE;
 			this->pausedUpTo = millis() + upTo;
 		}
 
 		//@implement
 		void unPause() {
+			if (this->state == ProcessState::STOP) return;
+
 			this->state = ProcessState::ACTIVE;
 			this->pausedUpTo = 0;
 		}
@@ -104,7 +112,7 @@ class IFirmwareProcess {
 		};
 
 	private:
-		int processId;
+		uint16_t processId;
 		unsigned long lastUpdate;
 		unsigned long pausedUpTo;
 

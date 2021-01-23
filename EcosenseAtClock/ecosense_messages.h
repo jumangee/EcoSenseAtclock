@@ -12,6 +12,8 @@ class IFirmwareProcess;
 #define CURTIME_MESSAGE		1002
 #define AIRQUALITY_MESSAGE	1003
 #define WIFISTATE_MESSAGE	1004
+#define PWRSUPPLY_MESSAGE	1005
+#define PRC_ORDER_MESSAGE	1006
 //---------------------------------
 
 class EnvDataMessage: public IProcessMessage {
@@ -155,6 +157,49 @@ class WiFiStateMsg: public IProcessMessage {
 
 	private:
 		bool active;
+};
+
+/*class PwrSupplyMessage: public IProcessMessage {
+	public:
+		PwrSupplyMessage(uint32_t startTime): IProcessMessage(NULL, PWRSUPPLY_MESSAGE) {
+			this->startTime = startTime;
+		}
+
+		uint32_t getStartTime() {
+			return this->startTime;
+		}
+
+	private:
+		uint32_t startTime;
+};*/
+
+class ProcessOrderMessage: public IProcessMessage {
+	public:
+		ProcessOrderMessage(uint16_t lastPid);
+
+		static ProcessOrderMessage* start() {
+			return new ProcessOrderMessage(0);
+		}
+
+		byte getNextId() {
+			return this->nextId;
+		}
+
+	private:
+		byte nextId;
+
+		void setNextId(byte lastPid, uint16_t processOrderList[], byte len) {
+			this->nextId = 0;
+			for (byte i = 0; i < len; i++) {
+				if (processOrderList[i] == lastPid) {
+					if (i == (len - 1)) {
+						i = 0;
+					}
+					this->nextId = processOrderList[i+1];
+					return;
+				}
+			}
+		}
 };
 
 #endif

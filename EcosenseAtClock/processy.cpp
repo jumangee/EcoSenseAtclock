@@ -13,7 +13,7 @@ IFirmware::IFirmware() {
 	#endif
 }
 
-IFirmwareProcess* IFirmware::getProcess(int pId) {
+IFirmwareProcess* IFirmware::getProcess(uint16_t pId) {
 	int pos = this->findProcess(pId);
 	if (pos > -1) {
 		return this->processList.get(pos);
@@ -21,14 +21,18 @@ IFirmwareProcess* IFirmware::getProcess(int pId) {
 	return NULL;
 }
 
-void IFirmware::stopProcess(int pId) {
+void IFirmware::stopProcess(uint16_t pId) {
 	int pos = this->findProcess(pId);
 	if (pos > -1) {
+		TRACEF("stopProcess/ID=")
+		TRACE(pId)
+		TRACEF(", pos=")
+		TRACELN(pos)
 		this->processList.get(pos)->stop();
 	}
 }
 
-void IFirmware::pauseProcess(int pId, unsigned long pauseTime) {
+void IFirmware::pauseProcess(uint16_t pId, unsigned long pauseTime) {
 	int pos = this->findProcess(pId);
 	if (pos > -1) {
 		//IFirmwareProcess *process = ;
@@ -36,7 +40,7 @@ void IFirmware::pauseProcess(int pId, unsigned long pauseTime) {
 	}
 }
 
-void IFirmware::unPauseProcess(int pId) {
+void IFirmware::unPauseProcess(uint16_t pId) {
 	int pos = this->findProcess(pId);
 	if (pos > -1) {
 		IFirmwareProcess *process = this->processList.get(pos);
@@ -48,7 +52,7 @@ void IFirmware::stopAll() {
 	this->processList.clear();
 }
 
-void IFirmware::soloProcess(int pId) {
+void IFirmware::soloProcess(uint16_t pId) {
 	this->stopAll();
 	this->addProcess(pId);
 }
@@ -63,7 +67,7 @@ void IFirmware::sendMessage(IProcessMessage* msg) {
 	delete msg;
 }
 
-void IFirmware::addProcess(int pId) {
+void IFirmware::addProcess(uint16_t pId) {
 	this->addProcess(pId, NULL);
 }
 
@@ -81,14 +85,14 @@ void IFirmware::run() {
 		curTime = millis();
 		for (int i = 0; i < this->processList.size(); i++) {
 			IFirmwareProcess *p = this->processList.get(i);
-			if (p->getState() != IFirmwareProcess::ProcessState::STOP) {
+			if (p->getState() != IFirmwareProcess::ProcessState::STOP && !p->isPaused(curTime)) {
 				curTime = p->run(curTime);
 			}
 		}
 		// safely kill stopped processes
 		for (int i = this->processList.size()-1; i >= 0; i--) {
 			if (this->processList.get(i)->getState() == IFirmwareProcess::ProcessState::STOP) {
-				this->processList.remove(i);
+				delete this->processList.remove(i);
 			}
 		}
 	}
@@ -104,7 +108,7 @@ void IFirmware::run() {
 	#endif
 }
 
-void IFirmware::addProcess(int pId, IProcessMessage* msg) {
+void IFirmware::addProcess(uint16_t pId, IProcessMessage* msg) {
 	if (this->findProcess(pId) > -1) {
 		return;	// only 1 instance of process
 	}
@@ -113,7 +117,7 @@ void IFirmware::addProcess(int pId, IProcessMessage* msg) {
 		delete msg;
 	}
 	if (newProcess == NULL) {
-        		TRACELNF("IFirmware::addProcess//!newProcess")
+        		TRACELNF("IFirmware::addProcess ERR")
 		return;
 	}
 	this->processList.add(newProcess);
@@ -131,11 +135,13 @@ void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
 	for (int i = 0; i < this->processList.size(); i++) {
 		IFirmwareProcess* process = processList.get(i);
 		{
-			TRACE(process->getId());
-			TRACEF(": ");
-			TRACE(round((process->getUsedMs() * 100) / dT));
-			TRACE(process->getUsedMs());
-			TRACELNF("% ");
+			uint32_t used = process->getUsedMs();
+			TRACE(process->getId())
+			TRACEF(": ")
+			TRACE(used)
+			TRACEF("ms (");
+			TRACE(round((used * 100) / dT))
+			TRACELNF("%)");
 		}
 		process->resetUsedMs();
 	}
@@ -153,7 +159,7 @@ bool IFirmware::update(unsigned long ms) {
 	return true;
 };
 
-IFirmwareProcess* IFirmware::createProcess(int pId, IProcessMessage* msg) {
+IFirmwareProcess* IFirmware::createProcess(uint16_t pId, IProcessMessage* msg) {
 	ProcessFactory factory = this->getFactory(pId);
 	TRACELNF("IFirmware::createProcess//factory/!")
 	if (factory != NULL) {
@@ -164,7 +170,7 @@ IFirmwareProcess* IFirmware::createProcess(int pId, IProcessMessage* msg) {
 	return NULL;
 }
 
-int IFirmware::findProcess(int pId) {
+int IFirmware::findProcess(uint16_t pId) {
 	for (int i = 0; i < this->processList.size(); i++) {
 		if (this->processList.get(i)->isId(pId)) {
 			return i;

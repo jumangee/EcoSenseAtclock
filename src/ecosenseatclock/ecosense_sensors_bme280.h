@@ -36,7 +36,7 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 		//@include <Adafruit_BME280.h>
 		//@include "ecosense_cfg.h"
 		//@include "MHZ19_uart/MHZ19_uart.cpp"
-		EnvironmentSensorsProcess(int pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
+		EnvironmentSensorsProcess(uint16_t pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
 			//this->log("EnvironmentSensorsProcess::start");
 
 			this->ready = false;
@@ -74,7 +74,7 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 
 		//@implement
 		//@include <Arduino.h>
-		static IFirmwareProcess* factory(int pId, IProcessMessage* msg) {
+		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg) {
 			TRACELNF("EnvironmentSensorsProcess::factory");
 			return new EnvironmentSensorsProcess(pId, msg);
 		}

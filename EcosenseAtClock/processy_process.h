@@ -9,30 +9,32 @@ class IProcessMessage;
 class IFirmware;
 
 #include "processy_cfg.h"
+#include <Arduino.h>
 
 class IFirmwareProcess {
 	public:
 		enum ProcessState {
-			DUMMY,
-			ACTIVE,
-			PAUSE,
-			STOP
+			DUMMY	= 0,
+			ACTIVE	= 1,
+			PAUSE	= 2,
+			STOP	= 3
 		};
 	private:
  		ProcessState state;
 
 	public:
-		IFirmwareProcess(int pId, IProcessMessage* msg);
+		IFirmwareProcess(uint16_t pId, IProcessMessage* msg);
 
 		IFirmwareProcess::ProcessState getState() {
-			this->state;
+			return this->state;
 		}
 
-		~IFirmwareProcess();
+		virtual ~IFirmwareProcess() {
+		};
 
-		static IFirmwareProcess* factory(int pId, IProcessMessage* msg);
+		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
 
-		int getId() {
+		uint16_t getId() {
 			return this->processId;
 		}
 
@@ -40,7 +42,19 @@ class IFirmwareProcess {
 
 		void stop();
 
-		unsigned long run(unsigned long start);
+		bool isPaused(unsigned long start) {
+			//TRACE(S("IFirmwareProcess//start=", String(start).c_str(), ", lastUpdate=", String(this->lastUpdate).c_str() ))
+			//TRACE(S("IFirmwareProcess::run/",this->processId.c_str(),"/start=", String(start).c_str(),", pause=", String(this->pausedUpTo).c_str()) )
+			if (this->state == ProcessState::PAUSE) {
+				if (start < this->pausedUpTo) {
+					return true;
+				}
+				this->unPause();
+			}
+			return false;
+		}
+
+		virtual unsigned long run(unsigned long start);
 
 		virtual void update(unsigned long ms) = 0;
 
@@ -51,7 +65,7 @@ class IFirmwareProcess {
 		virtual bool handleMessage(IProcessMessage* msg);
 
 	private:
-		int processId;
+		uint16_t processId;
 		unsigned long lastUpdate;
 		unsigned long pausedUpTo;
 

@@ -80,7 +80,7 @@ class MainProcess: public IFirmwareProcess {
 	public:
 		//@implement
 		//@include <SSD1306AsciiWire.h>
-		MainProcess(int pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
+		MainProcess(uint16_t pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
 			TRACELNF("MainProcess::start");
 
 			#if USE_WARNING_LIGHT == 1
@@ -108,7 +108,7 @@ class MainProcess: public IFirmwareProcess {
 		}
 
 		//@implement
-		static IFirmwareProcess* factory(int pId, IProcessMessage* msg) {
+		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg) {
 			TRACELNF("MainProcess::factory");
 			return new MainProcess(pId, msg);
 		}

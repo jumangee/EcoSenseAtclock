@@ -25,9 +25,9 @@ class RTClockProcess: public IFirmwareProcess {
         bool active;
 
 	public:
-		RTClockProcess(int pId, IProcessMessage* msg);
+		RTClockProcess(uint16_t pId, IProcessMessage* msg);
         
-		static IFirmwareProcess* factory(int pId, IProcessMessage* msg);
+		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
 
 		void update(unsigned long ms);
 

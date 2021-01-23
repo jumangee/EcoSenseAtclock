@@ -37,7 +37,7 @@ class MQSensorProcess: public IFirmwareProcess {
 		bool preHeated;
 
 	public:
-		MQSensorProcess(int pId, IProcessMessage* msg);
+		MQSensorProcess(uint16_t pId, IProcessMessage* msg);
 
         uint16_t instantValue(byte pin) {
             return analogRead(pin);
