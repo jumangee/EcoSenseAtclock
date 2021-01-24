@@ -36,11 +36,11 @@
  *                  // bit field of all characters
  */
 
-#ifndef ecosenseicons_H
-#define ecosenseicons_H
+#ifndef ECOSENSEICONS_H
+#define ECOSENSEICONS_H
 
-#define ecosenseicons_WIDTH 14
-#define ecosenseicons_HEIGHT 15
+#define ECOSENSEICONS_WIDTH 14
+#define ECOSENSEICONS_HEIGHT 15
 
 GLCDFONTDECL(ecosenseicons) = {
     0x0A, 0x47, // size

@@ -1,7 +1,31 @@
 #ifndef _STUFF_FIRMWARE_FRAMEWORK_H
 #define _STUFF_FIRMWARE_FRAMEWORK_H
 
+#define ARR2PTR(arr) arr, (*(&arr + 1) - arr)
+
 //#include <Arduino.h>
+
+/*template <typename T>
+	class ArrayPtr {
+		public:
+			T *arr;
+			uint16_t size;
+
+			ArrayPtr(T *ptr, uint16_t s) {
+				this->arr = ptr;
+				this->size = s;
+			}
+	};
+
+typedef ArrayPtr<byte> ByteArrPtr;
+#define ARRP(arr) ArrayPtr<byte>(arr, (*(&arr + 1) - arr))
+
+typedef ArrayPtr<uint16_t> WordArrPtr;
+#define ARRP(arr) ArrayPtr<uint16_t>(arr, (*(&arr + 1) - arr))
+
+typedef ArrayPtr<int> IntArrPtr;
+#define ARRP(arr) ArrayPtr<int>(arr, (*(&arr + 1) - arr))*/
+
 
 /*class rgbColor {
     public:

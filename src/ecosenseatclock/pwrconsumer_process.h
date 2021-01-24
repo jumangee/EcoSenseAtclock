@@ -9,10 +9,10 @@
 #include "processy.h"
 #include "processy_process.h"
 
-#include "pwrloadmng.h"
+#include "pwrload_mngmnt.h"
 
 #define MAXTASKCOUNT 10
-#define CONSUMERPROCESSTIMEOUT 720000
+#define CONSUMERPROCESSTIMEOUT 20000
 
 class PwrConsumerProcess: public IFirmwareProcess {
 	public:
@@ -76,17 +76,26 @@ class PwrConsumerProcess: public IFirmwareProcess {
 		 */
 		virtual bool handleMessageLogic(IProcessMessage* msg) = 0;
 
+
+		//@implement
+		bool isPaused(unsigned long start) {
+			if (deepSleep) {
+				return true;
+			}
+			return IFirmwareProcess::isPaused(start);
+		}
+
         //@implement
 		//@include "processy_cfg.h"
-		//@include "pwrloadmng.h"
+		//@include "pwrload_mngmnt.h"
 		unsigned long run(unsigned long start) {
 			if (deepSleep) {
 				return start;
 			}
-			//TRACELNF("PwrConsumerProcess:run")
 			if (this->poweredTime == 0) {
 				//TRACELNF("PwrConsumerProcess:request pwr")
 				this->poweredTime = PowerloadManagement::get()->requestPin(this->keyPin);
+				//TRACELN(this->poweredTime)
 				// bit sleep - if got power - physical change state, if not - simple wait delay
 				this->pause(10);
 				return millis();
@@ -96,7 +105,7 @@ class PwrConsumerProcess: public IFirmwareProcess {
 
 		//@implement
 		//@include "ecosense_messages.h"
-		void update(unsigned long start) {
+		void update(unsigned long ms) {
 			// we've got POWER! ))
 
 			switch (this->getWorkState())
@@ -117,7 +126,6 @@ class PwrConsumerProcess: public IFirmwareProcess {
 					this->releaseLoad();                        // required to unlock up pwr key
 					this->deepSleep = true;
 					this->getHost()->sendMessage(new ProcessOrderMessage(this->getId()));	// go to next of process list
-					this->pause(CONSUMERPROCESSTIMEOUT);
 					return;
 				}
 				default: {
@@ -132,6 +140,7 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			if (msg->getType() == PRC_ORDER_MESSAGE)	{
 				if (((ProcessOrderMessage*)msg)->getNextId() == this->getId()) {
 					this->deepSleep = false;
+					this->pause(CONSUMERPROCESSTIMEOUT);
 					return true;
 				}
 				return false;

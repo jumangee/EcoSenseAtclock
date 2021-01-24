@@ -9,10 +9,10 @@
 #include "processy.h"
 #include "processy_process.h"
 
-#include "pwrloadmng.h"
+#include "pwrload_mngmnt.h"
 
 #define MAXTASKCOUNT 10
-#define CONSUMERPROCESSTIMEOUT 720000
+#define CONSUMERPROCESSTIMEOUT 20000
 
 class PwrConsumerProcess: public IFirmwareProcess {
 	public:
@@ -45,9 +45,12 @@ class PwrConsumerProcess: public IFirmwareProcess {
 		 */
 		virtual bool handleMessageLogic(IProcessMessage* msg) = 0;
 
+
+		bool isPaused(unsigned long start);
+
 		unsigned long run(unsigned long start);
 
-		void update(unsigned long start);
+		void update(unsigned long ms);
 
 		bool handleMessage(IProcessMessage* msg);
 

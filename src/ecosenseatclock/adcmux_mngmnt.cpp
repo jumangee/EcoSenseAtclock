@@ -1,6 +1,4 @@
-#include "pwrloadmng.h"
-
-PowerloadManagement* PowerloadManagement::instance = NULL;
+#include "adcmux_mngmnt.h"
 
 ADCMuxManagement* ADCMuxManagement::instance = NULL;
 

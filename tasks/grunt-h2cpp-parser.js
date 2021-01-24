@@ -134,6 +134,7 @@ module.exports = function(grunt) {
 		var openBrackets = 0;
 		var methodDesc = false;
 		var linePreCutCpp = false;
+		var move2cpp = 0;
 		
 		function closeBracket() {
 			openBrackets--;
@@ -176,6 +177,15 @@ module.exports = function(grunt) {
 					linePreCutCpp = false;
 				} else if (chunks[0] === '@include') {
 					includes[chunks[1]] = 2;
+				} else if (chunks[0] === '@cpp') {
+					move2cpp = 1;
+				}
+				return;
+			}
+			if (move2cpp > 0) {
+				cppFileDataNew.push(line);
+				if (move2cpp == 1) {
+					move2cpp = 0;
 				}
 				return;
 			}

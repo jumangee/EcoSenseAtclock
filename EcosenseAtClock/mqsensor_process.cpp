@@ -3,6 +3,7 @@
 #include <Arduino.h>
 
 MQSensorProcess::MQSensorProcess(uint16_t pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
+	analogReference(EXTERNAL);
 	readingsCount = 0;
             value = 0;
 	preHeated = false;

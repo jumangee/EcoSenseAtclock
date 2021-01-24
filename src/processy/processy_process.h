@@ -61,7 +61,7 @@ class IFirmwareProcess {
 			this->state = ProcessState::STOP;
 		}
 
-		bool isPaused(unsigned long start) {
+		virtual bool isPaused(unsigned long start) {
 			//TRACE(S("IFirmwareProcess//start=", String(start).c_str(), ", lastUpdate=", String(this->lastUpdate).c_str() ))
 			//TRACE(S("IFirmwareProcess::run/",this->processId.c_str(),"/start=", String(start).c_str(),", pause=", String(this->pausedUpTo).c_str()) )
 			if (this->state == ProcessState::PAUSE) {
@@ -91,7 +91,7 @@ class IFirmwareProcess {
 		virtual void update(unsigned long ms) = 0;
 
 		//@implement
-		void pause(unsigned long upTo = 0) {
+		virtual void pause(unsigned long upTo = 0) {
 			if (this->state == ProcessState::STOP) return;
 
 			this->state = ProcessState::PAUSE;
@@ -99,7 +99,7 @@ class IFirmwareProcess {
 		}
 
 		//@implement
-		void unPause() {
+		virtual void unPause() {
 			if (this->state == ProcessState::STOP) return;
 
 			this->state = ProcessState::ACTIVE;

@@ -1,6 +1,6 @@
 #include "pwrconsumer_process.h"
 #include "processy_cfg.h"
-#include "pwrloadmng.h"
+#include "pwrload_mngmnt.h"
 #include "ecosense_messages.h"
 
 PwrConsumerProcess::PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, int pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
@@ -35,14 +35,21 @@ void PwrConsumerProcess::taskDone(uint16_t process_id) {
 	this->getHost()->stopProcess(process_id);
 }
 
+bool PwrConsumerProcess::isPaused(unsigned long start) {
+	if (deepSleep) {
+		return true;
+	}
+	return IFirmwareProcess::isPaused(start);
+}
+
 unsigned long PwrConsumerProcess::run(unsigned long start) {
 	if (deepSleep) {
 		return start;
 	}
-	//TRACELNF("PwrConsumerProcess:run")
 	if (this->poweredTime == 0) {
 		//TRACELNF("PwrConsumerProcess:request pwr")
 		this->poweredTime = PowerloadManagement::get()->requestPin(this->keyPin);
+		//TRACELN(this->poweredTime)
 		// bit sleep - if got power - physical change state, if not - simple wait delay
 		this->pause(10);
 		return millis();
@@ -50,7 +57,7 @@ unsigned long PwrConsumerProcess::run(unsigned long start) {
 	return IFirmwareProcess::run(start);
 }
 
-void PwrConsumerProcess::update(unsigned long start) {
+void PwrConsumerProcess::update(unsigned long ms) {
 	// we've got POWER! ))
 	switch (this->getWorkState())
 	{
@@ -70,7 +77,6 @@ void PwrConsumerProcess::update(unsigned long start) {
 			this->releaseLoad();                        // required to unlock up pwr key
 			this->deepSleep = true;
 			this->getHost()->sendMessage(new ProcessOrderMessage(this->getId()));	// go to next of process list
-			this->pause(CONSUMERPROCESSTIMEOUT);
 			return;
 		}
 		default: {
@@ -84,6 +90,7 @@ bool PwrConsumerProcess::handleMessage(IProcessMessage* msg) {
 	if (msg->getType() == PRC_ORDER_MESSAGE)	{
 		if (((ProcessOrderMessage*)msg)->getNextId() == this->getId()) {
 			this->deepSleep = false;
+			this->pause(CONSUMERPROCESSTIMEOUT);
 			return true;
 		}
 		return false;

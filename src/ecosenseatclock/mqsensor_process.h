@@ -40,6 +40,8 @@ class MQSensorProcess: public IFirmwareProcess {
 		//@implement
 		//@include "ecosense_cfg.h"
 		MQSensorProcess(uint16_t pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
+			analogReference(EXTERNAL);
+
 			readingsCount = 0;
             value = 0;
 			preHeated = false;

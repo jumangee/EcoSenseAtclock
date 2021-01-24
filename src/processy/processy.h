@@ -61,10 +61,6 @@ class IFirmware {
 		void stopProcess(uint16_t pId) {
 			int pos = this->findProcess(pId);
 			if (pos > -1) {
-				TRACEF("stopProcess/ID=")
-				TRACE(pId)
-				TRACEF(", pos=")
-				TRACELN(pos)
 				this->processList.get(pos)->stop();
 			}
 		}
