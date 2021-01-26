@@ -11,9 +11,8 @@
 #include "processy_process.h"
 #include "ecosense_messages.h"
 
+#include "ecosense_cfg.h"
 #include "RTClib.h"
-
-#define RESET_CLOCK 0
 
 class RTClockProcess: public IFirmwareProcess {
 	private:
@@ -63,12 +62,13 @@ class RTClockProcess: public IFirmwareProcess {
 			//TRACEF("[RTC] Time: ")
 			//TRACELN(now.timestamp())
             this->getHost()->sendMessage(new CurrentTimeMsg(now.hour(), now.minute(), dotFlag));
-
+			#ifdef RTC_GET_TEMPERATURE
             if (!dotFlag) {
 				//TRACEF("[RTC] TEMPERATURE: ")
 				//TRACELN(rtc.getTemperature())
                 this->getHost()->sendMessage(new EnvDataMessage(rtc.getTemperature() - 1.4, 0, 0));
 			}
+			#endif
 
 			this->pause(950);
 		}

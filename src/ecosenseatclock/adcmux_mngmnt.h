@@ -5,6 +5,8 @@
     #include "processy_cfg.h"
     #include "pinswitch_mngmnt.h"
 
+    #define ADCMUX_SIGNAL_PIN 4
+
     class ADCMuxManagement: public PinSwitchManager {
         protected:
             ADCMuxManagement(byte *pins): PinSwitchManager(pins, 4) {
@@ -23,6 +25,10 @@
                 if (!ADCMuxManagement::instance) {
                     ADCMuxManagement::instance = new ADCMuxManagement(pins);
                 }
+            }
+
+            byte getSignalPin() {
+                return ADCMUX_SIGNAL_PIN;
             }
 
         protected:

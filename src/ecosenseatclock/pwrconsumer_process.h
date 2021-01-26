@@ -11,9 +11,6 @@
 
 #include "pwrload_mngmnt.h"
 
-#define MAXTASKCOUNT 10
-#define CONSUMERPROCESSTIMEOUT 20000
-
 class PwrConsumerProcess: public IFirmwareProcess {
 	public:
 		enum WorkState {

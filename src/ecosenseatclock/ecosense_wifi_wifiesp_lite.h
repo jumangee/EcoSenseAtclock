@@ -21,11 +21,7 @@
 #include "ecosense_messages.h"
 #include "url_helper.h"
 
-#define TIMEOUT 5000 // mS
-
-#define RX_PIN 2
-#define TX_PIN 3
-
+//#define TIMEOUT 5000 // mS
 
 class WifiProcess: public IFirmwareProcess {
 	private:
@@ -43,12 +39,12 @@ class WifiProcess: public IFirmwareProcess {
 
 			TRACELNF("WifiProcess::init");
 
-			pinMode(RX_PIN, INPUT);
-  			pinMode(TX_PIN, OUTPUT);
+			pinMode(WIFI_RX_PIN, INPUT);
+  			pinMode(WIFI_TX_PIN, OUTPUT);
 			lastReportTime = 0;
 			ready = false;
 
-			espSerial = new SoftwareSerial(RX_PIN, TX_PIN); // RX, TX
+			espSerial = new SoftwareSerial(WIFI_RX_PIN, WIFI_TX_PIN); // RX, TX
 			espSerial->begin(19200);
 
 			TRACELN("Initializing ESP module...")

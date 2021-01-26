@@ -11,23 +11,11 @@
 
 #include "ecosenseatclock.h"
 
-#define CO2_SENSOR
-
-#ifdef CO2_SENSOR
-	#include "MHZ19_uart/MHZ19_uart.h"
-	#define MHZ19_RXPIN 3
-	#define MHZ19_TXPIN 4
-#endif
-
 class Adafruit_BME280;
 
 class EnvironmentSensorsProcess: public IFirmwareProcess {
 	private:
 		Adafruit_BME280* bme;
-		#ifdef CO2_SENSOR
-		MHZ19_uart		mhz19;
-		bool			mhz19active;
-		#endif
 		bool ready;
 		bool initDone;
 
@@ -45,7 +33,7 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 			Wire.begin(); // Wire communication begin
 			this->bme = new Adafruit_BME280();
 
-			if (bme->begin(CLOCK2BME280_ADDRESS)) {
+			if (bme->begin(BME280_ADDRESS)) {
 				bme->setSampling(Adafruit_BME280::MODE_FORCED,
 					Adafruit_BME280::SAMPLING_X1, // temperature
 					Adafruit_BME280::SAMPLING_X1, // pressure
@@ -59,17 +47,6 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 			} else {
 				TRACELNF("BME: ERROR");
 			}
-
-			#ifdef CO2_SENSOR
-			mhz19active = false;
-			mhz19.begin(MHZ19_RXPIN, MHZ19_TXPIN);
-			mhz19.setAutoCalibration(false);
-			mhz19.getStatus();    // первый запрос, в любом случае возвращает -1
-			delay(500);
-			if (mhz19.getStatus() == 0) {
-				mhz19active = true;
-			}
-			#endif
 		}
 
 		//@implement
@@ -119,12 +96,6 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 			//alt = ((float)alt * 1 + bme->readAltitude(SEALEVELPRESSURE_HPA)) / 2;  // усреднение, чтобы не было резких скачков (с)НР
 
 			EnvDataMessage* msg = new EnvDataMessage(temp, hum, pres);
-
-			#ifdef CO2_SENSOR
-			if (this->mhz19active) {
-				msg->setCO2(mhz19.getPPM());
-			}
-			#endif
 
 			return msg;
 		}

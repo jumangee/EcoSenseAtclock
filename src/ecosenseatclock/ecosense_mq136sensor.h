@@ -12,13 +12,13 @@
 #include "ecosenseatclock.h"
 #include "mqsensor_process.h"
 
-#define MQ136_ANALOG_PIN 22	// READ-ONLY PIN!
-#define MQ136_DIGITAL_PIN 7
+//#define MQ136_ANALOG_PIN 22	// READ-ONLY PIN!
+//#define MQ136_DIGITAL_PIN 7
 
-#define READINGS_PER_RESULT 50
+//#define READINGS_PER_RESULT 50
 
-#define MQ136_RL 2.3
-#define MQ136_FRESH_RO 1
+//#define MQ136_RL 2.3
+//#define MQ136_FRESH_RO 1
 
 // curve params calculated using article: https://circuitdigest.com/microcontroller-projects/arduino-mq137-ammonia-sensor
 //const float H2S_CURVE[2] PROGMEM = {-1.51, 1.088};		// m: [log(ppm1 / "RsRo1") - log(ppm2 / "RsRo2")], b: [log("RsRo3") - m * log(ppm3)]
@@ -31,9 +31,9 @@ class MQ136SensorProcess: public MQSensorProcess {
 	public:
 		//@implement
 		//@include "ecosense_cfg.h"
-		MQ136SensorProcess(int pId, IProcessMessage* msg): MQSensorProcess(pId, msg) {
-			pinMode(MQ136_ANALOG_PIN, INPUT) ;
-			pinMode(MQ136_DIGITAL_PIN, INPUT) ;
+		MQ136SensorProcess(int pId, IProcessMessage* msg): MQSensorProcess(MQ136_ANALOG_PIN_ADDR, pId, msg) {
+			/*pinMode(MQ136_ANALOG_PIN, INPUT) ;
+			pinMode(MQ136_DIGITAL_PIN, INPUT) ;*/
 
 			TRACELNF("MQ136SensorProcess::init");
 		}
@@ -44,9 +44,9 @@ class MQ136SensorProcess: public MQSensorProcess {
 			return new MQ136SensorProcess(pId, msg);
 		}
 
-		//@implement
-		//@include "ecosense_cfg.h"
-		//@include "mqsensor_process.h"
+		/*//@implement
+		//!@include "ecosense_cfg.h"
+		//!@include "mqsensor_process.h"
 		void update(unsigned long ms) {
 			if (!readingsDone(MQ136_ANALOG_PIN, READINGS_PER_RESULT)) {
 				return;
@@ -68,6 +68,10 @@ class MQ136SensorProcess: public MQSensorProcess {
 			this->getHost()->sendMessage(new AirQualityMsg(H2S, this->getQuality(.6), this->getVoltage()));
 
 			this->pause(ENVSENSORS_TIMEOUT);
+		}*/
+
+		IProcessMessage* getResultMsg() {
+			return new AirQualityMsg(H2S, this->getQuality(.6), this->getVoltage());
 		}
 
 };
