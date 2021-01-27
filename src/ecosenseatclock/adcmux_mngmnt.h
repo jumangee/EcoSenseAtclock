@@ -27,7 +27,7 @@
                 }
             }
 
-            byte getSignalPin() {
+            static byte signalPin() {
                 return ADCMUX_SIGNAL_PIN;
             }
 

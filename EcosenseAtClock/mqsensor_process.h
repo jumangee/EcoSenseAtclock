@@ -27,32 +27,37 @@
 #include "processy.h"
 #include "processy_process.h"
 
-#define PREHEAT_TIME 45000
+#include "simple_sensor_process.h"
+#include "adcmux_mngmnt.h"
 
-class MQSensorProcess: public IFirmwareProcess {
+//#define PREHEAT_TIME 45000
+
+class MQSensorProcess: public SimpleSensorProcess {
 	private:
-		byte readingsCount;
-        uint16_t value;
-		uint32_t startTime;
-		bool preHeated;
+		//byte readingsCount;
+        //uint16_t value;
+		//uint32_t startTime;
+		//bool preHeated;
+		uint8_t pin;
 
 	public:
-		MQSensorProcess(uint16_t pId, IProcessMessage* msg);
+		MQSensorProcess(byte pin, uint16_t pId, IProcessMessage* msg);
 
-        uint16_t instantValue(byte pin) {
+        /*uint16_t instantValue(byte pin) {
             return analogRead(pin);
         }
 
         uint16_t getValue() {
             return value;
-        }
+        }*/
 
         /**
          * Calc V from analog value
          */
-        float getVoltage(float Vfull = 5) {
+        /* in mqsensor_process!
+		float getVoltage() {
             return (value + .5) * (5.0 / 1023.0);
-        }
+        }*/
 
 		/*float getRatio(float airR0, float Rl, float V = 5) {
 			float Vrl = this->getVoltage(V);
@@ -69,7 +74,7 @@ class MQSensorProcess: public IFirmwareProcess {
 			return rs / actualR0;
 		}*/
 
-		bool readingsDone(byte pin, byte countPerResult) {
+		/*bool readingsDone(byte pin, byte countPerResult) {
 			if (!preHeated) {
 				if (PREHEAT_TIME > (millis() - startTime)) {
 					return false;
@@ -90,17 +95,25 @@ class MQSensorProcess: public IFirmwareProcess {
 				return true;
 			}
 			return false;
-		}
-
-		~MQSensorProcess();
+		}*/
 
 		/*float cosh(float x) {
 			return ( expf(x) + expf(-x) ) / 2;
 		}*/
 
+		uint16_t getInstantValue() {
+            return analogRead( ADCMuxManagement::signalPin() );
+        }
+
 		byte getQuality(float k = .6) {
 			return exp((getVoltage()-5)*k)*127;
 		}
+
+		void update(unsigned long ms);
+
+		virtual IProcessMessage* getResultMsg() = 0; /*{
+			return this->getHost()->sendMessage(new AirQualityMsg(CH2O, byte(expf( logPPM_CH2O )), v));
+		}*/
 
 		/*int MQGetConcentration(float airR0, float Rl, const float *pcurve, float V = 5) {
             return pow(10, ( double(log10( this->getRatio(airR0, Rl, V) ) - pcurve[1]) / pcurve[0]));

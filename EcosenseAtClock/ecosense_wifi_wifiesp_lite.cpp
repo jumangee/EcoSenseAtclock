@@ -9,11 +9,11 @@
 WifiProcess::WifiProcess(uint16_t pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
 	//this->log("WifiProcess::start");
 	TRACELNF("WifiProcess::init");
-	pinMode(RX_PIN, INPUT);
-  			pinMode(TX_PIN, OUTPUT);
+	pinMode(WIFI_RX_PIN, INPUT);
+  			pinMode(WIFI_TX_PIN, OUTPUT);
 	lastReportTime = 0;
 	ready = false;
-	espSerial = new SoftwareSerial(RX_PIN, TX_PIN); // RX, TX
+	espSerial = new SoftwareSerial(WIFI_RX_PIN, WIFI_TX_PIN); // RX, TX
 	espSerial->begin(19200);
 	TRACELN("Initializing ESP module...")
 	EspDrv::wifiDriverInit(espSerial); 

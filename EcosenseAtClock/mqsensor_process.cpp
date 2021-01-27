@@ -1,18 +1,31 @@
 #include "mqsensor_process.h"
 #include "ecosense_cfg.h"
-#include <Arduino.h>
 
-MQSensorProcess::MQSensorProcess(uint16_t pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
-	analogReference(EXTERNAL);
-	readingsCount = 0;
+MQSensorProcess::MQSensorProcess(byte pin, uint16_t pId, IProcessMessage* msg) : SimpleSensorProcess(pId, msg){
+	/*readingsCount = 0;
             value = 0;
 	preHeated = false;
 	startTime = millis();
-	this->pause(PREHEAT_TIME);
+	this->pause(PREHEAT_TIME);*/
+	this->pin = pin;
 	TRACELNF("MQSensorProcess::init");
 }
 
-MQSensorProcess::~MQSensorProcess() {
-	// stop process
-	TRACELNF("MQSensorProcess::stop");
+void MQSensorProcess::update(unsigned long ms) {
+	uint32_t ticket = ADCMuxManagement::get()->requestPin(this->pin);	// ADC MUX PIN!
+	if (ticket) {
+		{
+			bool done = this->readingsDone(READINGS_PER_RESULT);
+			ADCMuxManagement::get()->releasePin(ticket);
+			if (!done) {
+				return;
+			}
+		}
+		IProcessMessage* result = this->getResultMsg();
+		if (result) {
+			this->getHost()->sendMessage(result);
+		}
+		
+	}
+	this->pause(ENVSENSORS_TIMEOUT);
 }

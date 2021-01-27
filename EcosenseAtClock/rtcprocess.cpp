@@ -32,11 +32,13 @@ void RTClockProcess::update(unsigned long ms) {
 	//TRACEF("[RTC] Time: ")
 	//TRACELN(now.timestamp())
             this->getHost()->sendMessage(new CurrentTimeMsg(now.hour(), now.minute(), dotFlag));
+	#ifdef RTC_GET_TEMPERATURE
             if (!dotFlag) {
 		//TRACEF("[RTC] TEMPERATURE: ")
 		//TRACELN(rtc.getTemperature())
                 this->getHost()->sendMessage(new EnvDataMessage(rtc.getTemperature() - 1.4, 0, 0));
 	}
+	#endif
 	this->pause(950);
 }
 

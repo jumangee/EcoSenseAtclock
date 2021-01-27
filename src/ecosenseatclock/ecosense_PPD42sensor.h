@@ -32,6 +32,12 @@ class PPD42SensorProcess: public SimpleSensorProcess {
 			return new PPD42SensorProcess(pId, msg);
 		}
 
+		//@implement
+		uint16_t getInstantValue() {
+			return analogRead( ADCMuxManagement::signalPin() );
+		}
+
+		//@implement
         bool readingsDone2(byte countPerResult) {
 			if (readingsCount2 >= countPerResult) {
 				readingsCount2 = 0;

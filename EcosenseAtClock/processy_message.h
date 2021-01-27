@@ -13,7 +13,8 @@ class IFirmwareProcess;
 #include <math.h>
 
 //--- MSG TYPES -------------------
-#define FREEMEM_MESSAGE 1000
+#define PRCSTATE_MESSAGE	100
+#define FREEMEM_MESSAGE		101
 //---------------------------------
 
 class IProcessMessage {
@@ -48,6 +49,26 @@ class MemUsageMessage: public IProcessMessage {
 
 	private:
 		byte	free;
+};
+
+class ProcessStateMsg: public IProcessMessage {
+	public:
+		ProcessStateMsg(uint16_t processId, IFirmwareProcess::ProcessState state): IProcessMessage(NULL, PRCSTATE_MESSAGE) {
+			this->processId = processId;
+			this->state = state;
+		}
+
+		uint16_t getProcessId() {
+			return this->processId;
+		}
+
+		IFirmwareProcess::ProcessState getState() {
+			return this->processId;
+		}
+
+	private:
+		uint16_t processId;
+		IFirmwareProcess::ProcessState state;
 };
 
 #endif

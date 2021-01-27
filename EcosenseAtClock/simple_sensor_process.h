@@ -15,14 +15,7 @@ class SimpleSensorProcess: public IFirmwareProcess {
         uint16_t value;
 
 	public:
-		//@implement
-		//@include "ecosense_cfg.h"
-		SimpleSensorProcess(uint16_t pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
-			readingsCount = 0;
-            value = 0;
-
-			TRACELNF("SimpleSensorProcess::init");
-		}
+		SimpleSensorProcess(uint16_t pId, IProcessMessage* msg);
 
         /*uint16_t getInstantValue(byte pin) {
             return analogRead(pin);

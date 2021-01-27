@@ -10,9 +10,7 @@
 #include "processy_process.h"
 
 #include "pwrload_mngmnt.h"
-
-#define MAXTASKCOUNT 10
-#define CONSUMERPROCESSTIMEOUT 20000
+#include "ecosense_cfg.h"
 
 class PwrConsumerProcess: public IFirmwareProcess {
 	public:

@@ -14,6 +14,7 @@ class IFirmwareProcess;
 #define WIFISTATE_MESSAGE	1004
 #define PWRSUPPLY_MESSAGE	1005
 #define PRC_ORDER_MESSAGE	1006
+#define THINGSPEAK_MESSAGE	1007
 //---------------------------------
 
 class EnvDataMessage: public IProcessMessage {
@@ -49,20 +50,11 @@ class EnvDataMessage: public IProcessMessage {
 			return this->pressure;
 		}
 
-		void setCO2(int co2) {
-			this->co2 = co2;
-		}
-
-		int getCO2() {
-			return co2;
-		}
-
 	private:
 		bool	active;
 		float	temp;
 		byte	humidity;
 		int		pressure;
-		int		co2;
 };
 
 
@@ -108,11 +100,17 @@ class CurrentTimeMsg: public IProcessMessage {
 
 
 enum AirQualityGasType {
-	H2S,
-	CO,
+	COMMON,		// Air Quality (CO, Ammonia, Benzene, Alcohol, smoke) (MQ135)
+	H2S,		// сероводород
+	CO,			// оксид серы
 	SO2,
-	CO2,
-	CH4
+	CO2,		// углекислый газ
+	CH4,
+	CH2O,		// формальдегид
+	C6H5_CH3,	// толуол
+	PM1,		// частицы ~PM1
+	PM25,		// частицы ~PM2.5
+	VOCs		// formaldehyde benzene concentration
 };
 
 class AirQualityMsg: public IProcessMessage {
@@ -200,6 +198,38 @@ class ProcessOrderMessage: public IProcessMessage {
 				}
 			}
 		}
+};
+
+class ThingspeakFieldMessage: public IProcessMessage {
+	public:
+		enum ThingspeakChannel {
+			CHANNEL1,
+			CHANNEL2,
+			CHANNEL3
+		};
+
+		ThingspeakFieldMessage(ThingspeakChannel channel, byte field, float value): IProcessMessage(NULL, THINGSPEAK_MESSAGE) {
+			this->channel = channel;
+			this->field = field;
+			this->value = value;
+		}
+
+		ThingspeakChannel getChannel() {
+			return this->channel;
+		}
+
+		byte getField() {
+			return this->field;
+		}
+
+		float getValue() {
+			return this->value;
+		}
+
+	private:
+		ThingspeakChannel channel;
+		byte field;
+		float value;
 };
 
 #endif

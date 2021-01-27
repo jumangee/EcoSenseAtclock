@@ -21,11 +21,7 @@ class ZE08CH2OSensorProcess: public MQSensorProcess {
 			TRACELNF("ZE08CH2OSensorProcess::init");
 		}
 
-		//@implement
-		static IFirmwareProcess* factory(int pId, IProcessMessage* msg) {
-			TRACELNF("ZE08CH2OSensorProcess::factory");
-			return new ZE08CH2OSensorProcess(pId, msg);
-		}
+		static IFirmwareProcess* factory(int pId, IProcessMessage* msg);
 
 		IProcessMessage* getResultMsg() {
 			float v = this->getVoltage() - 0.4;

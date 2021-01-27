@@ -11,9 +11,8 @@
 #include "processy_process.h"
 #include "ecosense_messages.h"
 
+#include "ecosense_cfg.h"
 #include "RTClib.h"
-
-#define RESET_CLOCK 0
 
 class RTClockProcess: public IFirmwareProcess {
 	private:

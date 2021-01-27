@@ -12,7 +12,7 @@ EnvironmentSensorsProcess::EnvironmentSensorsProcess(uint16_t pId, IProcessMessa
 	TRACELNF("EnvironmentSensorsProcess::init");
 	Wire.begin(); // Wire communication begin
 	this->bme = new Adafruit_BME280();
-	if (bme->begin(CLOCK2BME280_ADDRESS)) {
+	if (bme->begin(BME280_ADDRESS)) {
 		bme->setSampling(Adafruit_BME280::MODE_FORCED,
 			Adafruit_BME280::SAMPLING_X1, // temperature
 			Adafruit_BME280::SAMPLING_X1, // pressure
@@ -25,16 +25,6 @@ EnvironmentSensorsProcess::EnvironmentSensorsProcess(uint16_t pId, IProcessMessa
 	} else {
 		TRACELNF("BME: ERROR");
 	}
-	#ifdef CO2_SENSOR
-	mhz19active = false;
-	mhz19.begin(MHZ19_RXPIN, MHZ19_TXPIN);
-	mhz19.setAutoCalibration(false);
-	mhz19.getStatus();    // первый запрос, в любом случае возвращает -1
-	delay(500);
-	if (mhz19.getStatus() == 0) {
-		mhz19active = true;
-	}
-	#endif
 }
 
 static IFirmwareProcess* EnvironmentSensorsProcess::factory(uint16_t pId, IProcessMessage* msg) {
@@ -72,10 +62,5 @@ IProcessMessage* EnvironmentSensorsProcess::readBME280() {
 	int pres = (float)bme->readPressure() * 0.00750062;
 	//alt = ((float)alt * 1 + bme->readAltitude(SEALEVELPRESSURE_HPA)) / 2;  // усреднение, чтобы не было резких скачков (с)НР
 	EnvDataMessage* msg = new EnvDataMessage(temp, hum, pres);
-	#ifdef CO2_SENSOR
-	if (this->mhz19active) {
-		msg->setCO2(mhz19.getPPM());
-	}
-	#endif
 	return msg;
 }

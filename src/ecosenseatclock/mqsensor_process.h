@@ -28,6 +28,7 @@
 #include "processy_process.h"
 
 #include "simple_sensor_process.h"
+#include "adcmux_mngmnt.h"
 
 //#define PREHEAT_TIME 45000
 
@@ -66,7 +67,8 @@ class MQSensorProcess: public SimpleSensorProcess {
         /**
          * Calc V from analog value
          */
-        /*float getVoltage(float Vfull = 5) {
+        /* in mqsensor_process!
+		float getVoltage() {
             return (value + .5) * (5.0 / 1023.0);
         }*/
 
@@ -113,7 +115,7 @@ class MQSensorProcess: public SimpleSensorProcess {
 		}*/
 
 		uint16_t getInstantValue() {
-            return analogRead(this(ADCMuxManagement::get()->getSignalPin()));
+            return analogRead( ADCMuxManagement::signalPin() );
         }
 
 		byte getQuality(float k = .6) {

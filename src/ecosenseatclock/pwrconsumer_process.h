@@ -10,6 +10,7 @@
 #include "processy_process.h"
 
 #include "pwrload_mngmnt.h"
+#include "ecosense_cfg.h"
 
 class PwrConsumerProcess: public IFirmwareProcess {
 	public:

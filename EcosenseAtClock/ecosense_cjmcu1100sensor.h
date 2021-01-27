@@ -15,17 +15,9 @@
 
 class CJMCU1100SensorProcess: public MQSensorProcess {
 	public:
-		//@implement
-		//@include "ecosense_cfg.h"
-		CJMCU1100SensorProcess(int pId, IProcessMessage* msg): MQSensorProcess(CJMCU1100_ANALOG_PIN_ADDR, pId, msg) {
-			TRACELNF("CJMCU1100SensorProcess::init");
-		}
+		CJMCU1100SensorProcess(int pId, IProcessMessage* msg);
 
-		//@implement
-		static IFirmwareProcess* factory(int pId, IProcessMessage* msg) {
-			TRACELNF("CJMCU1100SensorProcess::factory");
-			return new CJMCU1100SensorProcess(pId, msg);
-		}
+		static IFirmwareProcess* factory(int pId, IProcessMessage* msg);
 
 		/*uint16_t getInstantValue() {
 			return this(ADCMuxManagement::get()->getSignalPin());

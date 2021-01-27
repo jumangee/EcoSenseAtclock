@@ -11,6 +11,7 @@
 
 #include "ecosenseatclock.h"
 #include "ecosense_cfg.h"
+#include "simple_sensor_process.h"
 
 #include "MHZ19_uart/MHZ19_uart.h"
 
@@ -22,7 +23,7 @@ class MHZ19SensorProcess: public SimpleSensorProcess {
 	public:
 		//@implement
 		//@include "ecosense_cfg.h"
-		MHZ19SensorProcess(int pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
+		MHZ19SensorProcess(int pId, IProcessMessage* msg): SimpleSensorProcess(pId, msg) {
 			mhz19active = false;
 			mhz19.begin(MHZ19_RXPIN, MHZ19_TXPIN);
 			mhz19.setAutoCalibration(false);
@@ -39,16 +40,21 @@ class MHZ19SensorProcess: public SimpleSensorProcess {
 			return new MHZ19SensorProcess(pId, msg);
 		}
 
+        uint16_t getInstantValue() {
+            return mhz19.getPPM();
+        }
+
 		//@implement
 		//@include "ecosense_cfg.h"
 		void update(unsigned long ms) {
-            if (!mhz19active)) {
+            if (!mhz19active) {
                 if (millis() - this->startTime < 1000) {
                     return;
                 }
 
                 if (mhz19.getStatus() == 0) {
                     mhz19active = true;
+                    return;
                 } else {
                     // error
                     this->getHost()->sendMessage(new ProcessStateMsg(this->getId(), IFirmwareProcess::ProcessState::STOP));
@@ -56,7 +62,11 @@ class MHZ19SensorProcess: public SimpleSensorProcess {
                 }
             }
 
-            uint16_t ppm = mhz19.getPPM();
+            if (!this->readingsDone(READINGS_PER_RESULT)) {
+                return;
+            }
+
+            uint16_t ppm = getValue();
             byte q = 0;
             if (ppm < 600) {
                 q = 42 * ppm / 600;
@@ -65,7 +75,7 @@ class MHZ19SensorProcess: public SimpleSensorProcess {
             } else {
                 q = 127 * ppm / 10000;
             }
-            this->getHost()->sendMessage(new AirQualityMsg(CO2, q, v));
+            this->getHost()->sendMessage(new AirQualityMsg(CO2, q, this->getVoltage()));
             
 			this->pause(ENVSENSORS_TIMEOUT);
 		}
