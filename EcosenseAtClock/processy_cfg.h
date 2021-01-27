@@ -5,7 +5,7 @@
     #define DEBUG_PRO_MS
     #define DEBUG_PRO_PERIOD_MS 10000
 
-    #define PROCESSY_DEBUG_SERIAL
+    #define PROCESSY_DEBUG_SERIAL_
 
     /*** processy inlines ***/
     #define S(t) String(t)

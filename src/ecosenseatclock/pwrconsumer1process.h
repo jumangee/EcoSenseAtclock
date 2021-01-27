@@ -17,7 +17,7 @@
     class PwrConsumer1Process: public PwrConsumerProcess {
         private:
         public:
-            const uint16_t taskId[2] = {PRC_DUMB1, PRC_DUMB2};
+            const uint16_t taskId[2] = {PRC_MQ7SENSOR, PRC_MHZ19SENSOR};
 
             /**
              * Process consists of 2 task, pwr switch at pin 12
@@ -26,7 +26,6 @@
             //@implement
             //@include "pwrconsumer_process.h"
             PwrConsumer1Process(uint16_t pId, IProcessMessage* msg): PwrConsumerProcess(12, taskId, (*(&taskId + 1) - taskId), pId, msg) {
-                //byte taskId[2] = {PRC_DUMB1, PRC_DUMB2};
                 TRACELNF("PwrConsumer1Process::init")
             }
 
@@ -54,13 +53,6 @@
                 }
                 return false;
             }
-
-            //@implement
-            ~PwrConsumer1Process() {
-                // stop process
-                TRACELNF("PwrConsumer1Process::stop");
-            }
-
     };
 
 #endif

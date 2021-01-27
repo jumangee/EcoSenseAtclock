@@ -3,7 +3,6 @@
 #include "processy_cfg.h"
 
 PwrConsumer1Process::PwrConsumer1Process(uint16_t pId, IProcessMessage* msg) : PwrConsumerProcess(12, taskId, (*(&taskId + 1) - taskId), pId, msg){
-    //byte taskId[2] = {PRC_DUMB1, PRC_DUMB2};
     TRACELNF("PwrConsumer1Process::init")
 }
 
@@ -27,9 +26,4 @@ bool PwrConsumer1Process::handleMessageLogic(IProcessMessage* msg) {
         }
     }
     return false;
-}
-
-PwrConsumer1Process::~PwrConsumer1Process() {
-    // stop process
-    TRACELNF("PwrConsumer1Process::stop");
 }

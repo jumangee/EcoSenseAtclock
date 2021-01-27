@@ -17,7 +17,7 @@
     class PwrConsumer1Process: public PwrConsumerProcess {
         private:
         public:
-            const uint16_t taskId[2] = {PRC_DUMB1, PRC_DUMB2};
+            const uint16_t taskId[2] = {PRC_MQ7SENSOR, PRC_MHZ19SENSOR};
 
             /**
              * Process consists of 2 task, pwr switch at pin 12
@@ -28,9 +28,6 @@
             static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
 
             bool handleMessageLogic(IProcessMessage* msg);
-
-            ~PwrConsumer1Process();
-
     };
 
 #endif

@@ -117,9 +117,9 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 				FACTORY(PRC_MAIN, MainProcess)
 				,FACTORY(PRC_RTC, RTClockProcess)
 				,FACTORY(PRC_WIFI, WifiProcess)
-				,FACTORY(PRC_BME280SENSOR, EnvironmentSensorsProcess),
+				,FACTORY(PRC_BME280SENSOR, EnvironmentSensorsProcess)
 
-				FACTORY(PRC_CONSUMER1, PwrConsumer1Process)
+				,FACTORY(PRC_CONSUMER1, PwrConsumer1Process)
 				,FACTORY(PRC_CONSUMER2, PwrConsumer2Process)
 				,FACTORY(PRC_CONSUMER3, PwrConsumer3Process)
 

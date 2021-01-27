@@ -54,13 +54,6 @@
                 }
                 return false;
             }
-
-            //@implement
-            ~PwrConsumer2Process() {
-                // stop process
-                TRACELNF("PwrConsumer2Process::stop");
-            }
-
     };
 
 #endif

@@ -55,12 +55,6 @@
                 return false;
             }
 
-            //@implement
-            ~PwrConsumer3Process() {
-                // stop process
-                TRACELNF("PwrConsumer3Process::stop");
-            }
-
     };
 
 #endif

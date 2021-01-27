@@ -28,8 +28,3 @@ bool PwrConsumer2Process::handleMessageLogic(IProcessMessage* msg) {
     }
     return false;
 }
-
-PwrConsumer2Process::~PwrConsumer2Process() {
-    // stop process
-    TRACELNF("PwrConsumer2Process::stop");
-}

@@ -28,9 +28,6 @@
             static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
 
             bool handleMessageLogic(IProcessMessage* msg);
-
-            ~PwrConsumer2Process();
-
     };
 
 #endif

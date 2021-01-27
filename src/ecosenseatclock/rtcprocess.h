@@ -12,35 +12,55 @@
 #include "ecosense_messages.h"
 
 #include "ecosense_cfg.h"
-#include "RTClib.h"
+//#include "RTClib.h"
+
+#include "RTC/rtc_ds3231simple.h"
+#include <Arduino.h>
+//#include <math.h>
 
 class RTClockProcess: public IFirmwareProcess {
 	private:
-        RTC_DS3231 rtc;
+        //RTC_DS3231 rtc;
         //DateTime now;
         //int8_t hrs, mins, secs;
         boolean dotFlag;
 
         bool active;
 
+		RtcDS3231SimpleI2C	rtc = RtcDS3231SimpleI2C(RTC_I2C_ADDR);
+
 	public:
 		//@implement
 		RTClockProcess(uint16_t pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
             dotFlag = false;
-            if (rtc.begin()) {
-                this->active = true;
 
-                if (RESET_CLOCK || rtc.lostPower())
-                    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-				// TODO: http://worldtimeapi.org/api/timezone/Europe/Moscow.txt
+			#if RESET_CLOCK == 1
+				const char* compile_date_time = __DATE__ " " __TIME__;
+				datetime_t compiled_time_t = rtc.str20ToTime(compile_date_time);
+				// Check if the time is valid.
+				//if (!Rtc->isDateTimeValid())
+				//{
+					rtc.setTime(&compiled_time_t);
+				//}
+			#endif
 
-				TRACELNF("[RTC] OK")
-            } else {
-                TRACELNF("[RTC] FAIL")
-                active = false;
-            }
+			// Check if the RTC clock is running (Yes, it can be stopped, if you wish!)
+			if (!rtc.getIsRunning())
+			{
+				TRACELNF("WARNING: RTC was not actively running, starting it now.")
+				rtc.setIsRunning(true);
+			}
 
-			TRACELNF("RTClockProcess::init");
+			// Reset the DS3231 RTC status in case it was wrongly configured
+			rtc.enable32kHzPin(false);
+			rtc.disableSquareWavePin();
+
+			TRACELNF("RTClockProcess::READY");
+		}
+
+		//@implement
+		~RTClockProcess() {
+			//delete this->Rtc;
 		}
         
 		//@implement
@@ -57,29 +77,26 @@ class RTClockProcess: public IFirmwareProcess {
 				return;
 			}
 
-            dotFlag = !dotFlag;
-            DateTime now = rtc.now();
+			if (rtc.isDateTimeValid()) {
+				datetime_t now = rtc.getNow();
+				this->getHost()->sendMessage(new CurrentTimeMsg(now.hour, now.min, dotFlag));
+			}
+
+            /*dotFlag = !dotFlag;
+            DateTime now = Rtc->now();
 			//TRACEF("[RTC] Time: ")
 			//TRACELN(now.timestamp())
             this->getHost()->sendMessage(new CurrentTimeMsg(now.hour(), now.minute(), dotFlag));
 			#ifdef RTC_GET_TEMPERATURE
             if (!dotFlag) {
 				//TRACEF("[RTC] TEMPERATURE: ")
-				//TRACELN(rtc.getTemperature())
-                this->getHost()->sendMessage(new EnvDataMessage(rtc.getTemperature() - 1.4, 0, 0));
+				//TRACELN(Rtc->getTemperature())
+                this->getHost()->sendMessage(new EnvDataMessage(Rtc->getTemperature() - 1.4, 0, 0));
 			}
-			#endif
+			#endif*/
 
 			this->pause(950);
 		}
-
-		//@implement
-		//@include <Arduino.h>
-		~RTClockProcess() {
-			// stop process
-			TRACELNF("RTClockProcess::stop");
-		}
-
 };
 
 #endif

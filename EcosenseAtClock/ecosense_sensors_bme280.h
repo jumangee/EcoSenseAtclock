@@ -11,11 +11,14 @@
 
 #include "ecosenseatclock.h"
 
-class Adafruit_BME280;
+#include "forcedClimate/forcedClimate.h"
+
+//class Adafruit_BME280;
 
 class EnvironmentSensorsProcess: public IFirmwareProcess {
 	private:
-		Adafruit_BME280* bme;
+		//Adafruit_BME280* bme;
+		ForcedClimate climateSensor;
 		bool ready;
 		bool initDone;
 

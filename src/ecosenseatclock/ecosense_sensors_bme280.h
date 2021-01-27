@@ -11,19 +11,21 @@
 
 #include "ecosenseatclock.h"
 
-class Adafruit_BME280;
+#include "forcedClimate/forcedClimate.h"
+
+//class Adafruit_BME280;
 
 class EnvironmentSensorsProcess: public IFirmwareProcess {
 	private:
-		Adafruit_BME280* bme;
+		//Adafruit_BME280* bme;
+		ForcedClimate climateSensor;
 		bool ready;
 		bool initDone;
 
 	public:
 		//@implement
-		//@include <Adafruit_BME280.h>
+		//!@include <Adafruit_BME280.h>
 		//@include "ecosense_cfg.h"
-		//@include "MHZ19_uart/MHZ19_uart.cpp"
 		EnvironmentSensorsProcess(uint16_t pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
 			//this->log("EnvironmentSensorsProcess::start");
 
@@ -31,7 +33,7 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 			
 			TRACELNF("EnvironmentSensorsProcess::init");
 			Wire.begin(); // Wire communication begin
-			this->bme = new Adafruit_BME280();
+			/*this->bme = new Adafruit_BME280();
 
 			if (bme->begin(BME280_ADDRESS)) {
 				bme->setSampling(Adafruit_BME280::MODE_FORCED,
@@ -46,7 +48,8 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 				this->ready = true;
 			} else {
 				TRACELNF("BME: ERROR");
-			}
+			}*/
+			climateSensor.begin();
 		}
 
 		//@implement
@@ -61,7 +64,7 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 		~EnvironmentSensorsProcess() {
 			// stop process
 			TRACELNF("EnvironmentSensorsProcess::stop");
-			delete this->bme;
+			//delete this->bme;
 		}
 
 		//@implement
@@ -82,20 +85,24 @@ class EnvironmentSensorsProcess: public IFirmwareProcess {
 		}
 
 		//@implement
-		//@include <Adafruit_BME280.h>
+		//!@include <Adafruit_BME280.h>
+		//@include "forcedClimate/forcedClimate.cpp"
 		IProcessMessage* readBME280() {
 			Wire.begin(); // Wire communication begin
-			bme->takeForcedMeasurement();
+			//bme->takeForcedMeasurement();
+			climateSensor.takeForcedMeasurement();
 
-			//float alt = bme->readAltitude(SEALEVELPRESSURE_HPA);  // первый замер до усреднения
+			/*//float alt = bme->readAltitude(SEALEVELPRESSURE_HPA);  // первый замер до усреднения
 			float temp = bme->readTemperature();
 			//TRACEF("T=");
 			//TRACELN(temp);
 			byte hum = bme->readHumidity();
 			int pres = (float)bme->readPressure() * 0.00750062;
-			//alt = ((float)alt * 1 + bme->readAltitude(SEALEVELPRESSURE_HPA)) / 2;  // усреднение, чтобы не было резких скачков (с)НР
+			//alt = ((float)alt * 1 + bme->readAltitude(SEALEVELPRESSURE_HPA)) / 2;  // усреднение, чтобы не было резких скачков (с)НР*/
 
-			EnvDataMessage* msg = new EnvDataMessage(temp, hum, pres);
+			//EnvDataMessage* msg = new EnvDataMessage(temp, hum, pres);
+
+			EnvDataMessage* msg = new EnvDataMessage(climateSensor.getTemperatureCelcius(), climateSensor.getRelativeHumidity(), climateSensor.getPressure());
 
 			return msg;
 		}

@@ -29,8 +29,6 @@
 
             bool handleMessageLogic(IProcessMessage* msg);
 
-            ~PwrConsumer3Process();
-
     };
 
 #endif

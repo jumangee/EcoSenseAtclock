@@ -41,5 +41,6 @@
     // ---[ REAL-TIME CLOCK ]---
     #define RESET_CLOCK                 0
     #define RTC_GET_TEMPERATURE
+    #define RTC_I2C_ADDR                0x68
 
 #endif
