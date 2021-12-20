@@ -12,14 +12,14 @@
 #include "processy_message.h"
 #include <math.h>
 
-#define FACTORY(idnum, className) ProcessFactoryReg(idnum, &className::factory)
+#define FACTORY(className) ProcessFactoryReg(className::ID, &className::factory)
 
-typedef IFirmwareProcess* (*ProcessFactory)(uint16_t, IProcessMessage*);
+typedef IFirmwareProcess* (*ProcessFactory)(IProcessMessage*);
 
 class ProcessFactoryReg {
 	public:
-		uint16_t id;
-		ProcessFactory factory;
+		uint16_t 		id;
+		ProcessFactory	factory;
 
 		ProcessFactoryReg(uint16_t pId, ProcessFactory f) {
 			this->id = pId;
@@ -54,11 +54,9 @@ class IFirmware {
 
 		void sendMessage(IProcessMessage* msg);
 
-		void addProcess(uint16_t pId);
-
 		void run();
 
-		void addProcess(uint16_t pId, IProcessMessage* msg);
+		void addProcess(uint16_t pId, IProcessMessage* msg = NULL);
 
 	protected:
 		LinkedList<IFirmwareProcess*> processList;

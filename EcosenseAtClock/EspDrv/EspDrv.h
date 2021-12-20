@@ -140,12 +140,12 @@ public:
     /*
 	 * Set ip configuration disabling dhcp client
 	 */
-    static void config(IPAddress local_ip);
+    //static void config(IPAddress local_ip);
 
     /*
 	 * Set ip configuration disabling dhcp client
 	 */
-    static void configAP(IPAddress local_ip);
+    //static void configAP(IPAddress local_ip);
 
 
     /*
@@ -167,16 +167,16 @@ public:
      *
      * return: pointer to uint8_t array with length WL_MAC_ADDR_LENGTH
      */
-    static uint8_t* getMacAddress();
+    //static uint8_t* getMacAddress();
 
     /*
      * Get the interface IP address.
      *
      * return: copy the ip address value in IPAddress object
      */
-    static void getIpAddress(IPAddress& ip);
+    /*static void getIpAddress(IPAddress& ip);
 
-	static void getIpAddressAP(IPAddress& ip);
+	static void getIpAddressAP(IPAddress& ip);*/
 
     /*
      * Get the interface IP netmask.
@@ -184,7 +184,7 @@ public:
      *
      * return: true if successful
      */
-    static bool getNetmask(IPAddress& mask);
+    //static bool getNetmask(IPAddress& mask);
 
     /*
      * Get the interface IP gateway.
@@ -192,14 +192,14 @@ public:
      *
      * return: true if successful
      */
-    static bool getGateway(IPAddress& mask);
+    //static bool getGateway(IPAddress& mask);
 
     /*
      * Return the current SSID associated with the network
      *
      * return: ssid string
      */
-    static char* getCurrentSSID();
+    //static char* getCurrentSSID();
 
     /*
      * Return the current BSSID associated with the network.
@@ -207,7 +207,7 @@ public:
      *
      * return: pointer to uint8_t array with length WL_MAC_ADDR_LENGTH
      */
-    static uint8_t* getCurrentBSSID();
+    //static uint8_t* getCurrentBSSID();
 
     /*
      * Return the current RSSI /Received Signal Strength in dBm)
@@ -222,7 +222,7 @@ public:
      *
      * return: Number of discovered networks
      */
-    static uint8_t getScanNetworks();
+    //static uint8_t getScanNetworks();
 
 	/*
      * Return the SSID discovered during the network scan.
@@ -231,7 +231,7 @@ public:
 	 *
      * return: ssid string of the specified item on the networks scanned list
      */
-    static char* getSSIDNetoworks(uint8_t networkItem);
+    //static char* getSSIDNetoworks(uint8_t networkItem);
 
     /*
      * Return the RSSI of the networks discovered during the scanNetworks
@@ -240,7 +240,7 @@ public:
 	 *
      * return: signed value of RSSI of the specified item on the networks scanned list
      */
-    static int32_t getRSSINetoworks(uint8_t networkItem);
+    //static int32_t getRSSINetoworks(uint8_t networkItem);
 
     /*
      * Return the encryption type of the networks discovered during the scanNetworks
@@ -249,7 +249,7 @@ public:
 	 *
      * return: encryption type (enum wl_enc_type) of the specified item on the networks scanned list
      */
-    static uint8_t getEncTypeNetowrks(uint8_t networkItem);
+    //static uint8_t getEncTypeNetowrks(uint8_t networkItem);
 
 
     /*
@@ -263,10 +263,10 @@ public:
 	////////////////////////////////////////////////////////////////////////////
 
 
-    static bool startServer(uint16_t port, uint8_t sock);
+    //static bool startServer(uint16_t port, uint8_t sock);
     static bool startClient(const char* host, uint16_t port, uint8_t sock, uint8_t protMode);
     static void stopClient(uint8_t sock);
-    static uint8_t getServerState(uint8_t sock);
+    //static uint8_t getServerState(uint8_t sock);
     static uint8_t getClientState(uint8_t sock);
     static bool getData(uint8_t connId, uint8_t *data, bool peek, bool* connClose);
     static int getDataBuf(uint8_t connId, uint8_t *buf, uint16_t bufSize);
@@ -279,8 +279,8 @@ public:
 	static bool ping(const char *host);
     static void reset();
 
-    static void getRemoteIpAddress(IPAddress& ip);
-    static uint16_t getRemotePort();
+    //static void getRemoteIpAddress(IPAddress& ip);
+    //static uint16_t getRemotePort();
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -299,9 +299,9 @@ private:
 	static char 	fwVersion[WL_FW_VER_LENGTH];
 
 	// settings of requested network
-	static char 	_networkSsid[WL_NETWORKS_LIST_MAXNUM][WL_SSID_MAX_LENGTH];
+	/*static char 	_networkSsid[WL_NETWORKS_LIST_MAXNUM][WL_SSID_MAX_LENGTH];
 	static int32_t 	_networkRssi[WL_NETWORKS_LIST_MAXNUM];
-	static uint8_t 	_networkEncr[WL_NETWORKS_LIST_MAXNUM];
+	static uint8_t 	_networkEncr[WL_NETWORKS_LIST_MAXNUM];*/
 
 
 	// settings of current selected network
@@ -329,10 +329,10 @@ private:
 	static int timedRead();
 
 
-	friend class WiFiEsp;
+	/*friend class WiFiEsp;
 	friend class WiFiEspServer;
 	friend class WiFiEspClient;
-	friend class WiFiEspUdp;
+	friend class WiFiEspUdp;*/
 };
 
 extern EspDrv espDrv;

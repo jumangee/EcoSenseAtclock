@@ -1,4 +1,4 @@
-#include <Wire.h>
+//#include <Wire.h>
 
 #include "ecosenseatclock.h"
 

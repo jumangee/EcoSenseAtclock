@@ -12,14 +12,14 @@
 #include "processy_message.h"
 #include <math.h>
 
-#define FACTORY(idnum, className) ProcessFactoryReg(idnum, &className::factory)
+#define FACTORY(className) ProcessFactoryReg(className::ID, &className::factory)
 
-typedef IFirmwareProcess* (*ProcessFactory)(uint16_t, IProcessMessage*);
+typedef IFirmwareProcess* (*ProcessFactory)(IProcessMessage*);
 
 class ProcessFactoryReg {
 	public:
-		uint16_t id;
-		ProcessFactory factory;
+		uint16_t 		id;
+		ProcessFactory	factory;
 
 		ProcessFactoryReg(uint16_t pId, ProcessFactory f) {
 			this->id = pId;
@@ -69,7 +69,6 @@ class IFirmware {
 		void pauseProcess(uint16_t pId, unsigned long pauseTime) {
 			int pos = this->findProcess(pId);
 			if (pos > -1) {
-				//IFirmwareProcess *process = ;
 				this->processList.get(pos)->pause(pauseTime);
 			}
 		}
@@ -104,11 +103,6 @@ class IFirmware {
 				}
 			}
 			delete msg;
-		}
-
-		//@implement
-		void addProcess(uint16_t pId) {
-			this->addProcess(pId, NULL);
 		}
 
 		//@implement
@@ -152,7 +146,7 @@ class IFirmware {
 		}
 
 		//@implement
-		void addProcess(uint16_t pId, IProcessMessage* msg) {
+		void addProcess(uint16_t pId, IProcessMessage* msg = NULL) {
 			if (this->findProcess(pId) > -1) {
 				return;	// only 1 instance of process
 			}
@@ -182,7 +176,6 @@ class IFirmware {
 		//@implement
 		//*** OVERRIDE THIS ***/
 		//@include "stuff.h"
-		//--@include "processy_cfg.h"
 		//@include "MemoryFree.h"
 		void handlerProcessDebugTimer(unsigned long dT) {
 			#ifdef DEBUG_PRO_MS
@@ -205,7 +198,7 @@ class IFirmware {
 				process->resetUsedMs();
 			}
 			#endif
-			TRACEF("[!] MEMORY STATUS: ");
+			TRACEF("MEM FREE:");
 			{
 				int free = freeMemory();
 				this->sendMessage(new MemUsageMessage(free));
@@ -231,10 +224,8 @@ class IFirmware {
 		//@implement
 		IFirmwareProcess* createProcess(uint16_t pId, IProcessMessage* msg) {
 			ProcessFactory factory = this->getFactory(pId);
-			TRACELNF("IFirmware::createProcess//factory/!")
 			if (factory != NULL) {
-        		TRACELNF("IFirmware::createProcess//factory")
-				IFirmwareProcess* t = factory(pId, msg);
+				IFirmwareProcess* t = factory(msg);
 				return t;
 			}
 			return NULL;
@@ -243,7 +234,7 @@ class IFirmware {
 		//@implement
 		int findProcess(uint16_t pId) {
 			for (int i = 0; i < this->processList.size(); i++) {
-				if (this->processList.get(i)->isId(pId)) {
+				if (this->processList.get(i)->getId() == pId) {
 					return i;
 				}
 			}

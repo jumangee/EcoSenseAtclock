@@ -10,47 +10,36 @@
     #include "processy_process.h"
     #include "processy_cfg.h"
 
-    #include "ecosenseatclock.h"
-    #include "ecosense_messages.h"
+    #include "ecosense_cfg.h"
+    //#include "examplefirmware.h"
+    //#include "messages.h"
     #include "pwrconsumer_process.h"
 
+    /**
+     * Process consists of 1 task, pwr switch at pin 12
+     */
     class PwrConsumer1Process: public PwrConsumerProcess {
         private:
-        public:
-            const uint16_t taskId[2] = {PRC_MQ7SENSOR, PRC_MHZ19SENSOR};
+            const uint16_t taskId[2] = {PRC_MQ136, PRC_CJMCU1100};
 
-            /**
-             * Process consists of 2 task, pwr switch at pin 12
-             */
-            //PwrConsumer1Process(int pId, IProcessMessage* msg): PwrConsumerProcess(12, PwrConsumer1Process::taskId, 2, pId, msg) { //
+        public:
+            PROCESSID(PRC_CONSUMER1);
+            
             //@implement
             //@include "pwrconsumer_process.h"
-            PwrConsumer1Process(uint16_t pId, IProcessMessage* msg): PwrConsumerProcess(12, taskId, (*(&taskId + 1) - taskId), pId, msg) {
+            PwrConsumer1Process(IProcessMessage* msg): PwrConsumerProcess(12, taskId, (*(&taskId + 1) - taskId), msg) {
                 TRACELNF("PwrConsumer1Process::init")
             }
 
             //@implement
             //@include "processy_cfg.h"
-            static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg) {
-                TRACELNF("PwrConsumer1Process::factory");
-                return new PwrConsumer1Process(pId, msg);
+            static IFirmwareProcess* factory(IProcessMessage* msg) {
+                //TRACELNF("PwrConsumer1Process::factory");
+                return new PwrConsumer1Process(msg);
             }
 
             //@implement
             bool handleMessageLogic(IProcessMessage* msg) {
-                switch (msg->getType())
-                {
-                    case ENVDATA_MESSAGE: { // DUMB1
-                        TRACELNF("1handleMessage:ENVDATA_MESSAGE")
-                        this->taskDone(PRC_DUMB1);
-                        break;
-                    }
-                    case AIRQUALITY_MESSAGE: {// DUMB2
-                        TRACELNF("1handleMessage:AIRQUALITY_MESSAGE")
-                        this->taskDone(PRC_DUMB2);
-                        break;
-                    }
-                }
                 return false;
             }
     };

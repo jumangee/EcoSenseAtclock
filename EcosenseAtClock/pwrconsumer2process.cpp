@@ -2,29 +2,15 @@
 #include "pwrconsumer_process.h"
 #include "processy_cfg.h"
 
-PwrConsumer2Process::PwrConsumer2Process(uint16_t pId, IProcessMessage* msg) : PwrConsumerProcess(11, taskId, (*(&taskId + 1) - taskId), pId, msg){
-    //byte taskId[2] = {PRC_DUMB1, PRC_DUMB2};
+PwrConsumer2Process::PwrConsumer2Process(IProcessMessage* msg) : PwrConsumerProcess(11, taskId, (*(&taskId + 1) - taskId), msg){
     TRACELNF("PwrConsumer2Process::init");
 }
 
-static IFirmwareProcess* PwrConsumer2Process::factory(uint16_t pId, IProcessMessage* msg) {
-    TRACELNF("PwrConsumer2Process::factory");
-    return new PwrConsumer2Process(pId, msg);
+static IFirmwareProcess* PwrConsumer2Process::factory(IProcessMessage* msg) {
+    //TRACELNF("PwrConsumer2Process::factory");
+    return new PwrConsumer2Process(msg);
 }
 
 bool PwrConsumer2Process::handleMessageLogic(IProcessMessage* msg) {
-    switch (msg->getType())
-    {
-        case ENVDATA_MESSAGE: { // DUMB1
-            TRACELNF("2handleMessage:ENVDATA_MESSAGE")
-            this->taskDone(PRC_DUMB1);
-            break;
-        }
-        case AIRQUALITY_MESSAGE: {// DUMB2
-            TRACELNF("2handleMessage:AIRQUALITY_MESSAGE")
-            this->taskDone(PRC_DUMB2);
-            break;
-        }
-    }
     return false;
 }

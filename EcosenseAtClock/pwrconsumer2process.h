@@ -10,22 +10,25 @@
     #include "processy_process.h"
     #include "processy_cfg.h"
 
-    #include "ecosenseatclock.h"
-    #include "ecosense_messages.h"
+    //#include "examplefirmware.h"
+    //#include "messages.h"
     #include "pwrconsumer_process.h"
+    #include "ecosense_cfg.h"
 
+    
+    /**
+     * Process consists of 2 task, pwr switch at pin 11
+     */
     class PwrConsumer2Process: public PwrConsumerProcess {
         private:
-            const uint16_t taskId[2] = {PRC_DUMB1, PRC_DUMB2};
+            const uint16_t taskId[2] = {PRC_MQ4, PRC_MQ135};
 
         public:
-            /**
-             * Process consists of 2 task, pwr switch at pin 11
-             */
-            //PwrConsumer2Process(int pId, IProcessMessage* msg): PwrConsumerProcess(11, PwrConsumer1Process::taskId, 2, pId, msg) {
-            PwrConsumer2Process(uint16_t pId, IProcessMessage* msg);
+            PROCESSID(PRC_CONSUMER2);
 
-            static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
+            PwrConsumer2Process(IProcessMessage* msg);
+
+            static IFirmwareProcess* factory(IProcessMessage* msg);
 
             bool handleMessageLogic(IProcessMessage* msg);
     };

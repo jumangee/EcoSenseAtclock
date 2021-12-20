@@ -49,15 +49,15 @@ Stream *EspDrv::espSerial;
 RingBuffer EspDrv::ringBuf(32);
 
 // Array of data to cache the information related to the networks discovered
-char 	EspDrv::_networkSsid[][WL_SSID_MAX_LENGTH] = {{"1"},{"2"},{"3"},{"4"},{"5"}};
+/*char 	EspDrv::_networkSsid[][WL_SSID_MAX_LENGTH] = {{"1"},{"2"},{"3"},{"4"},{"5"}};
 int32_t EspDrv::_networkRssi[WL_NETWORKS_LIST_MAXNUM] = { 0 };
-uint8_t EspDrv::_networkEncr[WL_NETWORKS_LIST_MAXNUM] = { 0 };
+uint8_t EspDrv::_networkEncr[WL_NETWORKS_LIST_MAXNUM] = { 0 };*/
 
 // Cached values of retrieved data
-char EspDrv::_ssid[] = {0};
+/*char EspDrv::_ssid[] = {0};
 uint8_t EspDrv::_bssid[] = {0};
 uint8_t EspDrv::_mac[] = {0};
-uint8_t EspDrv::_localIp[] = {0};
+uint8_t EspDrv::_localIp[] = {0};*/
 char EspDrv::fwVersion[] = {0};
 
 long EspDrv::_bufPos=0;
@@ -170,7 +170,7 @@ bool EspDrv::wifiConnect(const char* ssid, const char* passphrase)
 }
 
 
-bool EspDrv::wifiStartAP(const char* ssid, const char* pwd, uint8_t channel, uint8_t enc, uint8_t espMode)
+/*bool EspDrv::wifiStartAP(const char* ssid, const char* pwd, uint8_t channel, uint8_t enc, uint8_t espMode)
 {
 	LOGDEBUG(F("> wifiStartAP"));
 
@@ -202,7 +202,7 @@ bool EspDrv::wifiStartAP(const char* ssid, const char* pwd, uint8_t channel, uin
 
 	LOGINFO1(F("Access point started"), ssid);
 	return true;
-}
+}*/
 
 
 int8_t EspDrv::disconnect()
@@ -219,7 +219,7 @@ int8_t EspDrv::disconnect()
 	return WL_DISCONNECTED;
 }
 
-void EspDrv::config(IPAddress ip)
+/*void EspDrv::config(IPAddress ip)
 {
 	LOGDEBUG(F("> config"));
 
@@ -263,7 +263,7 @@ void EspDrv::configAP(IPAddress ip)
 	{
 		LOGINFO1(F("IP address set"), buf);
 	}
-}
+}*/
 
 uint8_t EspDrv::getConnectionStatus()
 {
@@ -326,7 +326,7 @@ uint8_t EspDrv::getClientState(uint8_t sock)
 	return false;
 }
 
-uint8_t* EspDrv::getMacAddress()
+/*uint8_t* EspDrv::getMacAddress()
 {
 	LOGDEBUG(F("> getMacAddress"));
 
@@ -438,7 +438,7 @@ uint8_t* EspDrv::getCurrentBSSID()
 	}
 	return _bssid;
 
-}
+}*/
 
 int32_t EspDrv::getCurrentRSSI()
 {
@@ -456,7 +456,7 @@ int32_t EspDrv::getCurrentRSSI()
 }
 
 
-uint8_t EspDrv::getScanNetworks()
+/*uint8_t EspDrv::getScanNetworks()
 {
     uint8_t ssidListNum = 0;
     int idx;	
@@ -554,7 +554,7 @@ int32_t EspDrv::getRSSINetoworks(uint8_t networkItem)
 		return 0;
 
     return _networkRssi[networkItem];
-}
+}*/
 
 char* EspDrv::getFwVersion()
 {
@@ -584,14 +584,14 @@ bool EspDrv::ping(const char *host)
 
 
 // Start server TCP on port specified
-bool EspDrv::startServer(uint16_t port, uint8_t sock)
+/*bool EspDrv::startServer(uint16_t port, uint8_t sock)
 {
 	LOGDEBUG1(F("> startServer"), port);
 
 	int ret = sendCmd(F("AT+CIPSERVER=%d,%d"), 1000, sock, port);
 
 	return ret==TAG_OK;
-}
+}*/
 
 
 bool EspDrv::startClient(const char* host, uint16_t port, uint8_t sock, uint8_t protMode)
@@ -633,10 +633,10 @@ void EspDrv::stopClient(uint8_t sock)
 }
 
 
-uint8_t EspDrv::getServerState(uint8_t sock)
+/*uint8_t EspDrv::getServerState(uint8_t sock)
 {
     return 0;
-}
+}*/
 
 
 
@@ -860,7 +860,7 @@ bool EspDrv::sendData(uint8_t sock, const __FlashStringHelper *data, uint16_t le
     return true;
 }
 
-bool EspDrv::sendDataUdp(uint8_t sock, const char* host, uint16_t port, const uint8_t *data, uint16_t len)
+/*bool EspDrv::sendDataUdp(uint8_t sock, const char* host, uint16_t port, const uint8_t *data, uint16_t len)
 {
 	LOGDEBUG2(F("> sendDataUdp:"), sock, len);
 	LOGDEBUG2(F("> sendDataUdp:"), host, port);
@@ -887,19 +887,19 @@ bool EspDrv::sendDataUdp(uint8_t sock, const char* host, uint16_t port, const ui
 	}
 
     return true;
-}
+}*
 
 
 
-void EspDrv::getRemoteIpAddress(IPAddress& ip)
+/*void EspDrv::getRemoteIpAddress(IPAddress& ip)
 {
 	ip = _remoteIp;
-}
+}*/
 
-uint16_t EspDrv::getRemotePort()
+/*uint16_t EspDrv::getRemotePort()
 {
 	return _remotePort;
-}
+}*/
 
 
 ////////////////////////////////////////////////////////////////////////////

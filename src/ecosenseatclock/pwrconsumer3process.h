@@ -10,48 +10,37 @@
     #include "processy_process.h"
     #include "processy_cfg.h"
 
-    #include "ecosenseatclock.h"
-    #include "ecosense_messages.h"
+    //#include "examplefirmware.h"
+    //#include "messages.h"
     #include "pwrconsumer_process.h"
-
+    #include "ecosense_cfg.h"
+    
+    /**
+     * Process consists of 2 task, pwr switch at pin 10
+     */
     class PwrConsumer3Process: public PwrConsumerProcess {
         private:
-            const uint16_t taskId[2] = {PRC_DUMB1, PRC_DUMB2};
+            const uint16_t taskId[2] = {PRC_MHZ19, PRC_MQ7};
 
         public:
-            /**
-             * Process consists of 2 task, pwr switch at pin 10
-             */
-            //PwrConsumer3Process(int pId, IProcessMessage* msg): PwrConsumerProcess(10, PwrConsumer1Process::taskId, 2, pId, msg) {   //PwrConsumer3Process::taskId
+            PROCESSID(PRC_CONSUMER3);
+
             //@implement
             //@include "pwrconsumer_process.h"
-            PwrConsumer3Process(uint16_t pId, IProcessMessage* msg): PwrConsumerProcess(10, taskId, (*(&taskId + 1) - taskId), pId, msg) { 
-                //byte taskId[2] = {PRC_DUMB1, PRC_DUMB2};
+            PwrConsumer3Process(IProcessMessage* msg): PwrConsumerProcess(10, taskId, (*(&taskId + 1) - taskId), msg) { 
                 TRACELNF("PwrConsumer3Process::init");
             }
 
             //@implement
             //@include "processy_cfg.h"
-            static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg) {
-                TRACELNF("PwrConsumer3Process::factory");
-                return new PwrConsumer3Process(pId, msg);
+            static IFirmwareProcess* factory(IProcessMessage* msg) {
+                //TRACELNF("PwrConsumer3Process::factory");
+                return new PwrConsumer3Process(msg);
             }
 
             //@implement
+            //@include "processy_cfg.h"
             bool handleMessageLogic(IProcessMessage* msg) {
-                switch (msg->getType())
-                {
-                    case ENVDATA_MESSAGE: { // DUMB1
-                        TRACELNF("3handleMessage:ENVDATA_MESSAGE")
-                        this->taskDone(PRC_DUMB1);
-                        break;
-                    }
-                    case AIRQUALITY_MESSAGE: {// DUMB2
-                        TRACELNF("3handleMessage:AIRQUALITY_MESSAGE")
-                        this->taskDone(PRC_DUMB2);
-                        break;
-                    }
-                }
                 return false;
             }
 

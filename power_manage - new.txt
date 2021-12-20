@@ -1,0 +1,27 @@
+Input: max 700mA (650)
+
+> Constantly active devices:
+Nano: 20mA
+DS3211: <1mA
+BME280: 1mA
+ESP-01: max 120mA (3.3)
+OLED: max 15mA (5)
+FAN: 25mA (reduced by 3x50 Ohm) https://www.blackfiveservices.co.uk/fanspeedcalc.php?Voltage=5&Current=0.11&Target=1.5
+---
+Total: ~200mA
+
+> Periodically powered:
+
+10
+MQ-7: max 150mA (5)			// Carbon Monoxide
+??? PPD42NS: 90mA				// PM1 & PM2.5
+MH-Z19B: max 150mA (3.3 || 5)	// CO2
+
+11
+ME2-CH20: max 150?mA (5)	// formaldehyde (CH2O)
+MQ-4: max 150mA (5)			// methane
+MQ-135: max 150mA (5)		// Air Quality (CO, Ammonia, Benzene, Alcohol, smoke)
+
+12
+MQ-136: max 150mA (5)		// Hydrogen Sulfide
+CJMCU-1100: max 190mA (5)	// Formaldehyde Benzene Toluene

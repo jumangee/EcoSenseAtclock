@@ -3,10 +3,9 @@
 #include "pwrload_mngmnt.h"
 #include "ecosense_messages.h"
 
-PwrConsumerProcess::PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, int pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
-	TRACELNF("PwrConsumerProcess::init");
+PwrConsumerProcess::PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, IProcessMessage* msg) : IFirmwareProcess(msg){
+	TRACELNF("PwrConsumerProcess::init")
 	this->taskIdList = idList;
-	this->deepSleep = true;
 	this->taskCnt = tasks;
 	this->keyPin = keyPin;
 	this->poweredTime = 0;
@@ -35,21 +34,9 @@ void PwrConsumerProcess::taskDone(uint16_t process_id) {
 	this->getHost()->stopProcess(process_id);
 }
 
-bool PwrConsumerProcess::isPaused(unsigned long start) {
-	if (deepSleep) {
-		return true;
-	}
-	return IFirmwareProcess::isPaused(start);
-}
-
 unsigned long PwrConsumerProcess::run(unsigned long start) {
-	if (deepSleep) {
-		return start;
-	}
 	if (this->poweredTime == 0) {
-		//TRACELNF("PwrConsumerProcess:request pwr")
 		this->poweredTime = PowerloadManagement::get()->requestPin(this->keyPin);
-		//TRACELN(this->poweredTime)
 		// bit sleep - if got power - physical change state, if not - simple wait delay
 		this->pause(10);
 		return millis();
@@ -58,7 +45,7 @@ unsigned long PwrConsumerProcess::run(unsigned long start) {
 }
 
 void PwrConsumerProcess::update(unsigned long ms) {
-	// we've got POWER! ))
+	// we got POWER! ))
 	switch (this->getWorkState())
 	{
 		case START: {
@@ -71,12 +58,12 @@ void PwrConsumerProcess::update(unsigned long ms) {
 		}
 		case DONE: {
 			// shutdown
-			//TRACELNF("PwrConsumerProcess: shut down child processes");
 			TRACELNF("PwrConsumerProcess: shut down");
 			this->clearState();
-			this->releaseLoad();                        // required to unlock up pwr key
-			this->deepSleep = true;
-			this->getHost()->sendMessage(new ProcessOrderMessage(this->getId()));	// go to next of process list
+			
+			// unlock pwr key
+			this->releaseLoad();
+			this->getHost()->sendMessage(ProcessOrderMessage::goNextOf(this->getId()));
 			return;
 		}
 		default: {
@@ -87,15 +74,23 @@ void PwrConsumerProcess::update(unsigned long ms) {
 }
 
 bool PwrConsumerProcess::handleMessage(IProcessMessage* msg) {
-	if (msg->getType() == PRC_ORDER_MESSAGE)	{
-		if (((ProcessOrderMessage*)msg)->getNextId() == this->getId()) {
-			this->deepSleep = false;
-			this->pause(CONSUMERPROCESSTIMEOUT);
-			return true;
+	switch (msg->getType())
+	{
+		case TASKDONE_MESSAGE: {
+			TRACELNF("PwrConsumerProcess/TASKDONE_MESSAGE")
+			this->taskDone(((TaskDoneMessage*)msg)->getTaskId());
+			return false;
 		}
-		return false;
+		case PRC_ORDER_MESSAGE: {
+			if (((ProcessOrderMessage*)msg)->getNextId() != this->getId()) {
+				ProcessOrderMessage* msg = ProcessOrderMessage::goNextOf(this->getId());
+				this->getHost()->addProcess(msg->getNextId());	// start next of process list
+				this->stop();
+			}
+			return false;
+		}
 	}
-	if (deepSleep || this->getWorkState() != ACTIVE) return false;
+	if (this->getWorkState() != ACTIVE) return false;//deepSleep || 
 	return this->handleMessageLogic(msg);
 }
 

@@ -4,8 +4,8 @@
 #include <Arduino.h>
 #include "processy.h"
 
-IFirmwareProcess::IFirmwareProcess(uint16_t pId, IProcessMessage* msg) {
-	this->processId = pId;
+IFirmwareProcess::IFirmwareProcess(IProcessMessage* msg) {
+	//this->processId = pId;
 	this->lastUpdate = millis();
 	#ifdef DEBUG_PRO_MS
 	this->resetUsedMs();
@@ -13,10 +13,6 @@ IFirmwareProcess::IFirmwareProcess(uint16_t pId, IProcessMessage* msg) {
 	this->pausedUpTo = 0;
 	this->state = ProcessState::ACTIVE;
 	this->handleMessage(msg);
-}
-
-bool IFirmwareProcess::isId(int compareTo) {
-	return this->processId == compareTo;
 }
 
 void IFirmwareProcess::stop() {
@@ -48,6 +44,10 @@ void IFirmwareProcess::unPause() {
 
 bool IFirmwareProcess::handleMessage(IProcessMessage* msg) {
 	return false;
+};
+
+void IFirmwareProcess::sendMessage(IProcessMessage* msg) {
+	this->getHost()->sendMessage(msg);
 };
 
 IFirmware* IFirmwareProcess::getHost() {

@@ -31,7 +31,6 @@ void IFirmware::stopProcess(uint16_t pId) {
 void IFirmware::pauseProcess(uint16_t pId, unsigned long pauseTime) {
 	int pos = this->findProcess(pId);
 	if (pos > -1) {
-		//IFirmwareProcess *process = ;
 		this->processList.get(pos)->pause(pauseTime);
 	}
 }
@@ -61,10 +60,6 @@ void IFirmware::sendMessage(IProcessMessage* msg) {
 		}
 	}
 	delete msg;
-}
-
-void IFirmware::addProcess(uint16_t pId) {
-	this->addProcess(pId, NULL);
 }
 
 void IFirmware::run() {
@@ -104,7 +99,7 @@ void IFirmware::run() {
 	#endif
 }
 
-void IFirmware::addProcess(uint16_t pId, IProcessMessage* msg) {
+void IFirmware::addProcess(uint16_t pId, IProcessMessage* msg = NULL) {
 	if (this->findProcess(pId) > -1) {
 		return;	// only 1 instance of process
 	}
@@ -120,7 +115,6 @@ void IFirmware::addProcess(uint16_t pId, IProcessMessage* msg) {
 }
 
 		//*** OVERRIDE THIS ***/
-		//--@include "processy_cfg.h"
 void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
 	#ifdef DEBUG_PRO_MS
 	{
@@ -142,7 +136,7 @@ void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
 		process->resetUsedMs();
 	}
 	#endif
-	TRACEF("[!] MEMORY STATUS: ");
+	TRACEF("MEM FREE:");
 	{
 		int free = freeMemory();
 		this->sendMessage(new MemUsageMessage(free));
@@ -157,10 +151,8 @@ bool IFirmware::update(unsigned long ms) {
 
 IFirmwareProcess* IFirmware::createProcess(uint16_t pId, IProcessMessage* msg) {
 	ProcessFactory factory = this->getFactory(pId);
-	TRACELNF("IFirmware::createProcess//factory/!")
 	if (factory != NULL) {
-        		TRACELNF("IFirmware::createProcess//factory")
-		IFirmwareProcess* t = factory(pId, msg);
+		IFirmwareProcess* t = factory(msg);
 		return t;
 	}
 	return NULL;
@@ -168,7 +160,7 @@ IFirmwareProcess* IFirmware::createProcess(uint16_t pId, IProcessMessage* msg) {
 
 int IFirmware::findProcess(uint16_t pId) {
 	for (int i = 0; i < this->processList.size(); i++) {
-		if (this->processList.get(i)->isId(pId)) {
+		if (this->processList.get(i)->getId() == pId) {
 			return i;
 		}
 	}

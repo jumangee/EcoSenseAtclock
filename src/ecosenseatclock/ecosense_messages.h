@@ -7,54 +7,42 @@ class IFirmwareProcess;
 #include <Arduino.h>
 #include <math.h>
 
+#include "ecosense_cfg.h"
+
 //--- MSG TYPES -------------------
 #define ENVDATA_MESSAGE		1001
 #define CURTIME_MESSAGE		1002
 #define AIRQUALITY_MESSAGE	1003
-#define WIFISTATE_MESSAGE	1004
 #define PWRSUPPLY_MESSAGE	1005
 #define PRC_ORDER_MESSAGE	1006
-#define THINGSPEAK_MESSAGE	1007
+//#define THINGSPEAK_MESSAGE	1007
+#define TASKDONE_MESSAGE	1008
 //---------------------------------
 
 class EnvDataMessage: public IProcessMessage {
 	public:
-		EnvDataMessage(float t, byte h, int p): IProcessMessage(NULL, ENVDATA_MESSAGE) {
-			this->active = true;
+		EnvDataMessage(float t, float h, uint16_t p): IProcessMessage(NULL, ENVDATA_MESSAGE) {
 			this->temp =  t;
 			this->humidity = h;
 			this->pressure = p;
 		}
 
-		EnvDataMessage(): IProcessMessage(NULL, ENVDATA_MESSAGE) {
-			this->active = false;
-		}
-
-		bool isActive() {
-			return this->active;
-		}
-
-		int getTemp() {
-			return int(round(this->temp));
-		}
-
-		float getTempF() {
+		float getTemp() {
 			return this->temp;
 		}
 
-		byte getHumidity() {
+		float getHumidity() {
 			return this->humidity;
 		}
 
-		int	getPressure() {
+		uint16_t	getPressure() {
 			return this->pressure;
 		}
 
 	private:
-		bool	active;
-		float	temp;
-		byte	humidity;
-		int		pressure;
+		float		temp;
+		float		humidity;
+		uint16_t	pressure;
 };
 
 
@@ -82,12 +70,12 @@ class CurrentTimeMsg: public IProcessMessage {
 			String time;
 			time.reserve(5);
 			if (getHrs() < 10) {
-				time += String(F("0"));
+				time += '0'; //String(F("0"));
 			}
 			time += String(getHrs());
-			time += getDots() ? F(":") : F(" ");
+			time += getDots() ? ':' : ' '; //F(":") : F(" ");
 			if (getMins() < 10) {
-				time += String(F("0"));
+				time += '0'; //String(F("0"));
 			}
 			time += getMins();
 			return time;
@@ -98,121 +86,109 @@ class CurrentTimeMsg: public IProcessMessage {
         boolean dotFlag;
 };
 
-
-enum AirQualityGasType {
-	COMMON,		// Air Quality (CO, Ammonia, Benzene, Alcohol, smoke) (MQ135)
-	H2S,		// сероводород
-	CO,			// оксид серы
-	SO2,
-	CO2,		// углекислый газ
-	CH4,
-	CH2O,		// формальдегид
-	C6H5_CH3,	// толуол
-	PM1,		// частицы ~PM1
-	PM25,		// частицы ~PM2.5
-	VOCs		// formaldehyde benzene concentration
-};
-
 class AirQualityMsg: public IProcessMessage {
 	public:
+		enum GasType {
+			COMMON,		// Air Quality (CO, Ammonia, Benzene, Alcohol, smoke) (MQ135)
+			H2S,		// сероводород
+			CO,			// оксид серы
+			SO2,
+			CO2,		// углекислый газ
+			CH4,
+			CH2O,		// формальдегид
+			C6H5_CH3,	// толуол
+			PM1,		// частицы ~PM1
+			PM25,		// частицы ~PM2.5
+			VOCs		// formaldehyde benzene concentration
+		};
+		
+		enum GasConcentration {
+			MINIMAL,
+			NORM,
+			WARNING,
+			DANGER
+		};
+		
 		/**
 		 * gasType: measured type
-		 * quality: 0-42 - norm, 43-84 - high, 84-127 - danger
+		 * ////quality: 0-42 - norm, 43-84 - high, 84-127 - danger
+		 * quality: 0 - none, 1 - norm, 2 - medium, 3 - high, 4 - danger
 		 */
-		AirQualityMsg(AirQualityGasType gasType, byte quality, float v): IProcessMessage(NULL, AIRQUALITY_MESSAGE) {
+		AirQualityMsg(GasType gasType, GasConcentration concentration, uint16_t amt): IProcessMessage(NULL, AIRQUALITY_MESSAGE) {
 			this->gas =  gasType;
-			this->quality = quality;
-			this->voltage = v;
+			this->concentration = concentration;
+			this->amount = amt;
 		}
 
-		AirQualityGasType gasType() {
+		GasType gasType() {
 			return this->gas;
 		}
 
-		byte getQuality() {
-			return (float(this->quality) / 42) + 1;
+		GasConcentration getConcentration() {
+			return this->concentration;
 		}
 
-		float getVoltage() {
-			return this->voltage;
+		uint16_t getAmount() {
+			return this->amount;
+		}
+
+		static GasConcentration value2code(uint8_t v) {
+			return static_cast<GasConcentration>(v);
 		}
 
 	private:
-		AirQualityGasType gas;
-		byte	quality;
-		float	voltage;
+		GasType				gas;
+		GasConcentration	concentration;
+		uint16_t			amount;
 };
 
-class WiFiStateMsg: public IProcessMessage {
-	public:
-		WiFiStateMsg(bool active): IProcessMessage(NULL, WIFISTATE_MESSAGE) {
-			this->active =  active;
-		}
-
-		bool isActive() {
-			return this->active;
-		}
-
-	private:
-		bool active;
-};
-
-/*class PwrSupplyMessage: public IProcessMessage {
-	public:
-		PwrSupplyMessage(uint32_t startTime): IProcessMessage(NULL, PWRSUPPLY_MESSAGE) {
-			this->startTime = startTime;
-		}
-
-		uint32_t getStartTime() {
-			return this->startTime;
-		}
-
-	private:
-		uint32_t startTime;
-};*/
 
 class ProcessOrderMessage: public IProcessMessage {
 	public:
-		//@implement
-		//@include "ecosenseatclock.h"
-		ProcessOrderMessage(uint16_t lastPid): IProcessMessage(NULL, PRC_ORDER_MESSAGE) {
-			/**
-			 * process order defined here
-			 */
-			const static uint16_t processOrderList[] = {0, PRC_CONSUMER1, PRC_CONSUMER2, PRC_CONSUMER3};
-			
-			this->setNextId(lastPid, processOrderList, *(&processOrderList + 1) - processOrderList);
-
-			TRACEF("ProcessOrderMessage/nextId=")
-			TRACELN(this->nextId)
-		}
-
 		static ProcessOrderMessage* start() {
-			return new ProcessOrderMessage(0);
+			return new ProcessOrderMessage();
 		}
 
-		byte getNextId() {
+		static ProcessOrderMessage* goNextOf(uint16_t currentId) {
+			return new ProcessOrderMessage(currentId);
+		}
+
+		uint16_t getNextId() {
 			return this->nextId;
 		}
 
 	private:
-		byte nextId;
+		uint16_t nextId;
 
-		void setNextId(byte lastPid, uint16_t processOrderList[], byte len) {
-			this->nextId = 0;
-			for (byte i = 0; i < len; i++) {
-				if (processOrderList[i] == lastPid) {
-					if (i == (len - 1)) {
-						i = 0;
+		/**
+		 * @brief Definition of process start order
+		 */
+		uint16_t processOrderList[3] = {PRC_CONSUMER1, PRC_CONSUMER2, PRC_CONSUMER3};
+
+		//@implement
+		ProcessOrderMessage(const uint16_t lastPid = 0): IProcessMessage(NULL, PRC_ORDER_MESSAGE) {
+			byte len = sizeof(this->processOrderList)/sizeof(this->processOrderList[0]);
+
+			byte pos = 0;
+			if (lastPid != 0) {
+				for (byte i = 1; i <= len; i++) {
+					if (lastPid == this->processOrderList[i-1]) {
+						if (i == len) {
+							pos = 0;	// restart list
+						} else {
+							pos = i;
+						}
+						break;
 					}
-					this->nextId = processOrderList[i+1];
-					return;
 				}
 			}
+
+			this->nextId = this->processOrderList[pos];
+			return;
 		}
 };
 
-class ThingspeakFieldMessage: public IProcessMessage {
+/*class ThingspeakFieldMessage: public IProcessMessage {
 	public:
 		enum ThingspeakChannel {
 			CHANNEL1,
@@ -242,6 +218,20 @@ class ThingspeakFieldMessage: public IProcessMessage {
 		ThingspeakChannel channel;
 		byte field;
 		float value;
+};*/
+
+class TaskDoneMessage: public IProcessMessage {
+	public:
+		TaskDoneMessage(IFirmwareProcess* prc): IProcessMessage(NULL, TASKDONE_MESSAGE) {
+			this->taskId = prc->getId();
+		}
+
+		uint16_t getTaskId() {
+			return this->taskId;
+		}
+
+	private:
+		uint16_t	taskId;
 };
 
 #endif

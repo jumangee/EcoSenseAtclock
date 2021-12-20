@@ -12,6 +12,9 @@
 #include "pwrload_mngmnt.h"
 #include "ecosense_cfg.h"
 
+/**
+ * @brief Power management process: controls state and then ready - starts child processes, which do the work
+ */
 class PwrConsumerProcess: public IFirmwareProcess {
 	public:
 		enum WorkState {
@@ -21,16 +24,15 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			DONE
 		};
 
-	private:
+	protected:
         byte        	keyPin;
         uint32_t    	poweredTime;
 		WorkState		tasksArr[MAXTASKCOUNT];
 		const uint16_t	*taskIdList;
 		byte			taskCnt;
-		bool			deepSleep;
 
 	public:
-		PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, int pId, IProcessMessage* msg);
+		PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, IProcessMessage* msg);
 
 		void clearState();
 
@@ -39,12 +41,9 @@ class PwrConsumerProcess: public IFirmwareProcess {
 		void taskDone(uint16_t process_id);
 
 		/**
-		 * This should be overriden
+		 * This should be overriden by handler with logic
 		 */
 		virtual bool handleMessageLogic(IProcessMessage* msg) = 0;
-
-
-		bool isPaused(unsigned long start);
 
 		unsigned long run(unsigned long start);
 

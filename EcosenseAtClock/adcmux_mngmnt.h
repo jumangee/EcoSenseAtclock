@@ -5,11 +5,11 @@
     #include "processy_cfg.h"
     #include "pinswitch_mngmnt.h"
 
-    #define ADCMUX_SIGNAL_PIN 4
-
-    class ADCMuxManagement: public PinSwitchManager {
+    class ADCMuxManagement: protected PinSwitchManager {
         protected:
-            ADCMuxManagement(byte *pins): PinSwitchManager(pins, 4) {
+			byte channelPin;
+			
+            ADCMuxManagement(byte channelPin, byte *pins): PinSwitchManager(pins, 4) {
             }
 
             static ADCMuxManagement* instance;
@@ -20,15 +20,22 @@
                 return ADCMuxManagement::instance;
             }
 
-            //static void init(const byte pins[4]) {
-            static void init(const byte (&pins)[4]) {
+            static void init(byte channelPin, const byte (&pins)[4]) {
                 if (!ADCMuxManagement::instance) {
-                    ADCMuxManagement::instance = new ADCMuxManagement(pins);
+                    ADCMuxManagement::instance = new ADCMuxManagement(channelPin, pins);
                 }
             }
 
             static byte signalPin() {
-                return ADCMUX_SIGNAL_PIN;
+                return ADCMuxManagement::get()->channelPin;
+            }
+			
+			uint32_t requestPin() {
+				return PinSwitchManager::requestPin(this->channelPin);
+			}
+
+            bool release(uint32_t & key) {
+                return PinSwitchManager::releasePin(key);
             }
 
         protected:
