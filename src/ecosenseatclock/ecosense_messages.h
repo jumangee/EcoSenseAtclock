@@ -48,10 +48,10 @@ class EnvDataMessage: public IProcessMessage {
 
 class CurrentTimeMsg: public IProcessMessage {
 	public:
-		CurrentTimeMsg(int8_t hrs, int8_t mins, boolean dotFlag): IProcessMessage(NULL, CURTIME_MESSAGE) {
+		CurrentTimeMsg(int8_t hrs, int8_t mins/*, boolean dotFlag*/): IProcessMessage(NULL, CURTIME_MESSAGE) {
 			this->hrs =  hrs;
 			this->mins = mins;
-			this->dotFlag = dotFlag;
+			//this->dotFlag = dotFlag;
 		}
 
 		int8_t getHrs() {
@@ -62,7 +62,7 @@ class CurrentTimeMsg: public IProcessMessage {
 			return this->mins;
 		}
 
-		boolean	getDots() {
+		/*boolean	getDots() {
 			return this->dotFlag;
 		}
 
@@ -79,11 +79,11 @@ class CurrentTimeMsg: public IProcessMessage {
 			}
 			time += getMins();
 			return time;
-		}
+		}*/
 
 	private:
-		int8_t hrs, mins, secs;
-        boolean dotFlag;
+		int8_t hrs, mins;
+        //boolean dotFlag;
 };
 
 class AirQualityMsg: public IProcessMessage {
@@ -110,8 +110,7 @@ class AirQualityMsg: public IProcessMessage {
 		};
 		
 		/**
-		 * gasType: measured type
-		 * ////quality: 0-42 - norm, 43-84 - high, 84-127 - danger
+		 * gasType: measured gas type
 		 * quality: 0 - none, 1 - norm, 2 - medium, 3 - high, 4 - danger
 		 */
 		AirQualityMsg(GasType gasType, GasConcentration concentration, uint16_t amt): IProcessMessage(NULL, AIRQUALITY_MESSAGE) {
@@ -180,10 +179,10 @@ class ProcessOrderMessage: public IProcessMessage {
 			if (lastPid != 0) {
 				for (byte i = 1; i <= len; i++) {
 					if (lastPid == this->processOrderList[i-1]) {
-						if (i == len) {
-							pos = 0;	// restart list
-						} else {
+						if (i <= len) {
 							pos = i;
+						} else {
+							pos = 0;	// restart list
 						}
 						break;
 					}

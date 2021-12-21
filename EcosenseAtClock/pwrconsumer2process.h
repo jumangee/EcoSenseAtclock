@@ -21,7 +21,7 @@
      */
     class PwrConsumer2Process: public PwrConsumerProcess {
         private:
-            const uint16_t taskId[2] = {PRC_MQ4, PRC_MQ135};
+            //const uint16_t taskId[2] = {PRC_MQ4, PRC_MQ135};
 
         public:
             PROCESSID(PRC_CONSUMER2);

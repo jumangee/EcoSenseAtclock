@@ -31,7 +31,7 @@ class SimpleSensorProcess: public IFirmwareProcess {
          * Calc V from analog value
          */
         float getVoltage() {
-            return (getValue() + .5) * (5.0 / 1023.0);
+            return ((float)getValue()) * (5.0 / 1023.0);
         }
 
 		bool readingsDone(byte countPerResult) {

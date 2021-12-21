@@ -10,6 +10,14 @@ static IFirmwareProcess* MQ136SensorProcess::factory(IProcessMessage* msg) {
 }
 
 IProcessMessage* MQ136SensorProcess::getResultMsg() {
-	return new AirQualityMsg(AirQualityMsg::GasType::H2S, AirQualityMsg::value2code(int(this->getVoltage())), int(this->getVoltage()));
-	//this->getQuality(.6), this->getVoltage()
+	uint8_t res = round(this->getVoltage());
+	return new AirQualityMsg(
+		AirQualityMsg::GasType::H2S, 
+		res < 1.5 ? AirQualityMsg::GasConcentration::MINIMAL : (
+			res < 3 ? AirQualityMsg::GasConcentration::NORM : (
+				res < 4 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::DANGER
+			)
+		),
+		res
+	);
 }

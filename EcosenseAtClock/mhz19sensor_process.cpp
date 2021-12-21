@@ -13,7 +13,7 @@ MHZ19SensorProcess::MHZ19SensorProcess(IProcessMessage* msg) : IFirmwareProcess(
             sendCommand( MHZ19SensorProcess::CMD_SETRNG );
 	getData();    // первый запрос, в любом случае возвращает -1
             // pre-burn timeout
-            this->pause(75000);    //mhz19
+            this->pause(60000);    //mhz19
             TRACELNF("MHZ19SensorProcess pre-burn timeout")
 }
 
@@ -24,21 +24,13 @@ static IFirmwareProcess* MHZ19SensorProcess::factory(IProcessMessage* msg) {
 void MHZ19SensorProcess::update(unsigned long ms) {
             getData();
             if (this->status != -1) {
-                /*TRACEF("co2=")
-                TRACE(this->co2)
-                TRACEF(", co2*2/5=")
-                TRACE(this->co2*2/5)
-                TRACEF(", temp=")
-                TRACELN(this->temp)*/
-                this->sendMessage(new AirQualityMsg(AirQualityMsg::GasType::CO2, 
-                    this->co2 < 600 ? AirQualityMsg::GasConcentration::MINIMAL : (
-                        this->co2 > 2500 ? AirQualityMsg::GasConcentration::DANGER : (
-                            this->co2 > 1000 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::NORM
-                        )
-                    ),
-                    this->co2)
-                );
-                this->sendMessage(new TaskDoneMessage(this));
+                measureCount++;
+                TRACEF("co2=")
+                TRACELN(this->co2);
+                if (measureCount > 2) {
+                    this->report();
+                    return;
+                }
             }
             
 	this->pause(12000);

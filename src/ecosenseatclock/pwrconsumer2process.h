@@ -21,14 +21,16 @@
      */
     class PwrConsumer2Process: public PwrConsumerProcess {
         private:
-            const uint16_t taskId[2] = {PRC_MQ4, PRC_MQ135};
+            //const uint16_t taskId[2] = {PRC_MQ4, PRC_MQ135};
 
         public:
             PROCESSID(PRC_CONSUMER2);
 
             //@implement
             //@include "pwrconsumer_process.h"
-            PwrConsumer2Process(IProcessMessage* msg): PwrConsumerProcess(11, taskId, (*(&taskId + 1) - taskId), msg) {
+            PwrConsumer2Process(IProcessMessage* msg): PwrConsumerProcess(PWRMNGMTPIN_PROCESS2, msg) {  //taskId, (*(&taskId + 1) - taskId)
+                addTask(PRC_MQ4);
+                addTask(PRC_MQ135);
                 TRACELNF("PwrConsumer2Process::init");
             }
 

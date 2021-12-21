@@ -29,6 +29,7 @@ class MHZ19SensorProcess: public IFirmwareProcess {
         int co2 = 0;
         int temp = 0;
         int status = -1;
+        uint8_t measureCount = 0;
 
         static uint8_t CMD_GETPPM[MHZ19_CMDSIZE];
         static uint8_t CMD_SETRNG[MHZ19_CMDSIZE];
@@ -43,6 +44,20 @@ class MHZ19SensorProcess: public IFirmwareProcess {
 		static IFirmwareProcess* factory(IProcessMessage* msg);
 
 		void update(unsigned long ms);
+
+        void report() {
+            this->sendMessage(new AirQualityMsg(AirQualityMsg::GasType::CO2, 
+                this->co2 < 600 ? AirQualityMsg::GasConcentration::MINIMAL : (
+                    this->co2 > 2500 ? AirQualityMsg::GasConcentration::DANGER : (
+                        this->co2 > 1000 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::NORM
+                    )
+                ),
+                this->co2)
+            );
+
+            this->sendMessage(new TaskDoneMessage(this));
+            this->pause();
+        }
     
     protected:
         void sendCommand(uint8_t cmd[], uint8_t* response = NULL);

@@ -12,6 +12,8 @@
 #include "pwrload_mngmnt.h"
 #include "ecosense_cfg.h"
 
+#include "LinkedList/LinkedList.h"
+
 /**
  * @brief Power management process: controls state and then ready - starts child processes, which do the work
  */
@@ -25,18 +27,24 @@ class PwrConsumerProcess: public IFirmwareProcess {
 		};
 
 	protected:
+		struct TaskInfo {
+			uint16_t	prcId;
+			WorkState	state;
+		};
+
         byte        	keyPin;
         uint32_t    	poweredTime;
-		WorkState		tasksArr[MAXTASKCOUNT];
-		const uint16_t	*taskIdList;
-		byte			taskCnt;
+		//WorkState		tasksArr[MAXTASKCOUNT];
+		//const uint16_t	*taskIdList;
+		//byte			taskCnt;
+		LinkedList<TaskInfo*> tasks;
 
 	public:
-		PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, IProcessMessage* msg);
+		PwrConsumerProcess(byte keyPin, IProcessMessage* msg);
 
-		void clearState();
+		void addTask(uint16_t prcId);
 
-		int findProcessId(uint16_t id);
+		int findTask(uint16_t id);
 
 		void taskDone(uint16_t process_id);
 
@@ -55,18 +63,18 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			byte none = 0;
 			byte done = 0;
 
-			for (byte i = 0; i < this->taskCnt; i++) {
-				WorkState s = this->tasksArr[i];
+			for (byte i = 0; i < this->tasks.size(); i++) {
+				WorkState s = this->tasks.get(i)->state;
 				if (s == NONE) {
 					none++;
 				} else if (s == DONE) {
 					done++;
 				}
 			}
-			if (none == this->taskCnt) {
+			if (none == this->tasks.size()) {
 				return START;
 			}
-			if (done == this->taskCnt) {
+			if (done == this->tasks.size()) {
 				return DONE;
 			}
 			return ACTIVE;

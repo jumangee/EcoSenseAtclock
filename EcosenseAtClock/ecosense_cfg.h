@@ -23,10 +23,14 @@
 	#define PRC_MQ7				317
 
     // ---[ COMMON APP CONFIG ]---
-    #define REPORT_TIMEOUT              60000
+    #define REPORT_TIMEOUT      60000
 
     // ---[ PWR MNGMNT PRC CFG ]---
-    #define PWRMNGMTPINS                {12, 11, 10}
+    #define PWRMNGMTPIN_PROCESS1    12
+    #define PWRMNGMTPIN_PROCESS2    11
+    #define PWRMNGMTPIN_PROCESS3    10
+
+    #define PWRMNGMTPINS                {PWRMNGMTPIN_PROCESS1, PWRMNGMTPIN_PROCESS2, PWRMNGMTPIN_PROCESS3}
     #define MAXTASKCOUNT                5
     #define CONSUMERPROCESSTIMEOUT      20000   // 60000 is production
 

@@ -41,37 +41,19 @@ class MQ136SensorProcess: public MQSensorProcess {
 			return new MQ136SensorProcess(msg);
 		}
 
-		/*//@implement
-		//!@include "ecosense_cfg.h"
-		//!@include "mqsensor_process.h"
-		void update(unsigned long ms) {
-			if (!readingsDone(MQ136_ANALOG_PIN, READINGS_PER_RESULT)) {
-				return;
-			}
-
-			{
-				TRACEF("[ MQ-136 ] analog=");
-				TRACE(this->getValue());
-				//TRACEF(", dig=");
-				//TRACE(this->mq136dig);
-				TRACEF(", V=");
-				TRACE( this->getVoltage() );
-				TRACEF(", instant=");
-				TRACE( this->instantValue(MQ136_ANALOG_PIN) );
-				TRACEF(", Dig=");
-				TRACELN( digitalRead(MQ136_DIGITAL_PIN) );
-			}
-
-			this->getHost()->sendMessage(new AirQualityMsg(H2S, this->getQuality(.6), this->getVoltage()));
-
-			this->pause(ENVSENSORS_TIMEOUT);
-		}*/
-
 		//@implement
 		//@include "ecosense_messages.h"
 		IProcessMessage* getResultMsg() {
-			return new AirQualityMsg(AirQualityMsg::GasType::H2S, AirQualityMsg::value2code(int(this->getVoltage())), int(this->getVoltage()));
-			//this->getQuality(.6), this->getVoltage()
+			uint8_t res = round(this->getVoltage());
+			return new AirQualityMsg(
+				AirQualityMsg::GasType::H2S, 
+				res < 1.5 ? AirQualityMsg::GasConcentration::MINIMAL : (
+					res < 3 ? AirQualityMsg::GasConcentration::NORM : (
+						res < 4 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::DANGER
+					)
+				),
+				res
+			);
 		}
 
 };

@@ -12,6 +12,8 @@
 #include "pwrload_mngmnt.h"
 #include "ecosense_cfg.h"
 
+#include "LinkedList/LinkedList.h"
+
 /**
  * @brief Power management process: controls state and then ready - starts child processes, which do the work
  */
@@ -25,37 +27,41 @@ class PwrConsumerProcess: public IFirmwareProcess {
 		};
 
 	protected:
+		struct TaskInfo {
+			uint16_t	prcId;
+			WorkState	state;
+		};
+
         byte        	keyPin;
         uint32_t    	poweredTime;
-		WorkState		tasksArr[MAXTASKCOUNT];
-		const uint16_t	*taskIdList;
-		byte			taskCnt;
+		//WorkState		tasksArr[MAXTASKCOUNT];
+		//const uint16_t	*taskIdList;
+		//byte			taskCnt;
+		LinkedList<TaskInfo*> tasks;
 
 	public:
 		//@implement
-		PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, IProcessMessage* msg): IFirmwareProcess(msg) {
-			TRACEF("PwrConsumerProcess/tasks=")
-			TRACELN(tasks)
-
-			this->taskIdList = idList;
-			this->taskCnt = tasks;
+		PwrConsumerProcess(byte keyPin, IProcessMessage* msg): IFirmwareProcess(msg) {
+			/*this->taskIdList = idList;
+			this->taskCnt = tasks;*/
 			this->keyPin = keyPin;
 			this->poweredTime = 0;
-
-			this->clearState();
 		}
 
 		//@implement
-		void clearState() {
-			for (byte i = 0; i < this->taskCnt; i++) {
-				this->tasksArr[i] = NONE;
+		void addTask(uint16_t prcId) {
+			if (this->findTask(prcId) == -1) {
+				TaskInfo* task = new TaskInfo();
+				task->prcId = prcId;
+				task->state = NONE;
+				tasks.add(task);
 			}
 		}
 
 		//@implement
-		int findProcessId(uint16_t id) {
-			for (byte i = 0; i < this->taskCnt; i++) {
-				if (this->taskIdList[i] == id) {
+		int findTask(uint16_t id) {
+			for (byte i = 0; i < this->tasks.size(); i++) {
+				if (this->tasks.get(i)->prcId == id) {
 					return i;
 				}
 			}
@@ -64,10 +70,10 @@ class PwrConsumerProcess: public IFirmwareProcess {
 
 		//@implement
 		void taskDone(uint16_t process_id) {
-			int pos = this->findProcessId(process_id);
+			int pos = this->findTask(process_id);
 			if (pos == -1) return;
 
-			this->tasksArr[pos] = DONE;
+			this->tasks.get(pos)->state = DONE;
 			this->getHost()->stopProcess(process_id);
 		}
 
@@ -98,25 +104,26 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			{
 				case START: {
 					TRACELNF("PwrConsumerProcess: start child processes");
-					for (byte i = 0; i < this->taskCnt; i++) {
-						this->getHost()->addProcess(this->taskIdList[i]);
-						this->tasksArr[i] = ACTIVE;
+					for (byte i = 0; i < this->tasks.size(); i++) {
+						TaskInfo* task = this->tasks.get(i);
+						this->getHost()->addProcess(task->prcId);
+						task->state = ACTIVE;
 					}
 					return;
 				}
 				case DONE: {
 					// shutdown
 					TRACELNF("PwrConsumerProcess: shut down");
-					this->clearState();
+					//this->clearState();
 					
 					// unlock pwr key
 					this->releaseLoad();
-					this->getHost()->sendMessage(ProcessOrderMessage::goNextOf(this->getId()));
+					this->sendMessage(ProcessOrderMessage::goNextOf(this->getId()));
 					return;
 				}
 				default: {
 					// no work should be done here?
-					this->pause(15);
+					this->pause(100);
 				}
 			}
 		}
@@ -148,18 +155,18 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			byte none = 0;
 			byte done = 0;
 
-			for (byte i = 0; i < this->taskCnt; i++) {
-				WorkState s = this->tasksArr[i];
+			for (byte i = 0; i < this->tasks.size(); i++) {
+				WorkState s = this->tasks.get(i)->state;
 				if (s == NONE) {
 					none++;
 				} else if (s == DONE) {
 					done++;
 				}
 			}
-			if (none == this->taskCnt) {
+			if (none == this->tasks.size()) {
 				return START;
 			}
-			if (done == this->taskCnt) {
+			if (done == this->tasks.size()) {
 				return DONE;
 			}
 			return ACTIVE;
@@ -183,6 +190,10 @@ class PwrConsumerProcess: public IFirmwareProcess {
 		~PwrConsumerProcess() {
 			// stop process
             this->releaseLoad();
+
+			for (int i = this->tasks.size()-1; i >= 0; i--) {
+				delete this->tasks.remove(i);
+			}
 			TRACELNF("PwrConsumerProcess::stop");
 		}
 };

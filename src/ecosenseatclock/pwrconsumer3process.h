@@ -20,14 +20,16 @@
      */
     class PwrConsumer3Process: public PwrConsumerProcess {
         private:
-            const uint16_t taskId[1] = {PRC_MHZ19}; //, PRC_MQ7
+            //const uint16_t taskId[1] = {PRC_MHZ19}; //, PRC_MQ7
 
         public:
             PROCESSID(PRC_CONSUMER3);
 
             //@implement
             //@include "pwrconsumer_process.h"
-            PwrConsumer3Process(IProcessMessage* msg): PwrConsumerProcess(10, taskId, (*(&taskId + 1) - taskId), msg) { 
+            PwrConsumer3Process(IProcessMessage* msg): PwrConsumerProcess(10, msg) {    //taskId, (*(&taskId + 1) - taskId)
+                addTask(PRC_MHZ19);
+                //addTask(PRC_MQ7);
             }
 
             //@implement

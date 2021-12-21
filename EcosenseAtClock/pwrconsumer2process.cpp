@@ -2,7 +2,9 @@
 #include "pwrconsumer_process.h"
 #include "processy_cfg.h"
 
-PwrConsumer2Process::PwrConsumer2Process(IProcessMessage* msg) : PwrConsumerProcess(11, taskId, (*(&taskId + 1) - taskId), msg){
+PwrConsumer2Process::PwrConsumer2Process(IProcessMessage* msg) : PwrConsumerProcess(PWRMNGMTPIN_PROCESS2, msg){  //taskId, (*(&taskId + 1) - taskId)
+    addTask(PRC_MQ4);
+    addTask(PRC_MQ135);
     TRACELNF("PwrConsumer2Process::init");
 }
 

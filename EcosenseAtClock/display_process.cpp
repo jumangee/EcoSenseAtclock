@@ -1,24 +1,13 @@
 #include "display_process.h"
 #include <SSD1306AsciiWire.h>
-#include "stuff.h"
 
 DisplayProcess::DisplayProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
 	TRACELNF("DisplayProcess::start");
-	#if USE_WARNING_LIGHT == 1
-	pinMode(WARNLED_R_PIN, OUTPUT);
-	pinMode(WARNLED_G_PIN, OUTPUT);
-	pinMode(WARNLED_B_PIN, OUTPUT);
-	#endif
-	
 	Wire.setClock(400000L);
 	oled.begin(&Adafruit128x64, OLED_ADDR);
 	oled.clear();
 	oled.setFont(MAIN_FONT);
-	//oled.print(F("CTAPT..."));	// no chars in font ((
-	//temp = 0;
-	//clocktick = true;
-	/*gasH2S = 0;
-	gasCH4 = 0;*/
+	timeDots = true;
 	temp = 0;
 	humidity = 0;
 	pressure = 0;
@@ -30,18 +19,14 @@ static IFirmwareProcess* DisplayProcess::factory(IProcessMessage* msg) {
 }
 
 void DisplayProcess::update(unsigned long ms) {
-	// oled contrast auto adjustment
-	#ifdef PHOTORESISTOR_PIN
-		oled.setContrast(100);
-	#endif
 	if (this->pressure > 0) {
 		if (this->temp > 32 || this->temp < 20) {
-			this->addWarning(1, SF("Temperature"), this->temp);
+			this->addWarning(1, this->temp);
 		} else {
 			this->removeWarning(1);
 		}
 		if (this->humidity > 50 || this->humidity < 15) {
-			this->addWarning(2, SF("Humidity"), this->humidity);
+			this->addWarning(2, this->humidity);
 		} else {
 			this->removeWarning(2);
 		}
@@ -60,31 +45,49 @@ void DisplayProcess::update(unsigned long ms) {
 }
 
 void DisplayProcess::render() {
+	// time
 	oled.setCursor(0, 3);
-	prn2X(this->time);
+	oled.set2X();
+	if (this->timeH < 10) {
+		oled.print(F("0"));
+	}
+	oled.print(this->timeH);
+	oled.print(this->timeDots ? F(":") : F(" "));
+	if (this->timeM < 10) {
+		oled.print(F("0"));
+	}
+	oled.print(this->timeM);
+	oled.set1X();
+	// info
 	if (this->humidity > 0) {
 		oled.setCursor(95, 2);
-		prn(String(round(this->temp)));
-		prn(" c");
+		oled.print(round(this->temp));
+		oled.print(F(" c"));
 		
 		oled.setCursor(95, 4);
-		prn(String(round(this->humidity)));
-		prn(" %");
+		oled.print(round(this->humidity));
+		oled.print(F(" %"));
 		oled.setCursor(95, 6);
-		prn(String(round(this->pressure)));
-		prn("mm");
+		oled.print(round(this->pressure));
+		oled.print(F("mm"));
 	}
 	//oled.setCursor(0, 0);
 	//prn(F("          "));
-	//oled.clearField(0, 0, 19);
+	// warnings
+	oled.setCursor(0, 0);
+	oled.set2X();
+	oled.clearToEOL();
+	//oled.setInvertMode(true);
 	for (uint16_t i = 0; i < this->warnings.size(); i++) {
-		uint8_t pos = 120-i*1.4;
+		uint8_t pos = 118-i*10;
 		if (pos < 1) {
 			break;
 		}
 		oled.setCursor(pos, 0);
-		prn(F("!"));
-	} 
+		oled.print(F("!"));
+	}
+	oled.set1X();
+	//oled.setInvertMode(false);
 }
 
 bool DisplayProcess::handleMessage(IProcessMessage* msg) {
@@ -122,24 +125,11 @@ void DisplayProcess::handleEnvDataMsg(EnvDataMessage* msg) {
 }
 
 void DisplayProcess::handleTimeMsg(CurrentTimeMsg* msg) {
-	//clocktick = !clocktick;
 	//TRACELN(msg->getTime());
-	this->time = msg->getTime();
+	this->timeH	= msg->getHrs();
+	this->timeM	= msg->getMins();
+	this->timeDots = !this->timeDots;
 	this->updateScreen = true;
-	/*oled.setFont(MAIN_FONT);
-	oled.setCursor(0, 1);
-	prn2X(msg->getTime());
-	oled.print(msg->getTime());
-	if (!msg->getDots()) {
-		oled.clearField(15, 0, 1);
-	}*/
-	//oled.set2X();
-	//oled.clearField(0, 0, 5);
-	//oled.print(msg->getTime());
-	//oled.set1X();
-	#if USE_WARNING_LIGHT == 1
-		this->updateWarningLight();
-	#endif
 }
 
 void DisplayProcess::handleAirQualityMsg(AirQualityMsg* msg) {

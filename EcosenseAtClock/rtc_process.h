@@ -20,7 +20,7 @@
 
 class RTClockProcess: public IFirmwareProcess {
 	private:
-        boolean dotFlag;
+        //boolean dotFlag;
 		RtcDS3231SimpleI2C	rtc = RtcDS3231SimpleI2C(RTC_I2C_ADDR);
 
 	public:

@@ -3,25 +3,25 @@
 #include "pwrload_mngmnt.h"
 #include "ecosense_messages.h"
 
-PwrConsumerProcess::PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, IProcessMessage* msg) : IFirmwareProcess(msg){
-	TRACEF("PwrConsumerProcess/tasks=")
-	TRACELN(tasks)
-	this->taskIdList = idList;
-	this->taskCnt = tasks;
+PwrConsumerProcess::PwrConsumerProcess(byte keyPin, IProcessMessage* msg) : IFirmwareProcess(msg){
+	/*this->taskIdList = idList;
+	this->taskCnt = tasks;*/
 	this->keyPin = keyPin;
 	this->poweredTime = 0;
-	this->clearState();
 }
 
-void PwrConsumerProcess::clearState() {
-	for (byte i = 0; i < this->taskCnt; i++) {
-		this->tasksArr[i] = NONE;
+void PwrConsumerProcess::addTask(uint16_t prcId) {
+	if (this->findTask(prcId) == -1) {
+		TaskInfo* task = new TaskInfo();
+		task->prcId = prcId;
+		task->state = NONE;
+		tasks.add(task);
 	}
 }
 
-int PwrConsumerProcess::findProcessId(uint16_t id) {
-	for (byte i = 0; i < this->taskCnt; i++) {
-		if (this->taskIdList[i] == id) {
+int PwrConsumerProcess::findTask(uint16_t id) {
+	for (byte i = 0; i < this->tasks.size(); i++) {
+		if (this->tasks.get(i)->prcId == id) {
 			return i;
 		}
 	}
@@ -29,9 +29,9 @@ int PwrConsumerProcess::findProcessId(uint16_t id) {
 }
 
 void PwrConsumerProcess::taskDone(uint16_t process_id) {
-	int pos = this->findProcessId(process_id);
+	int pos = this->findTask(process_id);
 	if (pos == -1) return;
-	this->tasksArr[pos] = DONE;
+	this->tasks.get(pos)->state = DONE;
 	this->getHost()->stopProcess(process_id);
 }
 
@@ -51,25 +51,26 @@ void PwrConsumerProcess::update(unsigned long ms) {
 	{
 		case START: {
 			TRACELNF("PwrConsumerProcess: start child processes");
-			for (byte i = 0; i < this->taskCnt; i++) {
-				this->getHost()->addProcess(this->taskIdList[i]);
-				this->tasksArr[i] = ACTIVE;
+			for (byte i = 0; i < this->tasks.size(); i++) {
+				TaskInfo* task = this->tasks.get(i);
+				this->getHost()->addProcess(task->prcId);
+				task->state = ACTIVE;
 			}
 			return;
 		}
 		case DONE: {
 			// shutdown
 			TRACELNF("PwrConsumerProcess: shut down");
-			this->clearState();
+			//this->clearState();
 			
 			// unlock pwr key
 			this->releaseLoad();
-			this->getHost()->sendMessage(ProcessOrderMessage::goNextOf(this->getId()));
+			this->sendMessage(ProcessOrderMessage::goNextOf(this->getId()));
 			return;
 		}
 		default: {
 			// no work should be done here?
-			this->pause(15);
+			this->pause(100);
 		}
 	}
 }
@@ -107,5 +108,8 @@ void PwrConsumerProcess::releaseLoad() {
 PwrConsumerProcess::~PwrConsumerProcess() {
 	// stop process
             this->releaseLoad();
+	for (int i = this->tasks.size()-1; i >= 0; i--) {
+		delete this->tasks.remove(i);
+	}
 	TRACELNF("PwrConsumerProcess::stop");
 }

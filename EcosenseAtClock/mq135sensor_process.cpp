@@ -11,6 +11,7 @@ static IFirmwareProcess* MQ135SensorProcess::factory(IProcessMessage* msg) {
 }
 
 IProcessMessage* MQ135SensorProcess::getResultMsg() {
-	return new AirQualityMsg(AirQualityMsg::GasType::COMMON, AirQualityMsg::value2code(int(this->getVoltage())), int(this->getVoltage()));
+	uint8_t res = round(this->getVoltage());
+	return new AirQualityMsg(AirQualityMsg::GasType::COMMON, AirQualityMsg::value2code(res), res);
 	//return new AirQualityMsg(COMMON, this->getQuality(.4), this->getVoltage());
 }

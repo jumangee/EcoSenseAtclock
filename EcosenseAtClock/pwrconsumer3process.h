@@ -20,7 +20,7 @@
      */
     class PwrConsumer3Process: public PwrConsumerProcess {
         private:
-            const uint16_t taskId[1] = {PRC_MHZ19}; //, PRC_MQ7
+            //const uint16_t taskId[1] = {PRC_MHZ19}; //, PRC_MQ7
 
         public:
             PROCESSID(PRC_CONSUMER3);
