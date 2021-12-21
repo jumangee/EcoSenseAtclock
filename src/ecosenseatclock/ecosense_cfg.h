@@ -15,7 +15,7 @@
     #define PRC_MHZ19			302
 	//#define PRC_PPD42NS			303
 	#define PRC_CJMCU1100		304
-	#define PRC_ZE08CH20		305
+	//#define PRC_ZE08CH20		305
 
 	#define PRC_MQ4				314
 	#define PRC_MQ135			315
@@ -27,12 +27,18 @@
 
     // ---[ PWR MNGMNT PRC CFG ]---
     #define PWRMNGMTPINS                {12, 11, 10}
-    #define MAXTASKCOUNT                10      // 5?
+    #define MAXTASKCOUNT                5
     #define CONSUMERPROCESSTIMEOUT      20000   // 60000 is production
 
     // ---[ ADC MUX CFG ]---
-    #define ADCMUX_SIGNAL_PIN	A1  //4
-    #define ADCMUXPINS			{6, 7, 8, 9}  //{9, 8, 7, 6}
+    #define ADCMUX_SIGNAL_PIN	    A1  //4
+    #define ADCMUXPINS			    {6, 7, 8, 9}  //{9, 8, 7, 6}
+
+    #define MUXCHANNEL_MQ4          2
+    #define MUXCHANNEL_MQ136        4
+    #define MUXCHANNEL_MQ135        3
+    #define MUXCHANNEL_CJMCU1100    5
+    #define MUXCHANNEL_MQ7          6 // broken sensor :(
 	
     // ---[ SENSORS ]---
     #define MQ_READINGS_PER_RESULT		5
@@ -68,6 +74,6 @@
     // ---[ REAL-TIME CLOCK ]---
     #define RTC_I2C_ADDR                0x68
     #define RESET_CLOCK                 0
-    #define RTC_GET_TEMPERATURE
+    //#define RTC_GET_TEMPERATURE
 
 #endif

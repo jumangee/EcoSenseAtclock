@@ -56,7 +56,7 @@ class MHZ19SensorProcess: public IFirmwareProcess {
 			getData();    // первый запрос, в любом случае возвращает -1
 
             // pre-burn timeout
-            this->pause(60000);    //mhz19
+            this->pause(75000);    //mhz19
             TRACELNF("MHZ19SensorProcess pre-burn timeout")
 		}
 
@@ -79,12 +79,14 @@ class MHZ19SensorProcess: public IFirmwareProcess {
                 TRACELN(this->temp)*/
 
                 this->sendMessage(new AirQualityMsg(AirQualityMsg::GasType::CO2, 
-                    this->co2 > 2500 ? AirQualityMsg::GasConcentration::DANGER : (
-                        this->co2 > 1000 ? AirQualityMsg::GasConcentration::WARNING : (
-                            this->co2 > 600 ? AirQualityMsg::GasConcentration::NORM : AirQualityMsg::GasConcentration::MINIMAL
+                    this->co2 < 600 ? AirQualityMsg::GasConcentration::MINIMAL : (
+                        this->co2 > 2500 ? AirQualityMsg::GasConcentration::DANGER : (
+                            this->co2 > 1000 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::NORM
                         )
                     ),
-                    this->co2));
+                    this->co2)
+                );
+
                 this->sendMessage(new TaskDoneMessage(this));
             }
             

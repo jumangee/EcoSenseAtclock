@@ -32,7 +32,7 @@ class MQ136SensorProcess: public MQSensorProcess {
 		PROCESSID(PRC_MQ136);
 		
 		//@implement
-		MQ136SensorProcess(IProcessMessage* msg): MQSensorProcess(msg) {
+		MQ136SensorProcess(IProcessMessage* msg): MQSensorProcess(MUXCHANNEL_MQ136, msg) {
             this->pause(30000);    // pre-burn timeout
 		}
 

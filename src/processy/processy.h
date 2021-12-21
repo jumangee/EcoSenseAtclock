@@ -140,8 +140,8 @@ class IFirmware {
 				handlerProcessDebugTimer(dT);
 				this->resetMsDebugTimer(millis());
 			}
-			#else
-				handlerProcessDebugTimer(0);
+			//#else
+			//	handlerProcessDebugTimer(0);
 			#endif
 		}
 
@@ -155,7 +155,8 @@ class IFirmware {
 				delete msg;
 			}
 			if (newProcess == NULL) {
-        		TRACELNF("IFirmware::addProcess ERR")
+        		TRACEF("IFirmware/addProcess ERR: ")
+				TRACELN(pId);
 				return;
 			}
 
@@ -197,14 +198,13 @@ class IFirmware {
 				}
 				process->resetUsedMs();
 			}
-			#endif
 			TRACEF("MEM FREE:");
 			{
-				int free = freeMemory();
-				this->sendMessage(new MemUsageMessage(free));
+				this->sendMessage(new MemUsageMessage(freeMemory()));
 				TRACELN(free)
 			}
 			TRACELNF("--------------------------------------");
+			#endif
 		}
 
 		#ifdef DEBUG_PRO_MS
@@ -233,7 +233,7 @@ class IFirmware {
 
 		//@implement
 		int findProcess(uint16_t pId) {
-			for (int i = 0; i < this->processList.size(); i++) {
+			for (uint16_t i = 0; i < this->processList.size(); i++) {
 				if (this->processList.get(i)->getId() == pId) {
 					return i;
 				}

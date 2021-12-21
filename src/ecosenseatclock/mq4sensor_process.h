@@ -21,7 +21,7 @@ class MQ4SensorProcess: public MQSensorProcess {
 		
 		//@implement
 		//@include "ecosense_cfg.h"
-		MQ4SensorProcess(IProcessMessage* msg): MQSensorProcess(msg) {
+		MQ4SensorProcess(IProcessMessage* msg): MQSensorProcess(MUXCHANNEL_MQ4, msg) {
             this->pause(30000);    // pre-burn timeout
 		}
 

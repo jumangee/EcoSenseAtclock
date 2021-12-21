@@ -18,7 +18,7 @@ class SimpleSensorProcess: public IFirmwareProcess {
 		SimpleSensorProcess(IProcessMessage* msg);
 
         uint16_t getValue() {
-            return this->value;
+            return round(value / float(readingsCount));
         }
 
         virtual uint16_t getInstantValue() = 0;
@@ -27,7 +27,7 @@ class SimpleSensorProcess: public IFirmwareProcess {
          * Calc V from analog value
          */
         float getVoltage() {
-            return (this->value + .5) * (5.0 / 1023.0);
+            return (getValue() + .5) * (5.0 / 1023.0);
         }
 
 		bool readingsDone(byte countPerResult) {
@@ -39,11 +39,7 @@ class SimpleSensorProcess: public IFirmwareProcess {
 			this->value += this->getInstantValue();
 			this->readingsCount++;
 
-			if (readingsCount >= countPerResult) {
-				this->value = round(value / float(readingsCount));
-				return true;
-			}
-			return false;
+			return (readingsCount >= countPerResult) ? true : false;
 		}
 };
 

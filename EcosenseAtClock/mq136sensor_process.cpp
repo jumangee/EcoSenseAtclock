@@ -1,7 +1,7 @@
 #include "mq136sensor_process.h"
 #include "ecosense_messages.h"
 
-MQ136SensorProcess::MQ136SensorProcess(IProcessMessage* msg) : MQSensorProcess(msg){
+MQ136SensorProcess::MQ136SensorProcess(IProcessMessage* msg) : MQSensorProcess(MUXCHANNEL_MQ136, msg){
             this->pause(30000);    // pre-burn timeout
 }
 

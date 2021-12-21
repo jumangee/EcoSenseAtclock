@@ -4,7 +4,8 @@
 #include "ecosense_messages.h"
 
 PwrConsumerProcess::PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, IProcessMessage* msg) : IFirmwareProcess(msg){
-	TRACELNF("PwrConsumerProcess::init")
+	TRACEF("PwrConsumerProcess/tasks=")
+	TRACELN(tasks)
 	this->taskIdList = idList;
 	this->taskCnt = tasks;
 	this->keyPin = keyPin;

@@ -3,36 +3,6 @@
  * for Processy Firmware Framework
  */
 
-///////////////////////////////////////////////////
-// PROCESS IDs
-
-/*#define PRC_MAIN			101
-#define PRC_BME280SENSOR	102
-#define PRC_I2CSCANNER		103
-#define PRC_RTC				106
-#define PRC_WIFI			107
-#define PRC_CONSUMER1		221
-#define PRC_CONSUMER2		222
-#define PRC_CONSUMER3		223
-#define PRC_MONITOR			224
-
-#define PRC_DUMB1			901
-#define PRC_DUMB2			902
-#define PRC_DUMB3			903
-#define PRC_DUMB4			904
-
-#define PRC_PPD42SENSOR		301
-#define PRC_MQ135SENSOR		302
-#define PRC_MQ4SENSOR		303
-#define PRC_MQ136SENSOR		304
-#define PRC_MQ4SENSOR		305
-#define PRC_ZE08SENSOR		306
-#define PRC_MQ7SENSOR		307
-#define PRC_CJMCU1100SENSOR	308
-#define PRC_MHZ19SENSOR		309*/
-
-//////////////////////////////////////////////////
-
 #ifndef _ECOSENSEATCLOCK_H
 #define _ECOSENSEATCLOCK_H
 
@@ -60,7 +30,6 @@
 #include "pwrconsumer1process.h"
 #include "pwrconsumer2process.h"
 #include "pwrconsumer3process.h"
-
 // -------------------
 
 #include "stuff.h"
@@ -87,13 +56,13 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 
 		addProcess(PRC_DISPLAY);
 		addProcess(PRC_RTC);
-		addProcess(PRC_WIFI);
+		//addProcess(PRC_WIFI);
 		addProcess(PRC_BME280);
 
 		PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));	//EcosenseAtClockFirmware::PwrMngmtPins, (*(&PwrMngmtPins + 1) - PwrMngmtPins)
 		TRACELNF("Power management DONE");
 
-		ADCMuxManagement::init(ADCMUX_SIGNAL_PIN, EcosenseAtClockFirmware::AdcMuxMngmtPins);
+		ADCMuxManagement::init(EcosenseAtClockFirmware::AdcMuxMngmtPins);
 		TRACELNF("AdcMux management DONE");
 		
 		addProcess(PRC_CONSUMER1, ProcessOrderMessage::start());
@@ -106,7 +75,7 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 			const static ProcessFactoryReg factoryList[] = {	//	factories list	//TOTAL_FACTORIES_INCLUDED
 				FACTORY(DisplayProcess)
 				,FACTORY(RTClockProcess)
-				,FACTORY(WifiProcess)
+				//,FACTORY(WifiProcess)
 				,FACTORY(BME280SensorProcess)
 
 				,FACTORY(PwrConsumer1Process)
@@ -114,7 +83,7 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 				,FACTORY(PwrConsumer3Process)
 
 				,FACTORY(MQ136SensorProcess)
-				,FACTORY(MQ7SensorProcess)
+				//,FACTORY(MQ7SensorProcess)
 				,FACTORY(MQ135SensorProcess)
 				,FACTORY(MQ4SensorProcess)
 				//,FACTORY(PPD42SensorProcess)

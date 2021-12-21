@@ -12,11 +12,11 @@ EcosenseAtClockFirmware::EcosenseAtClockFirmware() : IFirmware(){
 	analogReference(EXTERNAL);	// important!
 	addProcess(PRC_DISPLAY);
 	addProcess(PRC_RTC);
-	addProcess(PRC_WIFI);
+	//addProcess(PRC_WIFI);
 	addProcess(PRC_BME280);
 	PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));	//EcosenseAtClockFirmware::PwrMngmtPins, (*(&PwrMngmtPins + 1) - PwrMngmtPins)
 	TRACELNF("Power management DONE");
-	ADCMuxManagement::init(ADCMUX_SIGNAL_PIN, EcosenseAtClockFirmware::AdcMuxMngmtPins);
+	ADCMuxManagement::init(EcosenseAtClockFirmware::AdcMuxMngmtPins);
 	TRACELNF("AdcMux management DONE");
 	
 	addProcess(PRC_CONSUMER1, ProcessOrderMessage::start());
@@ -27,13 +27,13 @@ ProcessFactory EcosenseAtClockFirmware::getFactory(uint16_t pId) {
 	const static ProcessFactoryReg factoryList[] = {	//	factories list	//TOTAL_FACTORIES_INCLUDED
 		FACTORY(DisplayProcess)
 		,FACTORY(RTClockProcess)
-		,FACTORY(WifiProcess)
+		//,FACTORY(WifiProcess)
 		,FACTORY(BME280SensorProcess)
 		,FACTORY(PwrConsumer1Process)
 		,FACTORY(PwrConsumer2Process)
 		,FACTORY(PwrConsumer3Process)
 		,FACTORY(MQ136SensorProcess)
-		,FACTORY(MQ7SensorProcess)
+		//,FACTORY(MQ7SensorProcess)
 		,FACTORY(MQ135SensorProcess)
 		,FACTORY(MQ4SensorProcess)
 		//,FACTORY(PPD42SensorProcess)

@@ -1,5 +1,6 @@
 #include "bme280_process.h"
 #include "forcedClimate/forcedClimate.cpp"
+#include "ecosense_messages.h"
 
 BME280SensorProcess::BME280SensorProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
 	climateSensor.begin();
@@ -24,6 +25,7 @@ void BME280SensorProcess::update(unsigned long ms) {
 
 IProcessMessage* BME280SensorProcess::readBME280() {
 	climateSensor.takeForcedMeasurement();
+	this->sendMessage(new EnvDataMessage(climateSensor.getTemperatureCelcius(), climateSensor.getRelativeHumidity(), climateSensor.getPressure() / 1.33));
 	//EnvDataMessage* msg = new EnvDataMessage(climateSensor.getTemperatureCelcius(), climateSensor.getRelativeHumidity(), climateSensor.getPressure());
 	/*TRACEF("TempC=")
 	TRACE(climateSensor.getTemperatureCelcius())

@@ -18,8 +18,9 @@ class CJMCU1100SensorProcess: public MQSensorProcess {
 		
 		//@implement
 		//@include "ecosense_cfg.h"
-		CJMCU1100SensorProcess(IProcessMessage* msg): MQSensorProcess(msg) {
+		CJMCU1100SensorProcess(IProcessMessage* msg): MQSensorProcess(MUXCHANNEL_CJMCU1100, msg) {
             this->pause(30000);    // pre-burn timeout
+			TRACELNF("CJMCU1100SensorProcess: pre-burn timeout")
 		}
 
 		//@implement
@@ -37,7 +38,9 @@ class CJMCU1100SensorProcess: public MQSensorProcess {
 
 			float logPPM = (-2.631) + 1.528 * v + (-1.125) * pow(v, 2);
 
-			return new AirQualityMsg(AirQualityMsg::GasType::VOCs, AirQualityMsg::value2code(byte(expf( logPPM ))), logPPM);
+			TRACELNF("CJMCU1100SensorProcess:getResultMsg")
+
+			return new AirQualityMsg(AirQualityMsg::GasType::VOCs, AirQualityMsg::value2code(byte(expf( logPPM ))), round(logPPM));
 			//return new AirQualityMsg(VOCs, byte(expf( logPPM )), v);
 		}
 

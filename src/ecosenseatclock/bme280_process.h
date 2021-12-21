@@ -48,8 +48,11 @@ class BME280SensorProcess: public IFirmwareProcess {
 
 		//@implement
 		//@include "forcedClimate/forcedClimate.cpp"
+		//@include "ecosense_messages.h"
 		IProcessMessage* readBME280() {
 			climateSensor.takeForcedMeasurement();
+
+			this->sendMessage(new EnvDataMessage(climateSensor.getTemperatureCelcius(), climateSensor.getRelativeHumidity(), climateSensor.getPressure() / 1.33));
 
 			//EnvDataMessage* msg = new EnvDataMessage(climateSensor.getTemperatureCelcius(), climateSensor.getRelativeHumidity(), climateSensor.getPressure());
 

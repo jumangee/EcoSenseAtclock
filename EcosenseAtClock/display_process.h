@@ -26,34 +26,19 @@
 #include <SSD1306AsciiWire.h>
 
 #include <math.h>
-#include "ecosenseicons.h"
+//#include "ecosenseicons.h"
 #include "stuff.h"
 
 #define OLED_ADDR   0x3C
 
-//#define MAIN_FONT System5x7
+#define MAIN_FONT System5x7
 //#define MAIN_FONT Stang5x7
-#define MAIN_FONT fixednums7x15
-#define ICONS_FONT ecosenseicons
+//#define MAIN_FONT fixednums7x15
+//#define ICONS_FONT ecosenseicons
 
-#define SPRITE_GAS_CH4	0x2A
-#define SPRITE_GAS_H2S	0x24
-#define SPRITE_GAS_CO2	0x2B
-#define SPRITE_OK		0x2C
-#define SPRITE_WARNING	0x21
-#define SPRITE_DANGER	0x2E
-#define SPRITE_SPC		0x20
-#define SPRITE_WIFI		0x22
-#define SPRITE_ENV_TEMP	0x28
-#define SPRITE_ENV_C	0x29
-#define SPRITE_ENV_HUM	0x23
-#define SPRITE_ENV_PRES	0x2D
+#include "LinkedList/LinkedList.h"
 
-#define SCREENROW_GAS_H2S 2
-#define SCREENROW_GAS_CH4 4
-#define SCREENROW_GAS_CO2 6
-
-#define USE_WARNING_LIGHT 1
+#define USE_WARNING_LIGHT 0
 #if USE_WARNING_LIGHT == 1
 	#define WARNLED_R_PIN A2
 	#define WARNLED_G_PIN A1
@@ -62,23 +47,60 @@
 	const byte warnLightGradient[11] PROGMEM = {0, 89, 124, 149, 170, 188, 203, 218, 231, 243, 255};
 #endif
 
+struct WarningInfo {
+	uint32_t id;
+	String title;
+	float value;
+};
+
 class DisplayProcess: public IFirmwareProcess {
 	private:
 		SSD1306AsciiWire oled;
 		bool	updateScreen;
 
-		int		temp;
-		byte	humidity;
-		int		pressure;
-		byte	gasH2S;
-		byte	gasCH4;
-
-		bool	clocktick;
+		float		temp;
+		float		humidity;
+		uint16_t	pressure;
+		String		time;
+		LinkedList<WarningInfo*> warnings;
 
 	public:
 		PROCESSID(PRC_DISPLAY);
 	
 		DisplayProcess(IProcessMessage* msg);
+
+		void addWarning(uint32_t id, String title, float value) {
+			int warnPos = this->findWarning(id);
+			if (warnPos > -1) {
+				this->warnings.get(warnPos)->value = value;
+				return;
+			}
+
+			WarningInfo* warning = new WarningInfo();
+			warning->id = id;
+			warning->title = title;
+			warning->value = value;
+			warnings.add(warning);
+
+			this->updateScreen = true;
+		}
+
+		int findWarning(uint32_t id) {
+			for (uint8_t i = 0; i < this->warnings.size(); i++) {
+				if (this->warnings.get(i)->id == id) {
+					return i;
+				}
+			}
+			return -1;
+		}
+
+		void removeWarning(uint32_t id) {
+			int warnPos = this->findWarning(id);
+			if (warnPos == -1) {
+				return;
+			}
+			delete this->warnings.remove(warnPos);
+		}
 
 		static IFirmwareProcess* factory(IProcessMessage* msg);
 
@@ -138,25 +160,11 @@ class DisplayProcess: public IFirmwareProcess {
 
 		void handleTimeMsg(CurrentTimeMsg* msg);
 
-		void prn(char c) {
-			oled.print(c);
+		void prn(String str) {
+			oled.print(str);
 		}
 
-		void printGasInfo(char g, byte row, byte quality);
-
 		void handleAirQualityMsg(AirQualityMsg* msg);
-
-		/*//@implement
-		void handleWifiMsg(WiFiStateMsg* msg) {
-			oled.setFont(ICONS_FONT);
-			oled.setCursor(100, 0);
-			oled.print(F("   "));
-			oled.setCursor(108, 0);
-			if (msg->isActive()) {
-				prn(SPRITE_WIFI);
-				prn(SPRITE_SPC);
-			}
-		}*/
 };
 
 #endif

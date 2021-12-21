@@ -33,12 +33,13 @@
 //#define PREHEAT_TIME 45000
 
 class MQSensorProcess: public SimpleSensorProcess {
-	public:
-		MQSensorProcess(IProcessMessage* msg);
+	protected:
+		byte channel;
 
-		uint16_t getInstantValue() {
-            return analogRead( ADCMuxManagement::signalPin() );
-        }
+	public:
+		MQSensorProcess(byte channel, IProcessMessage* msg);
+
+		uint16_t getInstantValue();
 
 		/*byte getQuality(float k = .6) {
 			return exp((getVoltage()-5)*k)*127;

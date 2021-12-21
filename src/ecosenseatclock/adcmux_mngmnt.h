@@ -7,9 +7,7 @@
 
     class ADCMuxManagement: protected PinSwitchManager {
         protected:
-			byte channelPin;
-			
-            ADCMuxManagement(byte channelPin, byte *pins): PinSwitchManager(pins, 4) {
+            ADCMuxManagement(byte *pins): PinSwitchManager(pins, 4) {
             }
 
             static ADCMuxManagement* instance;
@@ -20,18 +18,18 @@
                 return ADCMuxManagement::instance;
             }
 
-            static void init(byte channelPin, const byte (&pins)[4]) {
+            static void init(const byte (&pins)[4]) {
                 if (!ADCMuxManagement::instance) {
-                    ADCMuxManagement::instance = new ADCMuxManagement(channelPin, pins);
+                    ADCMuxManagement::instance = new ADCMuxManagement(pins);
                 }
             }
 
-            static byte signalPin() {
-                return ADCMuxManagement::get()->channelPin;
-            }
+            /*static byte signalPin() {
+                return ADCMuxManagement::get()->signalPin;
+            }*/
 			
-			uint32_t requestPin() {
-				return PinSwitchManager::requestPin(this->channelPin);
+			uint32_t requestChannel(byte channel) {
+				return PinSwitchManager::requestPin(channel);
 			}
 
             bool release(uint32_t & key) {

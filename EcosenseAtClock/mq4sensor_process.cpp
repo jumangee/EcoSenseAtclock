@@ -2,7 +2,7 @@
 #include "ecosense_cfg.h"
 #include "ecosense_messages.h"
 
-MQ4SensorProcess::MQ4SensorProcess(IProcessMessage* msg) : MQSensorProcess(msg){
+MQ4SensorProcess::MQ4SensorProcess(IProcessMessage* msg) : MQSensorProcess(MUXCHANNEL_MQ4, msg){
             this->pause(30000);    // pre-burn timeout
 }
 

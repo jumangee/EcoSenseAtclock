@@ -26,34 +26,19 @@
 #include <SSD1306AsciiWire.h>
 
 #include <math.h>
-#include "ecosenseicons.h"
+//#include "ecosenseicons.h"
 #include "stuff.h"
 
 #define OLED_ADDR   0x3C
 
-//#define MAIN_FONT System5x7
+#define MAIN_FONT System5x7
 //#define MAIN_FONT Stang5x7
-#define MAIN_FONT fixednums7x15
-#define ICONS_FONT ecosenseicons
+//#define MAIN_FONT fixednums7x15
+//#define ICONS_FONT ecosenseicons
 
-#define SPRITE_GAS_CH4	0x2A
-#define SPRITE_GAS_H2S	0x24
-#define SPRITE_GAS_CO2	0x2B
-#define SPRITE_OK		0x2C
-#define SPRITE_WARNING	0x21
-#define SPRITE_DANGER	0x2E
-#define SPRITE_SPC		0x20
-#define SPRITE_WIFI		0x22
-#define SPRITE_ENV_TEMP	0x28
-#define SPRITE_ENV_C	0x29
-#define SPRITE_ENV_HUM	0x23
-#define SPRITE_ENV_PRES	0x2D
+#include "LinkedList/LinkedList.h"
 
-#define SCREENROW_GAS_H2S 2
-#define SCREENROW_GAS_CH4 4
-#define SCREENROW_GAS_CO2 6
-
-#define USE_WARNING_LIGHT 1
+#define USE_WARNING_LIGHT 0
 #if USE_WARNING_LIGHT == 1
 	#define WARNLED_R_PIN A2
 	#define WARNLED_G_PIN A1
@@ -62,18 +47,22 @@
 	const byte warnLightGradient[11] PROGMEM = {0, 89, 124, 149, 170, 188, 203, 218, 231, 243, 255};
 #endif
 
+struct WarningInfo {
+	uint32_t id;
+	String title;
+	float value;
+};
+
 class DisplayProcess: public IFirmwareProcess {
 	private:
 		SSD1306AsciiWire oled;
 		bool	updateScreen;
 
-		int		temp;
-		byte	humidity;
-		int		pressure;
-		byte	gasH2S;
-		byte	gasCH4;
-
-		bool	clocktick;
+		float		temp;
+		float		humidity;
+		uint16_t	pressure;
+		String		time;
+		LinkedList<WarningInfo*> warnings;
 
 	public:
 		PROCESSID(PRC_DISPLAY);
@@ -95,16 +84,49 @@ class DisplayProcess: public IFirmwareProcess {
 			oled.setFont(MAIN_FONT);
 			//oled.print(F("CTAPT..."));	// no chars in font ((
 
-			temp = 0;
+			//temp = 0;
 
-			clocktick = true;
-			gasH2S = 0;
-			gasCH4 = 0;
+			//clocktick = true;
+			/*gasH2S = 0;
+			gasCH4 = 0;*/
 			temp = 0;
 			humidity = 0;
 			pressure = 0;
 
 			this->updateScreen = false;
+		}
+
+		void addWarning(uint32_t id, String title, float value) {
+			int warnPos = this->findWarning(id);
+			if (warnPos > -1) {
+				this->warnings.get(warnPos)->value = value;
+				return;
+			}
+
+			WarningInfo* warning = new WarningInfo();
+			warning->id = id;
+			warning->title = title;
+			warning->value = value;
+			warnings.add(warning);
+
+			this->updateScreen = true;
+		}
+
+		int findWarning(uint32_t id) {
+			for (uint8_t i = 0; i < this->warnings.size(); i++) {
+				if (this->warnings.get(i)->id == id) {
+					return i;
+				}
+			}
+			return -1;
+		}
+
+		void removeWarning(uint32_t id) {
+			int warnPos = this->findWarning(id);
+			if (warnPos == -1) {
+				return;
+			}
+			delete this->warnings.remove(warnPos);
 		}
 
 		//@implement
@@ -119,6 +141,20 @@ class DisplayProcess: public IFirmwareProcess {
 				oled.setContrast(100);
 			#endif
 
+			if (this->pressure > 0) {
+				if (this->temp > 32 || this->temp < 20) {
+					this->addWarning(1, SF("Temperature"), this->temp);
+				} else {
+					this->removeWarning(1);
+				}
+
+				if (this->humidity > 50 || this->humidity < 15) {
+					this->addWarning(2, SF("Humidity"), this->humidity);
+				} else {
+					this->removeWarning(2);
+				}
+			}
+
 			if (this->updateScreen) {
 				this->render();
 				this->updateScreen = false;
@@ -131,7 +167,7 @@ class DisplayProcess: public IFirmwareProcess {
 				printGasInfo(SPRITE_GAS_CH4, SCREENROW_GAS_CH4, this->gasCH4);
 			}*/
 
-			this->pause(10);
+			this->pause(42);
 		}
 
 		void prn2X(String s) {
@@ -156,22 +192,34 @@ class DisplayProcess: public IFirmwareProcess {
 		//@implement
 		//@include <SSD1306AsciiWire.h>
 		void render() {
-			/*if (prnEnvData(SPRITE_ENV_TEMP, 2, this->temp)) {
-				oled.setFont(ICONS_FONT);
-				prn(SPRITE_ENV_C);
-				prn(SPRITE_SPC);
+			oled.setCursor(0, 3);
+			prn2X(this->time);
+
+			if (this->humidity > 0) {
+				oled.setCursor(95, 2);
+				prn(String(round(this->temp)));
+				prn(" c");
+				
+				oled.setCursor(95, 4);
+				prn(String(round(this->humidity)));
+				prn(" %");
+
+				oled.setCursor(95, 6);
+				prn(String(round(this->pressure)));
+				prn("mm");
 			}
 
-			if (prnEnvData(SPRITE_ENV_HUM, 4, this->humidity)) {
-				oled.setFont(ICONS_FONT);
-				prn(SPRITE_ENV_C);prn(SPRITE_ENV_C);
-				oled.print(0x25);	//%
-				prn(SPRITE_SPC);
-			}
-
-			if (prnEnvData(SPRITE_ENV_PRES, 6, this->pressure)) {
-				prn(SPRITE_SPC);
-			}*/
+			//oled.setCursor(0, 0);
+			//prn(F("          "));
+			//oled.clearField(0, 0, 19);
+			for (uint16_t i = 0; i < this->warnings.size(); i++) {
+				uint8_t pos = 120-i*1.4;
+				if (pos < 1) {
+					break;
+				}
+				oled.setCursor(pos, 0);
+				prn(F("!"));
+			} 
 		}
 
 		//@implement
@@ -200,10 +248,12 @@ class DisplayProcess: public IFirmwareProcess {
 				this->temp = msg->getTemp();
 				this->updateScreen = true;
 			}
+
 			if (this->humidity != msg->getHumidity()) {
 				this->humidity = msg->getHumidity();
 				this->updateScreen = true;
 			}
+
 			if (this->pressure != msg->getPressure()) {
 				this->pressure = msg->getPressure();
 				this->updateScreen = true;
@@ -240,18 +290,19 @@ class DisplayProcess: public IFirmwareProcess {
 
 		//@implement
 		void handleTimeMsg(CurrentTimeMsg* msg) {
-			clocktick = !clocktick;
+			//clocktick = !clocktick;
+			//TRACELN(msg->getTime());
 
-			if (!msg->getHrs() && !msg->getMins()) {
-				return;
-			}
-			oled.setFont(MAIN_FONT);
-			oled.setCursor(0, 0);
-			//prn2X(msg->getTime());
+			this->time = msg->getTime();
+			this->updateScreen = true;
+
+			/*oled.setFont(MAIN_FONT);
+			oled.setCursor(0, 1);
+			prn2X(msg->getTime());
 			oled.print(msg->getTime());
 			if (!msg->getDots()) {
 				oled.clearField(15, 0, 1);
-			}
+			}*/
 			//oled.set2X();
 			//oled.clearField(0, 0, 5);
 			//oled.print(msg->getTime());
@@ -262,35 +313,8 @@ class DisplayProcess: public IFirmwareProcess {
 			#endif
 		}
 
-		void prn(char c) {
-			oled.print(c);
-		}
-
-		//@implement
-		void printGasInfo(char g, byte row, byte quality) {
-			if (quality > 0) {
-				oled.setFont(MAIN_FONT);
-				if (quality > 1) {
-					oled.setInvertMode(clocktick);
-				} else {
-					oled.setInvertMode(false);
-				}
-				oled.setCursor(90, row);
-				oled.setFont(ICONS_FONT);
-				prn(g);
-				prn(SPRITE_SPC);
-			
-				oled.setCol(108);
-				if (quality == 1) {
-					prn(SPRITE_OK);
-				} else if (quality == 2) {
-					prn(SPRITE_WARNING);
-				} else {
-					prn(SPRITE_DANGER);
-				}
-				prn(SPRITE_SPC);
-				oled.setInvertMode(false);
-			}
+		void prn(String str) {
+			oled.print(str);
 		}
 
 		//@implement
@@ -320,18 +344,6 @@ class DisplayProcess: public IFirmwareProcess {
 				}*/
 			}
 		}
-
-		/*//@implement
-		void handleWifiMsg(WiFiStateMsg* msg) {
-			oled.setFont(ICONS_FONT);
-			oled.setCursor(100, 0);
-			oled.print(F("   "));
-			oled.setCursor(108, 0);
-			if (msg->isActive()) {
-				prn(SPRITE_WIFI);
-				prn(SPRITE_SPC);
-			}
-		}*/
 };
 
 #endif

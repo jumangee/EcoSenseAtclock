@@ -89,17 +89,17 @@ class CurrentTimeMsg: public IProcessMessage {
 class AirQualityMsg: public IProcessMessage {
 	public:
 		enum GasType {
-			COMMON,		// Air Quality (CO, Ammonia, Benzene, Alcohol, smoke) (MQ135)
-			H2S,		// сероводород
-			CO,			// оксид серы
-			SO2,
-			CO2,		// углекислый газ
-			CH4,
-			CH2O,		// формальдегид
-			C6H5_CH3,	// толуол
-			PM1,		// частицы ~PM1
-			PM25,		// частицы ~PM2.5
-			VOCs		// formaldehyde benzene concentration
+			COMMON,		//0		// Air Quality (CO, Ammonia, Benzene, Alcohol, smoke) (MQ135)
+			H2S,		//1		// сероводород
+			CO,			//2		// оксид серы
+			SO2,		//3
+			CO2,		//4		// углекислый газ
+			CH4,		//5
+			CH2O,		//6		// формальдегид
+			C6H5_CH3,	//7		// толуол
+			PM1,		//8		// частицы ~PM1
+			PM25,		//9		// частицы ~PM2.5
+			VOCs		//10	// formaldehyde benzene concentration
 		};
 		
 		enum GasConcentration {
@@ -118,6 +118,13 @@ class AirQualityMsg: public IProcessMessage {
 			this->gas =  gasType;
 			this->concentration = concentration;
 			this->amount = amt;
+
+			TRACEF("AirQualityMsg: gas=")
+			TRACE(int(this->gas))
+			TRACEF(", conc=")
+			TRACE(int(concentration))
+			TRACEF(", amt=")
+			TRACELN(amt)
 		}
 
 		GasType gasType() {
@@ -204,6 +211,8 @@ class TaskDoneMessage: public IProcessMessage {
 	public:
 		TaskDoneMessage(IFirmwareProcess* prc): IProcessMessage(NULL, TASKDONE_MESSAGE) {
 			this->taskId = prc->getId();
+			TRACEF("TaskDoneMessage: ")
+			TRACELN(this->taskId)
 		}
 
 		uint16_t getTaskId() {
