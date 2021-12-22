@@ -146,25 +146,6 @@ class DisplayProcess: public IFirmwareProcess {
 			this->pause(42);
 		}
 
-		/*void prn2X(String s) {
-			oled.set2X();
-			oled.print(s);
-			oled.set1X();
-		}*/
-
-		/*bool prnEnvData(char spr, byte row, byte value) {
-			if (value > 0) {
-				oled.setFont(ICONS_FONT);
-				oled.setCursor(0, row);
-				prn(spr);
-				prn(SPRITE_SPC);
-				oled.setFont(MAIN_FONT);
-				oled.print(value);
-				return true;
-			}
-			return false;
-		}*/
-
 		//@implement
 		//@include <SSD1306AsciiWire.h>
 		void render() {
