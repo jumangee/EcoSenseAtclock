@@ -26,15 +26,6 @@
 #include <SSD1306AsciiWire.h>
 
 #include <math.h>
-//#include "ecosenseicons.h"
-#include "stuff.h"
-
-#define OLED_ADDR   0x3C
-
-#define MAIN_FONT System5x7
-//#define MAIN_FONT font5x7
-//#define MAIN_FONT fixednums7x15
-//#define ICONS_FONT ecosenseicons
 
 #include "LinkedList/LinkedList.h"
 
@@ -45,16 +36,17 @@ struct WarningInfo {
 
 class DisplayProcess: public IFirmwareProcess {
 	private:
-		SSD1306AsciiWire oled;
-		bool	updateScreen;
+		SSD1306AsciiWire	oled;
+		bool				updateScreen = false;
 
-		float		temp;
-		float		humidity;
-		uint16_t	pressure;
-		uint8_t		timeH;
-		uint8_t		timeM;
-		bool		timeDots;
+		float				temp = 0;
+		float				humidity = 0;
+		uint16_t			pressure = 0;
+		uint8_t				timeH = 0;
+		uint8_t				timeM = 0;
+		bool				timeDots = true;
 		LinkedList<WarningInfo*> warnings;
+		int					showWarningNum = -1;
 
 	public:
 		PROCESSID(PRC_DISPLAY);
@@ -62,17 +54,10 @@ class DisplayProcess: public IFirmwareProcess {
 		//@implement
 		//@include <SSD1306AsciiWire.h>
 		DisplayProcess(IProcessMessage* msg): IFirmwareProcess(msg) {
-			TRACELNF("DisplayProcess::start");
-
 			Wire.setClock(400000L);
 			oled.begin(&Adafruit128x64, OLED_ADDR);
 			oled.clear();
 			oled.setFont(MAIN_FONT);
-
-			timeDots = true;
-			temp = 0;
-			humidity = 0;
-			pressure = 0;
 
 			this->updateScreen = false;
 		}
@@ -118,15 +103,19 @@ class DisplayProcess: public IFirmwareProcess {
 		//@implement
 		void update(unsigned long ms) {
 			if (this->pressure > 0) {
+				int warnPos = this->findWarning(1);
 				if (this->temp > 32 || this->temp < 20) {
-					this->addWarning(1, this->temp);
-				} else {
+					if (warnPos == -1)
+						this->addWarning(1, this->temp);
+				} else if (warnPos > -1) {
 					this->removeWarning(1);
 				}
 
+				warnPos = this->findWarning(2);
 				if (this->humidity > 50 || this->humidity < 15) {
-					this->addWarning(2, this->humidity);
-				} else {
+					if (warnPos == -1)
+						this->addWarning(2, this->humidity);
+				} else if (warnPos > -1) {
 					this->removeWarning(2);
 				}
 			}
@@ -136,20 +125,12 @@ class DisplayProcess: public IFirmwareProcess {
 				this->updateScreen = false;
 			}
 
-			/*if (this->gasH2S > 0) {
-				printGasInfo(SPRITE_GAS_H2S, SCREENROW_GAS_H2S, this->gasH2S);
-			}
-			if (this->gasCH4 > 0) {
-				printGasInfo(SPRITE_GAS_CH4, SCREENROW_GAS_CH4, this->gasCH4);
-			}*/
-
 			this->pause(42);
 		}
 
-		//@implement
-		//@include <SSD1306AsciiWire.h>
-		void render() {
 
+		//@implement
+		void renderMainScreen() {
 			// time
 
 			oled.setCursor(0, 3);
@@ -180,9 +161,49 @@ class DisplayProcess: public IFirmwareProcess {
 				oled.print(round(this->pressure));
 				oled.print(F("mm"));
 			}
+		}
 
-			//oled.setCursor(0, 0);
-			//prn(F("          "));
+		//@implement
+		void renderWarningScreen() {
+			oled.set2X();
+			oled.setCursor(0, 2);
+			WarningInfo* warn = this->warnings.get(this->showWarningNum);
+			switch (warn->id) {
+				case 1: oled.print(F("TEMPERATURE")); break;
+				case 2: oled.print(F("HUMIDITY")); break;
+				case 10: oled.print(F("COMMON")); break;
+				case 11: oled.print(F("H2S")); break;
+				case 12: oled.print(F("CO")); break;
+				case 13: oled.print(F("SO2")); break;
+				case 14: oled.print(F("CO2")); break;
+				case 15: oled.print(F("CH4")); break;
+				case 16: oled.print(F("CH2O")); break;
+				case 17: oled.print(F("C6H5_CH3")); break;
+				case 18: oled.print(F("PM1")); break;
+				case 19: oled.print(F("PM25")); break;
+				case 20: oled.print(F("VOCs")); break;
+				/*default: {
+					oled.print(warn->id);
+				}*/
+			}
+			oled.setCursor(0, 4);
+			oled.print(warn->value);
+			oled.set1X();
+		}
+
+		//@implement
+		//@include <SSD1306AsciiWire.h>
+		void render() {
+			if (showWarningNum > this->warnings.size()-1) {
+				showWarningNum = -1;
+			}
+
+			if (showWarningNum == -1) {
+				renderMainScreen();
+			}
+			else {	// WARNINGS MODE
+				renderWarningScreen();
+			}
 
 			// warnings
 
@@ -190,19 +211,30 @@ class DisplayProcess: public IFirmwareProcess {
 			oled.set2X();
 			oled.clearToEOL();
 			//oled.setInvertMode(true);
-			for (uint16_t i = 0; i < this->warnings.size(); i++) {
+			uint16_t i;
+			for (i = 0; i < this->warnings.size(); i++) {
 				uint8_t pos = 118-i*10;
 				if (pos < 1) {
 					break;
 				}
 				oled.setCursor(pos, 0);
+				if (i == this->showWarningNum) {
+					oled.setInvertMode(true);
+				}
 				oled.print(F("!"));
+				if (i == this->showWarningNum) {
+					oled.setInvertMode(false);
+				}
+			}
+			if (this->showWarningNum > -1) {
+				oled.setCursor(118-(i+1)*10, 0);
+				oled.print(F("*"));
 			}
 			oled.set1X();
-			//oled.setInvertMode(false);
 		}
 
 		//@implement
+		//@include "ecosense_messages.h"
 		bool handleMessage(IProcessMessage* msg) {
 			switch (msg->getType())
 			{
@@ -216,6 +248,11 @@ class DisplayProcess: public IFirmwareProcess {
 				}
 				case CURTIME_MESSAGE: {
 					this->handleTimeMsg((CurrentTimeMsg*)msg);
+					return true; // dispose
+				}
+				case BTNCLICK_MESSAGE: {
+					oled.clear();
+					this->showWarningNum++;
 					return true; // dispose
 				}
 			}
@@ -252,29 +289,12 @@ class DisplayProcess: public IFirmwareProcess {
 
 		//@implement
 		void handleAirQualityMsg(AirQualityMsg* msg) {
-			switch (msg->gasType())
-			{
-				/*case H2S: {
-					if (this->gasH2S != msg->getQuality()) {
-						this->gasH2S = msg->getQuality();
-						printGasInfo(SPRITE_GAS_H2S, SCREENROW_GAS_H2S, this->gasH2S);
-					}
-					return;
-				}
-				case CH4: {
-					if (this->gasCH4 != msg->getQuality()) {
-						this->gasCH4 = msg->getQuality();
-						printGasInfo(SPRITE_GAS_CH4, SCREENROW_GAS_CH4, this->gasCH4);
-					}
-					return;
-				}*/
-				/*case CO2: {
-					if (this->gasCO2 != msg->getQuality()) {
-						this->gasCO2 = msg->getQuality();
-						printGasInfo(SPRITE_GAS_CO2, SCREENROW_GAS_CO2, this->gasCO2);
-					}
-					return;
-				}*/
+			uint16_t gasCode = static_cast<uint16_t>(msg->gasType()) + 10;
+			uint16_t gasLevel = static_cast<uint16_t>(msg->getConcentration());
+			if (gasLevel > 1) {
+				this->addWarning(gasCode, msg->getAmount());
+			} else {
+				this->removeWarning(gasCode);
 			}
 		}
 };

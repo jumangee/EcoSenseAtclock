@@ -22,10 +22,17 @@
 	#define PRC_MQ136			316
 	#define PRC_MQ7				317
 
+    #define PRC_BTN				401    
+
     // ---[ COMMON APP CONFIG ]---
     #define REPORT_TIMEOUT      60000
 
-    // ---[ PWR MNGMNT PRC CFG ]---
+    // ---[ DISPLAY ]---
+    #define OLED_ADDR           0x3C
+    #define MAIN_FONT           System5x7
+    //#define MAIN_FONT             font5x7
+
+    // ---[ PWR MNGMNT PRC ]---
     #define PWRMNGMTPIN_PROCESS1    12
     #define PWRMNGMTPIN_PROCESS2    11
     #define PWRMNGMTPIN_PROCESS3    10
@@ -34,7 +41,7 @@
     #define MAXTASKCOUNT                5
     #define CONSUMERPROCESSTIMEOUT      20000   // 60000 is production
 
-    // ---[ ADC MUX CFG ]---
+    // ---[ ADC MUX ]---
     #define ADCMUX_SIGNAL_PIN	    A1  //4
     #define ADCMUXPINS			    {6, 7, 8, 9}  //{9, 8, 7, 6}
 
@@ -43,28 +50,24 @@
     #define MUXCHANNEL_MQ135        3
     #define MUXCHANNEL_CJMCU1100    5
     #define MUXCHANNEL_MQ7          6 // broken sensor :(
+    #define MUXCHANNEL_BTN          7
 	
     // ---[ SENSORS ]---
     #define MQ_READINGS_PER_RESULT		5
     #define MQ_READING_TIMEOUT          12000
 
-	// !use ADCMUX_SIGNAL_PIN!
-    //#define MQ7_ANALOG_PIN_ADDR         0
-    //#define MQ136_ANALOG_PIN_ADDR       1
-    //#define MQ4_ANALOG_PIN_ADDR         2
-    //#define ZE08CH20_ANALOG_PIN_ADDR    3
-    //#define MQ135_ANALOG_PIN_ADDR       4
-    //#define CJMCU1100_ANALOG_PIN_ADDR   5
-	
-    #define PPD42NS_ANALOG_PIN_ADDR1    6   // PM1
-    #define PPD42NS_ANALOG_PIN_ADDR2    7   // PM2.5
+    #define PPD42NS_ANALOG_PIN_ADDR1    8   // PM1
+    #define PPD42NS_ANALOG_PIN_ADDR2    9   // PM2.5
 
     // ---[ BME280 ]---
     //#define BME280_ADDRESS              (0x76)
 
     // ---[ MHZ19 UART ]---
-    #define MHZ19_RXPIN                 3
-    #define MHZ19_TXPIN                 4
+    #define WAIT_READ_TIMES	100
+    #define WAIT_READ_DELAY	10
+
+    #define MHZ19_RXPIN 4
+    #define MHZ19_TXPIN 5
 
     // ---[ WIFI ]---
     #define WIFI_RX_PIN                 2

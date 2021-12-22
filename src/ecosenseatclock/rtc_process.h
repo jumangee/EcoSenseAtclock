@@ -9,10 +9,8 @@
 
 #include "processy.h"
 #include "processy_process.h"
-#include "ecosense_messages.h"
 
 #include "ecosense_cfg.h"
-//#include "RTClib.h"
 
 #include "RTC/rtc_ds3231simple.h"
 #include <Arduino.h>
@@ -60,6 +58,7 @@ class RTClockProcess: public IFirmwareProcess {
 		}
 
         //@implement
+		//@include "ecosense_messages.h"
 		void update(unsigned long ms) {
 			if (rtc.isDateTimeValid()) {
 				datetime_t now = rtc.getNow();

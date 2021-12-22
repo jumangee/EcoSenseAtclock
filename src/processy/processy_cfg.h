@@ -2,7 +2,7 @@
 #define _PROCESSY_CFG_H
 
     /*** processy config ***/
-    #define DEBUG_PRO_MS_
+    #define DEBUG_PRO_MS
     #define DEBUG_PRO_PERIOD_MS 10000
 
 	#define PROCESSY_DEBUG_SERIAL

@@ -180,11 +180,9 @@ class IFirmware {
 		//@include "MemoryFree.h"
 		void handlerProcessDebugTimer(unsigned long dT) {
 			#ifdef DEBUG_PRO_MS
-			{
-				TRACEF("----- PROC SUMMARY (for ");
-				TRACE(dT);
-				TRACELNF("ms) -----");
-			}
+			TRACEF("----- PROC SUMMARY (for ");
+			TRACE(dT);
+			TRACELNF("ms) -----");
 			for (int i = 0; i < this->processList.size(); i++) {
 				IFirmwareProcess* process = processList.get(i);
 				{
@@ -199,10 +197,8 @@ class IFirmware {
 				process->resetUsedMs();
 			}
 			TRACEF("MEM FREE:");
-			{
-				this->sendMessage(new MemUsageMessage(freeMemory()));
-				TRACELN(free)
-			}
+			//this->sendMessage(new MemUsageMessage());
+			TRACELN(freeMemory())
 			TRACELNF("--------------------------------------");
 			#endif
 		}

@@ -12,11 +12,6 @@
 #include "ecosense_cfg.h"
 #include "ecosense_messages.h"
 
-#define WAIT_READ_TIMES	100
-#define WAIT_READ_DELAY	10
-
-#define MHZ19_RXPIN 4
-#define MHZ19_TXPIN 5
 #define MHZ19_CMDSIZE 9
 
 #include "SoftwareSerial.h"

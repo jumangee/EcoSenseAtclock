@@ -25,6 +25,7 @@
 #include "mhz19sensor_process.h"
 #include "mq135sensor_process.h"
 #include "mq7sensor_process.h"
+#include "btn_process.h"
 
 #include "pwrconsumer_process.h"
 #include "pwrconsumer1process.h"

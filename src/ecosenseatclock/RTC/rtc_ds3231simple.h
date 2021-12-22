@@ -298,7 +298,7 @@
             //  time_t compiletime = str20ToTime(COMPILE_DATE_TIME);
             //
             // I'm not happy with this function name/implementation and it might change in the future...
-            /*datetime_t str20ToTime(const char* date)
+            datetime_t str20ToTime(const char* date)
             {
                 datetime_t tm_time;
 
@@ -351,7 +351,7 @@
                 tm_time.isdst = 0;
 
                 return tm_time;
-            }*/
+            }
     };
 
 #endif

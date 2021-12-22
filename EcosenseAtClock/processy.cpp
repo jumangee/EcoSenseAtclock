@@ -118,11 +118,9 @@ void IFirmware::addProcess(uint16_t pId, IProcessMessage* msg = NULL) {
 		//*** OVERRIDE THIS ***/
 void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
 	#ifdef DEBUG_PRO_MS
-	{
-		TRACEF("----- PROC SUMMARY (for ");
-		TRACE(dT);
-		TRACELNF("ms) -----");
-	}
+	TRACEF("----- PROC SUMMARY (for ");
+	TRACE(dT);
+	TRACELNF("ms) -----");
 	for (int i = 0; i < this->processList.size(); i++) {
 		IFirmwareProcess* process = processList.get(i);
 		{
@@ -137,10 +135,8 @@ void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
 		process->resetUsedMs();
 	}
 	TRACEF("MEM FREE:");
-	{
-		this->sendMessage(new MemUsageMessage(freeMemory()));
-		TRACELN(free)
-	}
+	//this->sendMessage(new MemUsageMessage());
+	TRACELN(freeMemory())
 	TRACELNF("--------------------------------------");
 	#endif
 }

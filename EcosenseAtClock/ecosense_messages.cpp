@@ -6,7 +6,7 @@ ProcessOrderMessage::ProcessOrderMessage(const uint16_t lastPid = 0) : IProcessM
 	if (lastPid != 0) {
 		for (byte i = 1; i <= len; i++) {
 			if (lastPid == this->processOrderList[i-1]) {
-				if (i <= len) {
+				if (i < len) {
 					pos = i;
 				} else {
 					pos = 0;	// restart list

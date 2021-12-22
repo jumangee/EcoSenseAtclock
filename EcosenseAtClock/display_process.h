@@ -26,15 +26,6 @@
 #include <SSD1306AsciiWire.h>
 
 #include <math.h>
-//#include "ecosenseicons.h"
-#include "stuff.h"
-
-#define OLED_ADDR   0x3C
-
-#define MAIN_FONT System5x7
-//#define MAIN_FONT font5x7
-//#define MAIN_FONT fixednums7x15
-//#define ICONS_FONT ecosenseicons
 
 #include "LinkedList/LinkedList.h"
 
@@ -45,16 +36,17 @@ struct WarningInfo {
 
 class DisplayProcess: public IFirmwareProcess {
 	private:
-		SSD1306AsciiWire oled;
-		bool	updateScreen;
+		SSD1306AsciiWire	oled;
+		bool				updateScreen = false;
 
-		float		temp;
-		float		humidity;
-		uint16_t	pressure;
-		uint8_t		timeH;
-		uint8_t		timeM;
-		bool		timeDots;
+		float				temp = 0;
+		float				humidity = 0;
+		uint16_t			pressure = 0;
+		uint8_t				timeH = 0;
+		uint8_t				timeM = 0;
+		bool				timeDots = true;
 		LinkedList<WarningInfo*> warnings;
+		int					showWarningNum = -1;
 
 	public:
 		PROCESSID(PRC_DISPLAY);
@@ -98,24 +90,10 @@ class DisplayProcess: public IFirmwareProcess {
 
 		void update(unsigned long ms);
 
-		/*void prn2X(String s) {
-			oled.set2X();
-			oled.print(s);
-			oled.set1X();
-		}*/
 
-		/*bool prnEnvData(char spr, byte row, byte value) {
-			if (value > 0) {
-				oled.setFont(ICONS_FONT);
-				oled.setCursor(0, row);
-				prn(spr);
-				prn(SPRITE_SPC);
-				oled.setFont(MAIN_FONT);
-				oled.print(value);
-				return true;
-			}
-			return false;
-		}*/
+		void renderMainScreen();
+
+		void renderWarningScreen();
 
 		void render();
 

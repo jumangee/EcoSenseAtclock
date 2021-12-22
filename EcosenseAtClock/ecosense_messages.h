@@ -17,6 +17,7 @@ class IFirmwareProcess;
 #define PRC_ORDER_MESSAGE	1006
 //#define THINGSPEAK_MESSAGE	1007
 #define TASKDONE_MESSAGE	1008
+#define BTNCLICK_MESSAGE	1009
 //---------------------------------
 
 class EnvDataMessage: public IProcessMessage {
@@ -220,6 +221,14 @@ class TaskDoneMessage: public IProcessMessage {
 
 	private:
 		uint16_t	taskId;
+};
+
+/** SINGLE BTN SUPPORT FOR THIS PROJECT
+ */
+class ButtonClickMessage: public IProcessMessage {
+	public:
+		ButtonClickMessage(): IProcessMessage(NULL, BTNCLICK_MESSAGE) {
+		}
 };
 
 #endif

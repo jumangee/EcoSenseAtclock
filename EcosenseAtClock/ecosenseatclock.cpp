@@ -14,6 +14,7 @@ EcosenseAtClockFirmware::EcosenseAtClockFirmware() : IFirmware(){
 	addProcess(PRC_RTC);
 	//addProcess(PRC_WIFI);
 	addProcess(PRC_BME280);
+	addProcess(PRC_BTN);
 	PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));	//EcosenseAtClockFirmware::PwrMngmtPins, (*(&PwrMngmtPins + 1) - PwrMngmtPins)
 	TRACELNF("Power management DONE");
 	ADCMuxManagement::init(EcosenseAtClockFirmware::AdcMuxMngmtPins);
@@ -22,7 +23,6 @@ EcosenseAtClockFirmware::EcosenseAtClockFirmware() : IFirmware(){
 	addProcess(PRC_CONSUMER1, ProcessOrderMessage::start());
 };
 
-		//!@include "ecosense_main.h"
 ProcessFactory EcosenseAtClockFirmware::getFactory(uint16_t pId) {
 	const static ProcessFactoryReg factoryList[] = {	//	factories list	//TOTAL_FACTORIES_INCLUDED
 		FACTORY(DisplayProcess)
@@ -40,6 +40,7 @@ ProcessFactory EcosenseAtClockFirmware::getFactory(uint16_t pId) {
 		//,FACTORY(ZE08CH2OSensorProcess)
 		,FACTORY(CJMCU1100SensorProcess)
 		,FACTORY(MHZ19SensorProcess)
+		,FACTORY(ButtonSensorProcess)
 	};
 	int len = *(&factoryList + 1) - factoryList;	//TOTAL_FACTORIES_INCLUDED
 	for (byte i = 0; i < len; i++) {

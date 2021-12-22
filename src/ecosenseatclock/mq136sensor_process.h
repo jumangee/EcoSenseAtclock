@@ -44,7 +44,7 @@ class MQ136SensorProcess: public MQSensorProcess {
 		//@implement
 		//@include "ecosense_messages.h"
 		IProcessMessage* getResultMsg() {
-			uint8_t res = round(this->getVoltage());
+			float res = this->getVoltage();
 			return new AirQualityMsg(
 				AirQualityMsg::GasType::H2S, 
 				res < 1.5 ? AirQualityMsg::GasConcentration::MINIMAL : (

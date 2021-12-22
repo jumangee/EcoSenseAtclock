@@ -1,4 +1,5 @@
 #include "rtc_process.h"
+#include "ecosense_messages.h"
 
 RTClockProcess::RTClockProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
             //dotFlag = false;
