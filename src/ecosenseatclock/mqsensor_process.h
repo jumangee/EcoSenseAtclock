@@ -30,6 +30,8 @@
 #include "simplesensor_process.h"
 #include "adcmux_mngmnt.h"
 
+#include "ecosense_messages.h"
+
 //#define PREHEAT_TIME 45000
 
 class MQSensorProcess: public SimpleSensorProcess {
@@ -77,6 +79,18 @@ class MQSensorProcess: public SimpleSensorProcess {
 
 			this->pause(MQ_READING_TIMEOUT);
 		}
+
+		AirQualityMsg* getSimpleResultMsg(AirQualityMsg::GasType gas, float value) {
+			return new AirQualityMsg(
+				gas, 
+				value < 2.5 ? AirQualityMsg::GasConcentration::MINIMAL : (
+					value < 3.75 ? AirQualityMsg::GasConcentration::NORM : (
+						value < 4.25 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::DANGER
+					)
+				),
+				value
+			);
+		};
 
 		virtual IProcessMessage* getResultMsg() = 0;
 };

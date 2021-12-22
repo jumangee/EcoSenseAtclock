@@ -61,11 +61,10 @@ void PwrConsumerProcess::update(unsigned long ms) {
 		case DONE: {
 			// shutdown
 			TRACELNF("PwrConsumerProcess: shut down");
-			//this->clearState();
 			
+			this->stop();
 			// unlock pwr key
 			this->releaseLoad();
-			this->stop();
 			for (int i = this->tasks.size()-1; i >= 0; i--) {
 				delete this->tasks.remove(i);
 			}

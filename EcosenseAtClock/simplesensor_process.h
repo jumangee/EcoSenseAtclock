@@ -17,8 +17,8 @@ class SimpleSensorProcess: public IFirmwareProcess {
 	public:
 		SimpleSensorProcess(IProcessMessage* msg);
 
-        uint16_t getValue() {
-            return round(value / float(readingsCount));
+        float getValue() {
+            return value / float(readingsCount);
         }
 
         virtual uint16_t getInstantValue() = 0;

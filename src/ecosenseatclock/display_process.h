@@ -38,9 +38,11 @@ class DisplayProcess: public IFirmwareProcess {
 	private:
 		SSD1306AsciiWire	oled;
 		bool				updateScreen = false;
+		bool				updateWarnings = false;
 
 		float				temp = 0;
 		float				humidity = 0;
+		float				co2 = 0;
 		uint16_t			pressure = 0;
 		uint8_t				timeH = 0;
 		uint8_t				timeM = 0;
@@ -58,8 +60,6 @@ class DisplayProcess: public IFirmwareProcess {
 			oled.begin(&Adafruit128x64, OLED_ADDR);
 			oled.clear();
 			oled.setFont(MAIN_FONT);
-
-			this->updateScreen = false;
 		}
 
 		void addWarning(uint32_t id, float value) {
@@ -74,7 +74,7 @@ class DisplayProcess: public IFirmwareProcess {
 			warning->value = value;
 			warnings.add(warning);
 
-			this->updateScreen = true;
+			updateWarnings = true;
 		}
 
 		int findWarning(uint32_t id) {
@@ -92,7 +92,7 @@ class DisplayProcess: public IFirmwareProcess {
 				return;
 			}
 			delete this->warnings.remove(warnPos);
-			this->updateScreen = true;
+			updateWarnings = true;
 		}
 
 		//@implement
@@ -120,14 +120,23 @@ class DisplayProcess: public IFirmwareProcess {
 				}
 			}
 
+			if (showWarningNum > this->warnings.size()-1) {
+				showWarningNum = -1;
+				oled.clear();
+				updateScreen = true;
+				updateWarnings = true;
+			}
+
 			if (this->updateScreen) {
 				this->render();
-				this->updateScreen = false;
+			}
+
+			if (this->updateWarnings) {
+				this->renderWarnings();
 			}
 
 			this->pause(42);
 		}
-
 
 		//@implement
 		void renderMainScreen() {
@@ -161,6 +170,13 @@ class DisplayProcess: public IFirmwareProcess {
 				oled.print(round(this->pressure));
 				oled.print(F("mm"));
 			}
+
+			if (this->co2 > 0) {
+				oled.setCursor(95, 7);
+				oled.print((uint16_t)co2);
+				oled.print(F("co2"));
+				oled.print(F(" "));
+			}
 		}
 
 		//@implement
@@ -186,7 +202,7 @@ class DisplayProcess: public IFirmwareProcess {
 					oled.print(warn->id);
 				}*/
 			}
-			oled.setCursor(0, 4);
+			oled.setCursor(0, 5);
 			oled.print(warn->value);
 			oled.set1X();
 		}
@@ -194,19 +210,17 @@ class DisplayProcess: public IFirmwareProcess {
 		//@implement
 		//@include <SSD1306AsciiWire.h>
 		void render() {
-			if (showWarningNum > this->warnings.size()-1) {
-				showWarningNum = -1;
-			}
-
 			if (showWarningNum == -1) {
 				renderMainScreen();
 			}
 			else {	// WARNINGS MODE
 				renderWarningScreen();
-			}
+			}			
 
-			// warnings
+			this->updateScreen = false;
+		}
 
+		void renderWarnings() {
 			oled.setCursor(0, 0);
 			oled.set2X();
 			oled.clearToEOL();
@@ -231,6 +245,8 @@ class DisplayProcess: public IFirmwareProcess {
 				oled.print(F("*"));
 			}
 			oled.set1X();
+
+			this->updateWarnings = false;
 		}
 
 		//@implement
@@ -251,8 +267,14 @@ class DisplayProcess: public IFirmwareProcess {
 					return true; // dispose
 				}
 				case BTNCLICK_MESSAGE: {
-					oled.clear();
-					this->showWarningNum++;
+					if (warnings.size() > 0) {
+						if (this->showWarningNum == -1) {
+							oled.clear();
+						}
+						this->showWarningNum++;
+						this->updateWarnings = true;
+						this->updateScreen = true;
+					}
 					return true; // dispose
 				}
 			}
@@ -279,8 +301,6 @@ class DisplayProcess: public IFirmwareProcess {
 
 		//@implement
 		void handleTimeMsg(CurrentTimeMsg* msg) {
-			//TRACELN(msg->getTime());
-
 			this->timeH	= msg->getHrs();
 			this->timeM	= msg->getMins();
 			this->timeDots = !this->timeDots;
@@ -288,6 +308,7 @@ class DisplayProcess: public IFirmwareProcess {
 		}
 
 		//@implement
+		//@include "ecosense_messages.h"
 		void handleAirQualityMsg(AirQualityMsg* msg) {
 			uint16_t gasCode = static_cast<uint16_t>(msg->gasType()) + 10;
 			uint16_t gasLevel = static_cast<uint16_t>(msg->getConcentration());
@@ -295,6 +316,10 @@ class DisplayProcess: public IFirmwareProcess {
 				this->addWarning(gasCode, msg->getAmount());
 			} else {
 				this->removeWarning(gasCode);
+			}
+
+			if (msg->gasType() == AirQualityMsg::GasType::CO2) {
+				this->co2 = msg->getAmount();
 			}
 		}
 };

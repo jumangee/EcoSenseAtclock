@@ -30,9 +30,7 @@ class MQ135SensorProcess: public MQSensorProcess {
 		//@implement
 		//@include "ecosense_messages.h"
 		IProcessMessage* getResultMsg() {
-			uint8_t res = round(this->getVoltage());
-			return new AirQualityMsg(AirQualityMsg::GasType::COMMON, AirQualityMsg::value2code(res), res);
-			//return new AirQualityMsg(COMMON, this->getQuality(.4), this->getVoltage());
+			return getSimpleResultMsg(AirQualityMsg::GasType::COMMON, this->getVoltage());
 		}
 };
 

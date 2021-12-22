@@ -59,8 +59,7 @@ class MQ4SensorProcess: public MQSensorProcess {
 		//@implement
 		//@include "ecosense_messages.h"
 		IProcessMessage* getResultMsg() {
-			return new AirQualityMsg(AirQualityMsg::GasType::CH4, AirQualityMsg::value2code(int(this->getVoltage())), int(this->getVoltage()));
-			//return new AirQualityMsg(CH4, this->getQuality(.4), this->getVoltage());
+			return getSimpleResultMsg(AirQualityMsg::GasType::CH4, this->getVoltage());
 		}
 
 };

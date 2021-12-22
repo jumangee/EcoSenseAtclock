@@ -13,8 +13,7 @@ class IFirmwareProcess;
 #define ENVDATA_MESSAGE		1001
 #define CURTIME_MESSAGE		1002
 #define AIRQUALITY_MESSAGE	1003
-#define PWRSUPPLY_MESSAGE	1005
-#define PRC_ORDER_MESSAGE	1006
+//#define PRC_ORDER_MESSAGE	1006
 //#define THINGSPEAK_MESSAGE	1007
 #define TASKDONE_MESSAGE	1008
 #define BTNCLICK_MESSAGE	1009
@@ -114,7 +113,7 @@ class AirQualityMsg: public IProcessMessage {
 		 * gasType: measured gas type
 		 * quality: 0 - none, 1 - norm, 2 - medium, 3 - high, 4 - danger
 		 */
-		AirQualityMsg(GasType gasType, GasConcentration concentration, uint16_t amt): IProcessMessage(NULL, AIRQUALITY_MESSAGE) {
+		AirQualityMsg(GasType gasType, GasConcentration concentration, float amt): IProcessMessage(NULL, AIRQUALITY_MESSAGE) {
 			this->gas =  gasType;
 			this->concentration = concentration;
 			this->amount = amt;
@@ -135,7 +134,7 @@ class AirQualityMsg: public IProcessMessage {
 			return this->concentration;
 		}
 
-		uint16_t getAmount() {
+		float getAmount() {
 			return this->amount;
 		}
 
@@ -146,7 +145,7 @@ class AirQualityMsg: public IProcessMessage {
 	private:
 		GasType				gas;
 		GasConcentration	concentration;
-		uint16_t			amount;
+		float				amount;
 };
 
 

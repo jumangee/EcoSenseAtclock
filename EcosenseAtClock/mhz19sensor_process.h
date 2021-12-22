@@ -18,7 +18,6 @@
 
 class MHZ19SensorProcess: public IFirmwareProcess {
     protected:
-		bool			mhz19active;
         SoftwareSerial  swSerial = SoftwareSerial(MHZ19_RXPIN, MHZ19_TXPIN);
 
         int co2 = 0;
@@ -27,8 +26,9 @@ class MHZ19SensorProcess: public IFirmwareProcess {
         uint8_t measureCount = 0;
 
         static uint8_t CMD_GETPPM[MHZ19_CMDSIZE];
-        static uint8_t CMD_SETRNG[MHZ19_CMDSIZE];
+        static uint8_t CMD_SETRNG5000[MHZ19_CMDSIZE];
         static uint8_t CMD_AUTOCALOFF[MHZ19_CMDSIZE];
+        static uint8_t CMD_REBOOT[MHZ19_CMDSIZE];
 
 
 	public:

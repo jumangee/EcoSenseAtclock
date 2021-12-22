@@ -38,9 +38,11 @@ class DisplayProcess: public IFirmwareProcess {
 	private:
 		SSD1306AsciiWire	oled;
 		bool				updateScreen = false;
+		bool				updateWarnings = false;
 
 		float				temp = 0;
 		float				humidity = 0;
+		float				co2 = 0;
 		uint16_t			pressure = 0;
 		uint8_t				timeH = 0;
 		uint8_t				timeM = 0;
@@ -65,7 +67,7 @@ class DisplayProcess: public IFirmwareProcess {
 			warning->value = value;
 			warnings.add(warning);
 
-			this->updateScreen = true;
+			updateWarnings = true;
 		}
 
 		int findWarning(uint32_t id) {
@@ -83,19 +85,47 @@ class DisplayProcess: public IFirmwareProcess {
 				return;
 			}
 			delete this->warnings.remove(warnPos);
-			this->updateScreen = true;
+			updateWarnings = true;
 		}
 
 		static IFirmwareProcess* factory(IProcessMessage* msg);
 
 		void update(unsigned long ms);
 
-
 		void renderMainScreen();
 
 		void renderWarningScreen();
 
 		void render();
+
+		void renderWarnings() {
+			oled.setCursor(0, 0);
+			oled.set2X();
+			oled.clearToEOL();
+			//oled.setInvertMode(true);
+			uint16_t i;
+			for (i = 0; i < this->warnings.size(); i++) {
+				uint8_t pos = 118-i*10;
+				if (pos < 1) {
+					break;
+				}
+				oled.setCursor(pos, 0);
+				if (i == this->showWarningNum) {
+					oled.setInvertMode(true);
+				}
+				oled.print(F("!"));
+				if (i == this->showWarningNum) {
+					oled.setInvertMode(false);
+				}
+			}
+			if (this->showWarningNum > -1) {
+				oled.setCursor(118-(i+1)*10, 0);
+				oled.print(F("*"));
+			}
+			oled.set1X();
+
+			this->updateWarnings = false;
+		}
 
 		bool handleMessage(IProcessMessage* msg);
 

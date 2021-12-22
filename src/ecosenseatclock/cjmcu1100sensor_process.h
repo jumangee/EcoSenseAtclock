@@ -38,7 +38,7 @@ class CJMCU1100SensorProcess: public MQSensorProcess {
 				exp( (-7.071) + 2.852 * v + (-0.210) * pow(v, 2) )		// toluene
 			);
 
-			return new AirQualityMsg(AirQualityMsg::GasType::VOCs, AirQualityMsg::value2code(round(min(ppm, 10.0) / 2)), round(ppm));
+			return new AirQualityMsg(AirQualityMsg::GasType::VOCs, AirQualityMsg::value2code(round(min(ppm*.7, 10.0) / 2)), round(ppm));
 		}
 
 };

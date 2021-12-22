@@ -7,7 +7,6 @@ DisplayProcess::DisplayProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
 	oled.begin(&Adafruit128x64, OLED_ADDR);
 	oled.clear();
 	oled.setFont(MAIN_FONT);
-	this->updateScreen = false;
 }
 
 static IFirmwareProcess* DisplayProcess::factory(IProcessMessage* msg) {
@@ -31,9 +30,17 @@ void DisplayProcess::update(unsigned long ms) {
 			this->removeWarning(2);
 		}
 	}
+	if (showWarningNum > this->warnings.size()-1) {
+		showWarningNum = -1;
+		oled.clear();
+		updateScreen = true;
+		updateWarnings = true;
+	}
 	if (this->updateScreen) {
 		this->render();
-		this->updateScreen = false;
+	}
+	if (this->updateWarnings) {
+		this->renderWarnings();
 	}
 	this->pause(42);
 }
@@ -65,6 +72,12 @@ void DisplayProcess::renderMainScreen() {
 		oled.print(round(this->pressure));
 		oled.print(F("mm"));
 	}
+	if (this->co2 > 0) {
+		oled.setCursor(95, 7);
+		oled.print((uint16_t)co2);
+		oled.print(F("co2"));
+		oled.print(F(" "));
+	}
 }
 
 void DisplayProcess::renderWarningScreen() {
@@ -74,14 +87,14 @@ void DisplayProcess::renderWarningScreen() {
 	switch (warn->id) {
 		case 1: oled.print(F("TEMPERATURE")); break;
 		case 2: oled.print(F("HUMIDITY")); break;
-		case 10: oled.print(F("COMMON")); break;
+		case 10: oled.print(F("AIR QUALITY")); break;
 		case 11: oled.print(F("H2S")); break;
 		case 12: oled.print(F("CO")); break;
 		case 13: oled.print(F("SO2")); break;
 		case 14: oled.print(F("CO2")); break;
 		case 15: oled.print(F("CH4")); break;
-		case 16: oled.print(F("CH2O")); break;
-		case 17: oled.print(F("C6H5_CH3")); break;
+		//case 16: oled.print(F("CH2O")); break;
+		//case 17: oled.print(F("C6H5_CH3")); break;
 		case 18: oled.print(F("PM1")); break;
 		case 19: oled.print(F("PM25")); break;
 		case 20: oled.print(F("VOCs")); break;
@@ -89,46 +102,19 @@ void DisplayProcess::renderWarningScreen() {
 			oled.print(warn->id);
 		}*/
 	}
-	oled.setCursor(0, 4);
+	oled.setCursor(0, 5);
 	oled.print(warn->value);
 	oled.set1X();
 }
 
 void DisplayProcess::render() {
-	if (showWarningNum > this->warnings.size()-1) {
-		showWarningNum = -1;
-	}
 	if (showWarningNum == -1) {
 		renderMainScreen();
 	}
 	else {	// WARNINGS MODE
 		renderWarningScreen();
-	}
-	// warnings
-	oled.setCursor(0, 0);
-	oled.set2X();
-	oled.clearToEOL();
-	//oled.setInvertMode(true);
-	uint16_t i;
-	for (i = 0; i < this->warnings.size(); i++) {
-		uint8_t pos = 118-i*10;
-		if (pos < 1) {
-			break;
-		}
-		oled.setCursor(pos, 0);
-		if (i == this->showWarningNum) {
-			oled.setInvertMode(true);
-		}
-		oled.print(F("!"));
-		if (i == this->showWarningNum) {
-			oled.setInvertMode(false);
-		}
-	}
-	if (this->showWarningNum > -1) {
-		oled.setCursor(118-(i+1)*10, 0);
-		oled.print(F("*"));
-	}
-	oled.set1X();
+	}			
+	this->updateScreen = false;
 }
 
 bool DisplayProcess::handleMessage(IProcessMessage* msg) {
@@ -147,8 +133,14 @@ bool DisplayProcess::handleMessage(IProcessMessage* msg) {
 			return true; // dispose
 		}
 		case BTNCLICK_MESSAGE: {
-			oled.clear();
-			this->showWarningNum++;
+			if (warnings.size() > 0) {
+				if (this->showWarningNum == -1) {
+					oled.clear();
+				}
+				this->showWarningNum++;
+				this->updateWarnings = true;
+				this->updateScreen = true;
+			}
 			return true; // dispose
 		}
 	}
@@ -171,7 +163,6 @@ void DisplayProcess::handleEnvDataMsg(EnvDataMessage* msg) {
 }
 
 void DisplayProcess::handleTimeMsg(CurrentTimeMsg* msg) {
-	//TRACELN(msg->getTime());
 	this->timeH	= msg->getHrs();
 	this->timeM	= msg->getMins();
 	this->timeDots = !this->timeDots;
@@ -185,5 +176,8 @@ void DisplayProcess::handleAirQualityMsg(AirQualityMsg* msg) {
 		this->addWarning(gasCode, msg->getAmount());
 	} else {
 		this->removeWarning(gasCode);
+	}
+	if (msg->gasType() == AirQualityMsg::GasType::CO2) {
+		this->co2 = msg->getAmount();
 	}
 }

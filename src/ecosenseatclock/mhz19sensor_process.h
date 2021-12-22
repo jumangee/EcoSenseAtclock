@@ -18,7 +18,6 @@
 
 class MHZ19SensorProcess: public IFirmwareProcess {
     protected:
-		bool			mhz19active;
         SoftwareSerial  swSerial = SoftwareSerial(MHZ19_RXPIN, MHZ19_TXPIN);
 
         int co2 = 0;
@@ -27,15 +26,18 @@ class MHZ19SensorProcess: public IFirmwareProcess {
         uint8_t measureCount = 0;
 
         static uint8_t CMD_GETPPM[MHZ19_CMDSIZE];
-        static uint8_t CMD_SETRNG[MHZ19_CMDSIZE];
+        static uint8_t CMD_SETRNG5000[MHZ19_CMDSIZE];
         static uint8_t CMD_AUTOCALOFF[MHZ19_CMDSIZE];
+        static uint8_t CMD_REBOOT[MHZ19_CMDSIZE];
 
         //@cpp
         static uint8_t MHZ19SensorProcess::CMD_GETPPM[MHZ19_CMDSIZE] = {0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
         //@cpp
-        static uint8_t MHZ19SensorProcess::CMD_SETRNG[MHZ19_CMDSIZE] = {0xFF, 0x01, 0x99, 0x00, 0x00, 0x00, 0x13, 0x88, 0xCB};
+        static uint8_t MHZ19SensorProcess::CMD_SETRNG5000[MHZ19_CMDSIZE] = {0xFF, 0x01, 0x99, 0x00, 0x00, 0x00, 0x13, 0x88, 0xCB};
         //@cpp
         static uint8_t MHZ19SensorProcess::CMD_AUTOCALOFF[MHZ19_CMDSIZE] = {0xff, 0x01, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86};         
+        //@cpp
+        static uint8_t MHZ19SensorProcess::CMD_REBOOT[MHZ19_CMDSIZE] = {0xff, 0x01, 0x8d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x73};
 
 	public:
         PROCESSID(PRC_MHZ19);
@@ -43,12 +45,10 @@ class MHZ19SensorProcess: public IFirmwareProcess {
 		//@implement
         //@include "SoftwareSerial.h"
 		MHZ19SensorProcess(IProcessMessage* msg): IFirmwareProcess(msg) {
-			mhz19active = true;
-			
             swSerial.begin(9600);
 
             sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
-            sendCommand( MHZ19SensorProcess::CMD_SETRNG );
+            sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
 			getData();    // первый запрос, в любом случае возвращает -1
 
             // pre-burn timeout
@@ -142,6 +142,15 @@ class MHZ19SensorProcess: public IFirmwareProcess {
                 this->status = -1;
                 return;
             } 
+
+            TRACEF("MHZ19: 0=")
+            TRACE(buf[0])
+            TRACEF(", 1=")
+            TRACE(buf[1])
+            TRACEF(", crc=")
+            TRACE(crc)
+            TRACEF(" / ")
+            TRACELN(buf[8]);
 
             this->co2 = (256*((unsigned int) buf[2])) + ((unsigned int) buf[3]);
             this->temp = (buf[4]-32)*5/9;
