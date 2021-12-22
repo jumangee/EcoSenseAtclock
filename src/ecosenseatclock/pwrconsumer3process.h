@@ -45,6 +45,9 @@
                 return false;
             }
 
+            uint16_t getNextConsumerId() {
+                return PRC_CONSUMER1;
+            }
     };
 
 #endif

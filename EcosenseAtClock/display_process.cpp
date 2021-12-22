@@ -76,17 +76,18 @@ void DisplayProcess::renderWarningScreen() {
 		case 2: oled.print(F("HUMIDITY")); break;
 		case 10: oled.print(F("COMMON")); break;
 		case 11: oled.print(F("H2S")); break;
-		case 12: oled.print(F("SO2")); break;
-		case 13: oled.print(F("CO2")); break;
-		case 14: oled.print(F("CH4")); break;
-		case 15: oled.print(F("CH2O")); break;
-		case 16: oled.print(F("C6H5_CH3")); break;
-		case 17: oled.print(F("PM1")); break;
-		case 18: oled.print(F("PM25")); break;
-		case 19: oled.print(F("VOCs")); break;
-		default: {
+		case 12: oled.print(F("CO")); break;
+		case 13: oled.print(F("SO2")); break;
+		case 14: oled.print(F("CO2")); break;
+		case 15: oled.print(F("CH4")); break;
+		case 16: oled.print(F("CH2O")); break;
+		case 17: oled.print(F("C6H5_CH3")); break;
+		case 18: oled.print(F("PM1")); break;
+		case 19: oled.print(F("PM25")); break;
+		case 20: oled.print(F("VOCs")); break;
+		/*default: {
 			oled.print(warn->id);
-		}
+		}*/
 	}
 	oled.setCursor(0, 4);
 	oled.print(warn->value);

@@ -40,6 +40,10 @@ class PwrConsumerProcess: public IFirmwareProcess {
 		LinkedList<TaskInfo*> tasks;
 
 	public:
+
+		/* Returns next consumer process id or 0 to stop */
+		virtual uint16_t getNextConsumerId() = 0;
+
 		//@implement
 		PwrConsumerProcess(byte keyPin, IProcessMessage* msg): IFirmwareProcess(msg) {
 			/*this->taskIdList = idList;
@@ -114,11 +118,20 @@ class PwrConsumerProcess: public IFirmwareProcess {
 				case DONE: {
 					// shutdown
 					TRACELNF("PwrConsumerProcess: shut down");
-					//this->clearState();
 					
+					this->stop();
+
 					// unlock pwr key
 					this->releaseLoad();
-					this->sendMessage(ProcessOrderMessage::goNextOf(this->getId()));
+
+					for (int i = this->tasks.size()-1; i >= 0; i--) {
+						delete this->tasks.remove(i);
+					}
+
+					uint16_t nextId = this->getNextConsumerId();
+					if (nextId > 0) {
+						this->getHost()->addProcess(nextId);	// start next of process list
+					}
 					return;
 				}
 				default: {
@@ -138,14 +151,14 @@ class PwrConsumerProcess: public IFirmwareProcess {
 					this->taskDone(((TaskDoneMessage*)msg)->getTaskId());
 					return false;
 				}
-				case PRC_ORDER_MESSAGE: {
+				/*case PRC_ORDER_MESSAGE: {
 					if (((ProcessOrderMessage*)msg)->getNextId() != this->getId()) {
 						ProcessOrderMessage* msg = ProcessOrderMessage::goNextOf(this->getId());
 						this->getHost()->addProcess(msg->getNextId());	// start next of process list
 						this->stop();
 					}
 					return false;
-				}
+				}*/
 			}
 			if (this->getWorkState() != ACTIVE) return false;//deepSleep || 
 			return this->handleMessageLogic(msg);
@@ -185,17 +198,6 @@ class PwrConsumerProcess: public IFirmwareProcess {
 				this->poweredTime = 0;
 			}
         }
-
-		//@implement
-		~PwrConsumerProcess() {
-			// stop process
-            this->releaseLoad();
-
-			for (int i = this->tasks.size()-1; i >= 0; i--) {
-				delete this->tasks.remove(i);
-			}
-			TRACELNF("PwrConsumerProcess::stop");
-		}
 };
 
 #endif

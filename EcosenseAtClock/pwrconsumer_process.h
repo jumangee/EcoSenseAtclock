@@ -40,6 +40,10 @@ class PwrConsumerProcess: public IFirmwareProcess {
 		LinkedList<TaskInfo*> tasks;
 
 	public:
+
+		/* Returns next consumer process id or 0 to stop */
+		virtual uint16_t getNextConsumerId() = 0;
+
 		PwrConsumerProcess(byte keyPin, IProcessMessage* msg);
 
 		void addTask(uint16_t prcId);
@@ -85,8 +89,6 @@ class PwrConsumerProcess: public IFirmwareProcess {
         }
 
         void releaseLoad();
-
-		~PwrConsumerProcess();
 };
 
 #endif

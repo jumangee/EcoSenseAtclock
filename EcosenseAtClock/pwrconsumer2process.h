@@ -31,6 +31,10 @@
             static IFirmwareProcess* factory(IProcessMessage* msg);
 
             bool handleMessageLogic(IProcessMessage* msg);
+
+            uint16_t getNextConsumerId() {
+                return PRC_CONSUMER3;
+            }
     };
 
 #endif

@@ -16,14 +16,14 @@ void ButtonSensorProcess::update(unsigned long ms) {
 		bool isPressed = ( ((float)analogRead( ADCMUX_SIGNAL_PIN )) * (5.0 / 1023.0) ) > 3.5;
 		mux->release(ticket);
                 uint32_t curTime = millis();
-                if (lastState == true && isPressed == false && (curTime - pressDn) > 100) {
-                    // click done
-                    //TRACELNF("Click!")
-                    pressDn = 0;
-                    this->sendMessage(new ButtonClickMessage());
-                } else if (lastState == false && isPressed == true) {
-                    //TRACELNF("Keydown")
-                    pressDn = curTime;
+                if ( (curTime - pressDn) > 50 ) {
+                    if (lastState == true && isPressed == false) {
+                        // click done
+                        pressDn = curTime;
+                        this->sendMessage(new ButtonClickMessage());
+                    } else if (lastState == false && isPressed == true) {
+                        pressDn = curTime;
+                    }
                 }
                 lastState = isPressed;
 	}

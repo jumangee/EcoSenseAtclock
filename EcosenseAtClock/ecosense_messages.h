@@ -150,7 +150,7 @@ class AirQualityMsg: public IProcessMessage {
 };
 
 
-class ProcessOrderMessage: public IProcessMessage {
+/*class ProcessOrderMessage: public IProcessMessage {
 	public:
 		static ProcessOrderMessage* start() {
 			return new ProcessOrderMessage();
@@ -167,13 +167,29 @@ class ProcessOrderMessage: public IProcessMessage {
 	private:
 		uint16_t nextId;
 
-		/**
-		 * @brief Definition of process start order
-		 */
 		uint16_t processOrderList[3] = {PRC_CONSUMER1, PRC_CONSUMER2, PRC_CONSUMER3};
 
-		ProcessOrderMessage(const uint16_t lastPid = 0);
-};
+		ProcessOrderMessage(const uint16_t lastPid = 0): IProcessMessage(NULL, PRC_ORDER_MESSAGE) {
+			byte len = sizeof(this->processOrderList)/sizeof(this->processOrderList[0]);
+
+			byte pos = 0;
+			if (lastPid != 0) {
+				for (byte i = 1; i <= len; i++) {
+					if (lastPid == this->processOrderList[i-1]) {
+						if (i < len) {
+							pos = i;
+						} else {
+							pos = 0;	// restart list
+						}
+						break;
+					}
+				}
+			}
+
+			this->nextId = this->processOrderList[pos];
+			return;
+		}
+};*/
 
 /*class ThingspeakFieldMessage: public IProcessMessage {
 	public:

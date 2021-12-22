@@ -62,12 +62,12 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 		addProcess(PRC_BTN);
 
 		PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));	//EcosenseAtClockFirmware::PwrMngmtPins, (*(&PwrMngmtPins + 1) - PwrMngmtPins)
-		TRACELNF("Power management DONE");
+		TRACELNF("Power management: started");
 
 		ADCMuxManagement::init(EcosenseAtClockFirmware::AdcMuxMngmtPins);
-		TRACELNF("AdcMux management DONE");
+		TRACELNF("AdcMux management: started");
 		
-		addProcess(PRC_CONSUMER1, ProcessOrderMessage::start());
+		addProcess(PRC_CONSUMER1);	//, ProcessOrderMessage::start()
 	};
 	
 	public:

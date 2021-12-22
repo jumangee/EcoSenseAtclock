@@ -65,7 +65,14 @@ void PwrConsumerProcess::update(unsigned long ms) {
 			
 			// unlock pwr key
 			this->releaseLoad();
-			this->sendMessage(ProcessOrderMessage::goNextOf(this->getId()));
+			this->stop();
+			for (int i = this->tasks.size()-1; i >= 0; i--) {
+				delete this->tasks.remove(i);
+			}
+			uint16_t nextId = this->getNextConsumerId();
+			if (nextId > 0) {
+				this->getHost()->addProcess(nextId);	// start next of process list
+			}
 			return;
 		}
 		default: {
@@ -83,14 +90,14 @@ bool PwrConsumerProcess::handleMessage(IProcessMessage* msg) {
 			this->taskDone(((TaskDoneMessage*)msg)->getTaskId());
 			return false;
 		}
-		case PRC_ORDER_MESSAGE: {
+		/*case PRC_ORDER_MESSAGE: {
 			if (((ProcessOrderMessage*)msg)->getNextId() != this->getId()) {
 				ProcessOrderMessage* msg = ProcessOrderMessage::goNextOf(this->getId());
 				this->getHost()->addProcess(msg->getNextId());	// start next of process list
 				this->stop();
 			}
 			return false;
-		}
+		}*/
 	}
 	if (this->getWorkState() != ACTIVE) return false;//deepSleep || 
 	return this->handleMessageLogic(msg);
@@ -103,13 +110,4 @@ void PwrConsumerProcess::releaseLoad() {
 				}
 				this->poweredTime = 0;
 			}
-}
-
-PwrConsumerProcess::~PwrConsumerProcess() {
-	// stop process
-            this->releaseLoad();
-	for (int i = this->tasks.size()-1; i >= 0; i--) {
-		delete this->tasks.remove(i);
-	}
-	TRACELNF("PwrConsumerProcess::stop");
 }

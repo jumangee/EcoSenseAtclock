@@ -44,6 +44,10 @@
             bool handleMessageLogic(IProcessMessage* msg) {
                 return false;
             }
+
+            uint16_t getNextConsumerId() {
+                return PRC_CONSUMER2;
+            }
     };
 
 #endif
