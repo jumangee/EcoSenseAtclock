@@ -8,18 +8,17 @@
     class UrlParam {
             byte paramId;
             union {
-                byte b;
                 uint16_t ui16;
                 float f;
             };
             enum vType {
-                BYTE,
                 UINT,
                 FLOAT
             } valueType;
-            bool active;
             
         public:
+            bool active;
+
             //@implement
             UrlParam() {
                 this->active = false;
@@ -34,13 +33,7 @@
             void setId(byte paramId, vType type) {
                 this->paramId = paramId;
                 this->valueType = type;
-                this->setActive(true);
-            }
-
-            //@implement
-            void setValue(byte paramId, byte v) {
-                this->b = v;
-                setId(paramId, BYTE);
+                this->active = true;
             }
 
             //@implement
@@ -59,7 +52,7 @@
             String getValue() {
                 switch (this->valueType)
                 {
-                    case BYTE: return String(b);
+                    //case BYTE: return String(b);
                     case UINT: return String(ui16);
                     case FLOAT: return String(f);
                 }
@@ -70,11 +63,6 @@
             bool isActive() {
                 return this->active;
             }
-
-            //@implement
-            void setActive(bool s) {
-                this->active = s;
-            }
     };
 
     #define THINGSPEAKPARAMS 8
@@ -83,14 +71,12 @@
      * ThingSpeak API implementation
      */
     class ThingspeakWebSendTask {
-            UrlParam params[THINGSPEAKPARAMS];
+            UrlParam    params[THINGSPEAKPARAMS];
         public:
+            byte        size=0;
+
             ThingspeakWebSendTask() {
-                for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-                    UrlParam p = params[i];
-                    p.setValue(i, byte(0));
-                    p.setActive(false);
-                }
+                clear();
             }
 
             UrlParam& getParam(byte id) {
@@ -100,19 +86,16 @@
             //@implement
             void clear() {
                 for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-                    this->params[i].setActive(false);
+                    this->params[i].setValue(i, (uint16_t)0);
+                    this->params[i].active = false;
                 }
-            }
-
-            //@implement
-            String getServer() {
-                return F("api.thingspeak.com");
+                size = 0;
             }
 
             //@implement
             String getUrl(String key) {
                 String url;
-                url.reserve(14 + key.length() + this->size() * 15);
+                url.reserve(14 + key.length() + size * 15);
                 url += SF("/update?api_key=") + key;
                 for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
                     UrlParam p = this->getParam(i);
@@ -129,26 +112,29 @@
                 return url;
             }
 
-            //@implement
+            /*//@implement
             void setParam(byte id, byte v) {
                 UrlParam param = this->getParam(id);
                 param.setValue(id, v);
+                size++;
             }
 
-            //@implement
+            !//@implement
             void setParam(byte id, uint16_t v) {
                 UrlParam param = this->getParam(id);
                 param.setValue(id, v);
+                size++;
             }
 
-            //@implement
+            !//@implement
             void setParam(byte id, float v) {
                 UrlParam param = this->getParam(id);
                 param.setValue(id, v);
-            }
+                size++;
+            }*/
 
-            //@implement
-            byte size() {
+            //!@implement
+            /*byte size() {
                 byte c = 0;
                 for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
                     if (this->params[i].isActive()) {
@@ -156,6 +142,16 @@
                     }
                 }
                 return c;
+            }*/
+
+            void recount() {
+                byte c = 0;
+                for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
+                    if (this->params[i].active) {
+                        c++;
+                    }
+                }
+                this->size=c;
             }
     };
 

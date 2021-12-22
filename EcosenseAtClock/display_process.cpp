@@ -72,12 +72,12 @@ void DisplayProcess::renderMainScreen() {
 		oled.print(round(this->pressure));
 		oled.print(F("mm"));
 	}
-	if (this->co2 > 0) {
+	/*if (this->co2 > 0) {
 		oled.setCursor(95, 7);
 		oled.print((uint16_t)co2);
 		oled.print(F("co2"));
 		oled.print(F(" "));
-	}
+	}*/
 }
 
 void DisplayProcess::renderWarningScreen() {
@@ -90,12 +90,12 @@ void DisplayProcess::renderWarningScreen() {
 		case 10: oled.print(F("AIR QUALITY")); break;
 		case 11: oled.print(F("H2S")); break;
 		case 12: oled.print(F("CO")); break;
-		case 13: oled.print(F("SO2")); break;
+		//case 13: oled.print(F("SO2")); break;
 		case 14: oled.print(F("CO2")); break;
-		case 15: oled.print(F("CH4")); break;
+		//case 15: oled.print(F("CH4")); break;
 		//case 16: oled.print(F("CH2O")); break;
 		//case 17: oled.print(F("C6H5_CH3")); break;
-		case 18: oled.print(F("PM1")); break;
+		//case 18: oled.print(F("PM1")); break;
 		case 19: oled.print(F("PM25")); break;
 		case 20: oled.print(F("VOCs")); break;
 		/*default: {
@@ -148,18 +148,18 @@ bool DisplayProcess::handleMessage(IProcessMessage* msg) {
 }
 
 void DisplayProcess::handleEnvDataMsg(EnvDataMessage* msg) {
-	if (this->temp != msg->getTemp()) {
+	//if (this->temp != msg->getTemp()) {
 		this->temp = msg->getTemp();
-		this->updateScreen = true;
-	}
-	if (this->humidity != msg->getHumidity()) {
+	//	this->updateScreen = true;
+	//}
+	//if (this->humidity != msg->getHumidity()) {
 		this->humidity = msg->getHumidity();
-		this->updateScreen = true;
-	}
-	if (this->pressure != msg->getPressure()) {
+	//	this->updateScreen = true;
+	//}
+	//if (this->pressure != msg->getPressure()) {
 		this->pressure = msg->getPressure();
 		this->updateScreen = true;
-	}
+	//}
 }
 
 void DisplayProcess::handleTimeMsg(CurrentTimeMsg* msg) {
@@ -177,7 +177,7 @@ void DisplayProcess::handleAirQualityMsg(AirQualityMsg* msg) {
 	} else {
 		this->removeWarning(gasCode);
 	}
-	if (msg->gasType() == AirQualityMsg::GasType::CO2) {
+	/*if (msg->gasType() == AirQualityMsg::GasType::CO2) {
 		this->co2 = msg->getAmount();
-	}
+	}*/
 }

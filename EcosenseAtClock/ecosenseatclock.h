@@ -6,8 +6,8 @@
 #ifndef _ECOSENSEATCLOCK_H
 #define _ECOSENSEATCLOCK_H
 
-#include "ecosense_cfg.h"
 #include "processy_cfg.h"
+#include "ecosense_cfg.h"
 #include "processy.h"
 
 #include "pwrload_mngmnt.h"
@@ -19,13 +19,14 @@
 #include "wifi_process.h"
 #include "bme280_process.h"
 
+#include "btn_process.h"
+
 #include "mq136sensor_process.h"
 #include "mq4sensor_process.h"
 #include "cjmcu1100sensor_process.h"
 #include "mhz19sensor_process.h"
 #include "mq135sensor_process.h"
 #include "mq7sensor_process.h"
-#include "btn_process.h"
 
 #include "pwrconsumer_process.h"
 #include "pwrconsumer1process.h"

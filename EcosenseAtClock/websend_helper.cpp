@@ -11,12 +11,7 @@ byte UrlParam::getId() {
 void UrlParam::setId(byte paramId, vType type) {
     this->paramId = paramId;
     this->valueType = type;
-    this->setActive(true);
-}
-
-void UrlParam::setValue(byte paramId, byte v) {
-    this->b = v;
-    setId(paramId, BYTE);
+    this->active = true;
 }
 
 void UrlParam::setValue(byte paramId, uint16_t v) {
@@ -32,7 +27,7 @@ void UrlParam::setValue(byte paramId, float v) {
 String UrlParam::getValue() {
     switch (this->valueType)
     {
-        case BYTE: return String(b);
+        //case BYTE: return String(b);
         case UINT: return String(ui16);
         case FLOAT: return String(f);
     }
@@ -43,23 +38,17 @@ bool UrlParam::isActive() {
     return this->active;
 }
 
-void UrlParam::setActive(bool s) {
-    this->active = s;
-}
-
 void ThingspeakWebSendTask::clear() {
     for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-        this->params[i].setActive(false);
+        this->params[i].setValue(i, (uint16_t)0);
+        this->params[i].active = false;
     }
-}
-
-String ThingspeakWebSendTask::getServer() {
-    return F("api.thingspeak.com");
+    size = 0;
 }
 
 String ThingspeakWebSendTask::getUrl(String key) {
     String url;
-    url.reserve(14 + key.length() + this->size() * 15);
+    url.reserve(14 + key.length() + size * 15);
     url += SF("/update?api_key=") + key;
     for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
         UrlParam p = this->getParam(i);
@@ -74,29 +63,4 @@ String ThingspeakWebSendTask::getUrl(String key) {
         }
     }
     return url;
-}
-
-void ThingspeakWebSendTask::setParam(byte id, byte v) {
-    UrlParam param = this->getParam(id);
-    param.setValue(id, v);
-}
-
-void ThingspeakWebSendTask::setParam(byte id, uint16_t v) {
-    UrlParam param = this->getParam(id);
-    param.setValue(id, v);
-}
-
-void ThingspeakWebSendTask::setParam(byte id, float v) {
-    UrlParam param = this->getParam(id);
-    param.setValue(id, v);
-}
-
-byte ThingspeakWebSendTask::size() {
-    byte c = 0;
-    for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-        if (this->params[i].isActive()) {
-            c++;
-        }
-    }
-    return c;
 }

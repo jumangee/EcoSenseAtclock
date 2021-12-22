@@ -39,11 +39,11 @@ class RTClockProcess: public IFirmwareProcess {
 			#endif
 
 			// Check if the RTC clock is running (Yes, it can be stopped, if you wish!)
-			if (!rtc.getIsRunning())
+			/*if (!rtc.getIsRunning())
 			{
 				TRACELNF("WARNING: RTC was not actively running, starting it now.")
 				rtc.setIsRunning(true);
-			}
+			}*/
 
 			// Reset the DS3231 RTC status in case it was wrongly configured
 			rtc.enable32kHzPin(false);

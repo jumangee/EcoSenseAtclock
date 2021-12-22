@@ -143,15 +143,6 @@ class MHZ19SensorProcess: public IFirmwareProcess {
                 return;
             } 
 
-            TRACEF("MHZ19: 0=")
-            TRACE(buf[0])
-            TRACEF(", 1=")
-            TRACE(buf[1])
-            TRACEF(", crc=")
-            TRACE(crc)
-            TRACEF(" / ")
-            TRACELN(buf[8]);
-
             this->co2 = (256*((unsigned int) buf[2])) + ((unsigned int) buf[3]);
             this->temp = (buf[4]-32)*5/9;
             this->status = buf[5];

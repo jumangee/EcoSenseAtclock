@@ -6,8 +6,8 @@
 #ifndef _ECOSENSEATCLOCK_H
 #define _ECOSENSEATCLOCK_H
 
-#include "ecosense_cfg.h"
 #include "processy_cfg.h"
+#include "ecosense_cfg.h"
 #include "processy.h"
 
 #include "pwrload_mngmnt.h"
@@ -19,13 +19,14 @@
 #include "wifi_process.h"
 #include "bme280_process.h"
 
+#include "btn_process.h"
+
 #include "mq136sensor_process.h"
 #include "mq4sensor_process.h"
 #include "cjmcu1100sensor_process.h"
 #include "mhz19sensor_process.h"
 #include "mq135sensor_process.h"
 #include "mq7sensor_process.h"
-#include "btn_process.h"
 
 #include "pwrconsumer_process.h"
 #include "pwrconsumer1process.h"
@@ -47,7 +48,7 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 	//@implement
 	//@include <Arduino.h>
 	EcosenseAtClockFirmware(): IFirmware() {
-		#ifdef PROCESSY_DEBUG_SERIAL
+		#if PROCESSY_DEBUG_SERIAL == 1
 		Serial.begin(9600);
 		delay(1000);		
 		TRACELNF("START");
@@ -57,7 +58,7 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 
 		addProcess(PRC_DISPLAY);
 		addProcess(PRC_RTC);
-		//addProcess(PRC_WIFI);
+		addProcess(PRC_WIFI);
 		addProcess(PRC_BME280);
 		addProcess(PRC_BTN);
 
@@ -76,8 +77,9 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 			const static ProcessFactoryReg factoryList[] = {	//	factories list	//TOTAL_FACTORIES_INCLUDED
 				FACTORY(DisplayProcess)
 				,FACTORY(RTClockProcess)
-				//,FACTORY(WifiProcess)
+				,FACTORY(WifiProcess)
 				,FACTORY(BME280SensorProcess)
+				,FACTORY(ButtonSensorProcess)
 
 				,FACTORY(PwrConsumer1Process)
 				,FACTORY(PwrConsumer2Process)
@@ -91,7 +93,6 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 				//,FACTORY(ZE08CH2OSensorProcess)
 				,FACTORY(CJMCU1100SensorProcess)
 				,FACTORY(MHZ19SensorProcess)
-				,FACTORY(ButtonSensorProcess)
 			};
 
 			int len = *(&factoryList + 1) - factoryList;	//TOTAL_FACTORIES_INCLUDED

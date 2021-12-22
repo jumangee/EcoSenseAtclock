@@ -12,7 +12,7 @@
 #include "pwrload_mngmnt.h"
 #include "ecosense_cfg.h"
 
-#include "LinkedList/LinkedList.h"
+//#include "LinkedList/LinkedList.h"
 
 /**
  * @brief Power management process: controls state and then ready - starts child processes, which do the work
@@ -37,7 +37,10 @@ class PwrConsumerProcess: public IFirmwareProcess {
 		//WorkState		tasksArr[MAXTASKCOUNT];
 		//const uint16_t	*taskIdList;
 		//byte			taskCnt;
-		LinkedList<TaskInfo*> tasks;
+		//LinkedList<TaskInfo*> tasks;
+
+		TaskInfo		tasks[MAXTASKCOUNT];
+		byte			tasksCnt = 0;
 
 	public:
 
@@ -54,18 +57,15 @@ class PwrConsumerProcess: public IFirmwareProcess {
 
 		//@implement
 		void addTask(uint16_t prcId) {
-			if (this->findTask(prcId) == -1) {
-				TaskInfo* task = new TaskInfo();
-				task->prcId = prcId;
-				task->state = NONE;
-				tasks.add(task);
-			}
+			tasks[tasksCnt].prcId = prcId;
+			tasks[tasksCnt].state = NONE;
+			tasksCnt++;
 		}
 
 		//@implement
 		int findTask(uint16_t id) {
-			for (byte i = 0; i < this->tasks.size(); i++) {
-				if (this->tasks.get(i)->prcId == id) {
+			for (byte i = 0; i < tasksCnt; i++) {
+				if (this->tasks[i].prcId == id) {
 					return i;
 				}
 			}
@@ -77,7 +77,7 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			int pos = this->findTask(process_id);
 			if (pos == -1) return;
 
-			this->tasks.get(pos)->state = DONE;
+			this->tasks[pos].state = DONE;
 			this->getHost()->stopProcess(process_id);
 		}
 
@@ -108,10 +108,11 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			{
 				case START: {
 					TRACELNF("PwrConsumerProcess: start child processes");
-					for (byte i = 0; i < this->tasks.size(); i++) {
-						TaskInfo* task = this->tasks.get(i);
-						this->getHost()->addProcess(task->prcId);
-						task->state = ACTIVE;
+					for (byte i = 0; i < tasksCnt; i++) {
+						//TaskInfo* task = this->tasks.get(i);
+						this->getHost()->addProcess(tasks[i].prcId);
+						tasks[i].state = ACTIVE;
+						//task->state = ACTIVE;
 					}
 					return;
 				}
@@ -124,9 +125,9 @@ class PwrConsumerProcess: public IFirmwareProcess {
 					// unlock pwr key
 					this->releaseLoad();
 
-					for (int i = this->tasks.size()-1; i >= 0; i--) {
+					/*for (int i = this->tasks.size()-1; i >= 0; i--) {
 						delete this->tasks.remove(i);
-					}
+					}*/
 
 					uint16_t nextId = this->getNextConsumerId();
 					if (nextId > 0) {
@@ -168,18 +169,18 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			byte none = 0;
 			byte done = 0;
 
-			for (byte i = 0; i < this->tasks.size(); i++) {
-				WorkState s = this->tasks.get(i)->state;
+			for (byte i = 0; i < tasksCnt; i++) {
+				WorkState s = this->tasks[i].state;
 				if (s == NONE) {
 					none++;
 				} else if (s == DONE) {
 					done++;
 				}
 			}
-			if (none == this->tasks.size()) {
+			if (none == tasksCnt) {
 				return START;
 			}
-			if (done == this->tasks.size()) {
+			if (done == tasksCnt) {
 				return DONE;
 			}
 			return ACTIVE;

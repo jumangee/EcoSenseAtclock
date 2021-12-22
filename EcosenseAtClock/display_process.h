@@ -14,15 +14,12 @@
 
 #include <Arduino.h>
 
-#define INCLUDE_SCROLLING 0
-
-#include <SSD1306Ascii.h>
-
 #undef OPTIMIZE_I2C
 #define OPTIMIZE_I2C 0
 #undef INCLUDE_SCROLLING
 #define INCLUDE_SCROLLING 0
 
+#include <SSD1306Ascii.h>
 #include <SSD1306AsciiWire.h>
 
 #include <math.h>
@@ -42,7 +39,7 @@ class DisplayProcess: public IFirmwareProcess {
 
 		float				temp = 0;
 		float				humidity = 0;
-		float				co2 = 0;
+		//float				co2 = 0;
 		uint16_t			pressure = 0;
 		uint8_t				timeH = 0;
 		uint8_t				timeM = 0;
@@ -101,7 +98,8 @@ class DisplayProcess: public IFirmwareProcess {
 		void renderWarnings() {
 			oled.setCursor(0, 0);
 			oled.set2X();
-			oled.clearToEOL();
+			//oled.clearToEOL();
+			oled.print(F("                  "));
 			//oled.setInvertMode(true);
 			uint16_t i;
 			for (i = 0; i < this->warnings.size(); i++) {

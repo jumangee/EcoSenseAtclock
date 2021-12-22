@@ -11,17 +11,14 @@ PwrConsumerProcess::PwrConsumerProcess(byte keyPin, IProcessMessage* msg) : IFir
 }
 
 void PwrConsumerProcess::addTask(uint16_t prcId) {
-	if (this->findTask(prcId) == -1) {
-		TaskInfo* task = new TaskInfo();
-		task->prcId = prcId;
-		task->state = NONE;
-		tasks.add(task);
-	}
+	tasks[tasksCnt].prcId = prcId;
+	tasks[tasksCnt].state = NONE;
+	tasksCnt++;
 }
 
 int PwrConsumerProcess::findTask(uint16_t id) {
-	for (byte i = 0; i < this->tasks.size(); i++) {
-		if (this->tasks.get(i)->prcId == id) {
+	for (byte i = 0; i < tasksCnt; i++) {
+		if (this->tasks[i].prcId == id) {
 			return i;
 		}
 	}
@@ -31,7 +28,7 @@ int PwrConsumerProcess::findTask(uint16_t id) {
 void PwrConsumerProcess::taskDone(uint16_t process_id) {
 	int pos = this->findTask(process_id);
 	if (pos == -1) return;
-	this->tasks.get(pos)->state = DONE;
+	this->tasks[pos].state = DONE;
 	this->getHost()->stopProcess(process_id);
 }
 
@@ -51,10 +48,11 @@ void PwrConsumerProcess::update(unsigned long ms) {
 	{
 		case START: {
 			TRACELNF("PwrConsumerProcess: start child processes");
-			for (byte i = 0; i < this->tasks.size(); i++) {
-				TaskInfo* task = this->tasks.get(i);
-				this->getHost()->addProcess(task->prcId);
-				task->state = ACTIVE;
+			for (byte i = 0; i < tasksCnt; i++) {
+				//TaskInfo* task = this->tasks.get(i);
+				this->getHost()->addProcess(tasks[i].prcId);
+				tasks[i].state = ACTIVE;
+				//task->state = ACTIVE;
 			}
 			return;
 		}
@@ -65,9 +63,9 @@ void PwrConsumerProcess::update(unsigned long ms) {
 			this->stop();
 			// unlock pwr key
 			this->releaseLoad();
-			for (int i = this->tasks.size()-1; i >= 0; i--) {
+			/*for (int i = this->tasks.size()-1; i >= 0; i--) {
 				delete this->tasks.remove(i);
-			}
+			}*/
 			uint16_t nextId = this->getNextConsumerId();
 			if (nextId > 0) {
 				this->getHost()->addProcess(nextId);	// start next of process list

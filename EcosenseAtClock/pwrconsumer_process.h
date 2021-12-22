@@ -12,7 +12,7 @@
 #include "pwrload_mngmnt.h"
 #include "ecosense_cfg.h"
 
-#include "LinkedList/LinkedList.h"
+//#include "LinkedList/LinkedList.h"
 
 /**
  * @brief Power management process: controls state and then ready - starts child processes, which do the work
@@ -37,7 +37,10 @@ class PwrConsumerProcess: public IFirmwareProcess {
 		//WorkState		tasksArr[MAXTASKCOUNT];
 		//const uint16_t	*taskIdList;
 		//byte			taskCnt;
-		LinkedList<TaskInfo*> tasks;
+		//LinkedList<TaskInfo*> tasks;
+
+		TaskInfo		tasks[MAXTASKCOUNT];
+		byte			tasksCnt = 0;
 
 	public:
 
@@ -67,18 +70,18 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			byte none = 0;
 			byte done = 0;
 
-			for (byte i = 0; i < this->tasks.size(); i++) {
-				WorkState s = this->tasks.get(i)->state;
+			for (byte i = 0; i < tasksCnt; i++) {
+				WorkState s = this->tasks[i].state;
 				if (s == NONE) {
 					none++;
 				} else if (s == DONE) {
 					done++;
 				}
 			}
-			if (none == this->tasks.size()) {
+			if (none == tasksCnt) {
 				return START;
 			}
-			if (done == this->tasks.size()) {
+			if (done == tasksCnt) {
 				return DONE;
 			}
 			return ACTIVE;

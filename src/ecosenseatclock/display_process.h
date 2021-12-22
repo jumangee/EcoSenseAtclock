@@ -14,15 +14,12 @@
 
 #include <Arduino.h>
 
-#define INCLUDE_SCROLLING 0
-
-#include <SSD1306Ascii.h>
-
 #undef OPTIMIZE_I2C
 #define OPTIMIZE_I2C 0
 #undef INCLUDE_SCROLLING
 #define INCLUDE_SCROLLING 0
 
+#include <SSD1306Ascii.h>
 #include <SSD1306AsciiWire.h>
 
 #include <math.h>
@@ -42,7 +39,7 @@ class DisplayProcess: public IFirmwareProcess {
 
 		float				temp = 0;
 		float				humidity = 0;
-		float				co2 = 0;
+		//float				co2 = 0;
 		uint16_t			pressure = 0;
 		uint8_t				timeH = 0;
 		uint8_t				timeM = 0;
@@ -171,12 +168,12 @@ class DisplayProcess: public IFirmwareProcess {
 				oled.print(F("mm"));
 			}
 
-			if (this->co2 > 0) {
+			/*if (this->co2 > 0) {
 				oled.setCursor(95, 7);
 				oled.print((uint16_t)co2);
 				oled.print(F("co2"));
 				oled.print(F(" "));
-			}
+			}*/
 		}
 
 		//@implement
@@ -190,12 +187,12 @@ class DisplayProcess: public IFirmwareProcess {
 				case 10: oled.print(F("AIR QUALITY")); break;
 				case 11: oled.print(F("H2S")); break;
 				case 12: oled.print(F("CO")); break;
-				case 13: oled.print(F("SO2")); break;
+				//case 13: oled.print(F("SO2")); break;
 				case 14: oled.print(F("CO2")); break;
-				case 15: oled.print(F("CH4")); break;
+				//case 15: oled.print(F("CH4")); break;
 				//case 16: oled.print(F("CH2O")); break;
 				//case 17: oled.print(F("C6H5_CH3")); break;
-				case 18: oled.print(F("PM1")); break;
+				//case 18: oled.print(F("PM1")); break;
 				case 19: oled.print(F("PM25")); break;
 				case 20: oled.print(F("VOCs")); break;
 				/*default: {
@@ -223,7 +220,8 @@ class DisplayProcess: public IFirmwareProcess {
 		void renderWarnings() {
 			oled.setCursor(0, 0);
 			oled.set2X();
-			oled.clearToEOL();
+			//oled.clearToEOL();
+			oled.print(F("                  "));
 			//oled.setInvertMode(true);
 			uint16_t i;
 			for (i = 0; i < this->warnings.size(); i++) {
@@ -283,20 +281,20 @@ class DisplayProcess: public IFirmwareProcess {
 
 		//@implement
 		void handleEnvDataMsg(EnvDataMessage* msg) {
-			if (this->temp != msg->getTemp()) {
+			//if (this->temp != msg->getTemp()) {
 				this->temp = msg->getTemp();
-				this->updateScreen = true;
-			}
+			//	this->updateScreen = true;
+			//}
 
-			if (this->humidity != msg->getHumidity()) {
+			//if (this->humidity != msg->getHumidity()) {
 				this->humidity = msg->getHumidity();
-				this->updateScreen = true;
-			}
+			//	this->updateScreen = true;
+			//}
 
-			if (this->pressure != msg->getPressure()) {
+			//if (this->pressure != msg->getPressure()) {
 				this->pressure = msg->getPressure();
 				this->updateScreen = true;
-			}
+			//}
 		}
 
 		//@implement
@@ -318,9 +316,9 @@ class DisplayProcess: public IFirmwareProcess {
 				this->removeWarning(gasCode);
 			}
 
-			if (msg->gasType() == AirQualityMsg::GasType::CO2) {
+			/*if (msg->gasType() == AirQualityMsg::GasType::CO2) {
 				this->co2 = msg->getAmount();
-			}
+			}*/
 		}
 };
 

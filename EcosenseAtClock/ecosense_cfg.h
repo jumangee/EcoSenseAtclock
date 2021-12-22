@@ -30,7 +30,7 @@
     // ---[ DISPLAY ]---
     #define OLED_ADDR           0x3C
     #define MAIN_FONT           System5x7
-    //#define MAIN_FONT             font5x7
+    //#define MAIN_FONT             fixednums7x15
 
     // ---[ PWR MNGMNT PRC ]---
     #define PWRMNGMTPIN_PROCESS1    12
@@ -73,10 +73,20 @@
     #define WIFI_RX_PIN                 2
     #define WIFI_TX_PIN                 3    
     #define WIFI_SSID                   "Jumangee"
-    #define WIFI_PWD                    "xxx"
+    #define WIFI_PWD                    "54d75bc245"
 
     // ---[ THINGSPEAK ]---
+    #define THINGSPEAK_SERVER           F("api.thingspeak.com")
     #define THINGSPEAK_CHANNEL_KEY      "43RGUGMOBYBHCJV2"
+    
+    #define THINGSPEAK_PARAM_TEMP       1
+    #define THINGSPEAK_PARAM_HUMIDITY   2
+    #define THINGSPEAK_PARAM_PRESSURE   3
+    #define THINGSPEAK_PARAM_COMMON     4
+    #define THINGSPEAK_PARAM_CO2        5
+    #define THINGSPEAK_PARAM_H2S        6
+    #define THINGSPEAK_PARAM_VOCS       7
+    #define THINGSPEAK_PARAM_PM25       8
 
     // ---[ REAL-TIME CLOCK ]---
     #define RTC_I2C_ADDR                0x68

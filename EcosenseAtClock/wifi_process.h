@@ -21,11 +21,8 @@
 #include "ecosense_messages.h"
 #include "websend_helper.h"
 
-//#define TIMEOUT 5000 // mS
-
 class WifiProcess: public IFirmwareProcess {
 	private:
-		bool ready;
 		SoftwareSerial *espSerial;
 		unsigned long lastReportTime;
 		ThingspeakWebSendTask dataSendTask;
@@ -47,9 +44,6 @@ class WifiProcess: public IFirmwareProcess {
 		void simpleSendData();
 
 		bool handleMessage(IProcessMessage* msg);
-
-		void handleAirQualityMsg(AirQualityMsg* msg);
-
 };
 
 #endif

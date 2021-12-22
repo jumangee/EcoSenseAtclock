@@ -8,25 +8,22 @@
     class UrlParam {
             byte paramId;
             union {
-                byte b;
                 uint16_t ui16;
                 float f;
             };
             enum vType {
-                BYTE,
                 UINT,
                 FLOAT
             } valueType;
-            bool active;
             
         public:
+            bool active;
+
             UrlParam();
 
             byte getId();
             
             void setId(byte paramId, vType type);
-
-            void setValue(byte paramId, byte v);
 
             void setValue(byte paramId, uint16_t v);
 
@@ -35,8 +32,6 @@
             String getValue();
 
             bool isActive();
-
-            void setActive(bool s);
     };
 
     #define THINGSPEAKPARAMS 8
@@ -45,14 +40,12 @@
      * ThingSpeak API implementation
      */
     class ThingspeakWebSendTask {
-            UrlParam params[THINGSPEAKPARAMS];
+            UrlParam    params[THINGSPEAKPARAMS];
         public:
+            byte        size=0;
+
             ThingspeakWebSendTask() {
-                for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-                    UrlParam p = params[i];
-                    p.setValue(i, byte(0));
-                    p.setActive(false);
-                }
+                clear();
             }
 
             UrlParam& getParam(byte id) {
@@ -61,17 +54,49 @@
 
             void clear();
 
-            String getServer();
-
             String getUrl(String key);
 
-            void setParam(byte id, byte v);
+            /*//@implement
+            void setParam(byte id, byte v) {
+                UrlParam param = this->getParam(id);
+                param.setValue(id, v);
+                size++;
+            }
 
-            void setParam(byte id, uint16_t v);
+            !//@implement
+            void setParam(byte id, uint16_t v) {
+                UrlParam param = this->getParam(id);
+                param.setValue(id, v);
+                size++;
+            }
 
-            void setParam(byte id, float v);
+            !//@implement
+            void setParam(byte id, float v) {
+                UrlParam param = this->getParam(id);
+                param.setValue(id, v);
+                size++;
+            }*/
 
-            byte size();
+            //!@implement
+            /*byte size() {
+                byte c = 0;
+                for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
+                    if (this->params[i].isActive()) {
+                        c++;
+                    }
+                }
+                return c;
+            }*/
+
+            void recount() {
+                byte c = 0;
+                for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
+                    if (this->params[i].active) {
+                        c++;
+                    }
+                }
+                this->size=c;
+            }
     };
 
 #endif
