@@ -20,10 +20,10 @@ class MHZ19SensorProcess: public IFirmwareProcess {
     protected:
         SoftwareSerial  swSerial = SoftwareSerial(MHZ19_RXPIN, MHZ19_TXPIN);
 
-        int co2 = 0;
-        int temp = 0;
-        int status = -1;
-        uint8_t measureCount = 0;
+        int     co2 = 0;
+        int     temp = 0;
+        int     status = -1;
+        bool    ready = false;
 
         static uint8_t CMD_GETPPM[MHZ19_CMDSIZE];
         static uint8_t CMD_SETRNG5000[MHZ19_CMDSIZE];
@@ -37,7 +37,7 @@ class MHZ19SensorProcess: public IFirmwareProcess {
         //@cpp
         static uint8_t MHZ19SensorProcess::CMD_AUTOCALOFF[MHZ19_CMDSIZE] = {0xff, 0x01, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86};         
         //@cpp
-        static uint8_t MHZ19SensorProcess::CMD_REBOOT[MHZ19_CMDSIZE] = {0xff, 0x01, 0x8d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x73};
+        static uint8_t MHZ19SensorProcess::CMD_REBOOT[MHZ19_CMDSIZE] = {0xff, 0x01, 0x8d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x71};
 
 	public:
         PROCESSID(PRC_MHZ19);
@@ -47,13 +47,11 @@ class MHZ19SensorProcess: public IFirmwareProcess {
 		MHZ19SensorProcess(IProcessMessage* msg): IFirmwareProcess(msg) {
             swSerial.begin(9600);
 
-            sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
-            sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
-			getData();    // первый запрос, в любом случае возвращает -1
+            TRACELNF("MHZ19: reboot")
+            sendCommand( MHZ19SensorProcess::CMD_REBOOT );
 
-            // pre-burn timeout
-            this->pause(60000);    //mhz19
-            TRACELNF("MHZ19SensorProcess pre-burn timeout")
+            // reboot timeout
+            this->pause(15000);
 		}
 
 		//@implement
@@ -64,36 +62,32 @@ class MHZ19SensorProcess: public IFirmwareProcess {
 		//@implement
         //@include "ecosense_messages.h"
 		void update(unsigned long ms) {
-            getData();
+            if (!ready) {
+                sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
+                sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
+                getData();    // первый запрос, в любом случае возвращает -1
+                ready = true;
 
-            if (this->status != -1) {
-                measureCount++;
+                this->pause(MHZ18_PREBURN_TIMEOUT);
+    			this->pause(12000);
+                return;
+            } else {
+                getData();
 
-                TRACEF("co2=")
-                TRACELN(this->co2);
+                this->sendMessage(new AirQualityMsg(AirQualityMsg::GasType::CO2, 
+                    this->co2 < 600 ? AirQualityMsg::GasConcentration::MINIMAL : (
+                        this->co2 > 2500 ? AirQualityMsg::GasConcentration::DANGER : (
+                            this->co2 > 1000 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::NORM
+                        )
+                    ),
+                    this->co2)
+                );
 
-                if (measureCount > 2) {
-                    this->report();
-                    return;
-                }
+                this->sendMessage(new TaskDoneMessage(this));
+                this->pause();
+                return;
             }
-            
-			this->pause(12000);
 		}
-
-        void report() {
-            this->sendMessage(new AirQualityMsg(AirQualityMsg::GasType::CO2, 
-                this->co2 < 600 ? AirQualityMsg::GasConcentration::MINIMAL : (
-                    this->co2 > 2500 ? AirQualityMsg::GasConcentration::DANGER : (
-                        this->co2 > 1000 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::NORM
-                    )
-                ),
-                this->co2)
-            );
-
-            this->sendMessage(new TaskDoneMessage(this));
-            this->pause();
-        }
     
     protected:
         //@implement
