@@ -83,8 +83,8 @@ class MQSensorProcess: public SimpleSensorProcess {
 		AirQualityMsg* getSimpleResultMsg(AirQualityMsg::GasType gas, float value) {
 			return new AirQualityMsg(
 				gas, 
-				value < 2.5 ? AirQualityMsg::GasConcentration::MINIMAL : (
-					value < 3.75 ? AirQualityMsg::GasConcentration::NORM : (
+				value < 2.25 ? AirQualityMsg::GasConcentration::MINIMAL : (
+					value < 3.5 ? AirQualityMsg::GasConcentration::NORM : (
 						value < 4.25 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::DANGER
 					)
 				),

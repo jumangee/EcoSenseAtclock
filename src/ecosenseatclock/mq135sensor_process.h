@@ -19,7 +19,7 @@ class MQ135SensorProcess: public MQSensorProcess {
 		//@implement
 		//@include "ecosense_cfg.h"
 		MQ135SensorProcess(IProcessMessage* msg): MQSensorProcess(MUXCHANNEL_MQ135, msg) {
-            this->pause(30000);    // pre-burn timeout
+            this->pause(MQ135_PREBURN_TIMEOUT);    // pre-burn timeout
 		}
 
 		//@implement

@@ -17,7 +17,7 @@ class MQ7SensorProcess: public MQSensorProcess {
 		PROCESSID(PRC_MQ7);
 		
 		MQ7SensorProcess(IProcessMessage* msg): MQSensorProcess(MUXCHANNEL_MQ7, msg) {
-            this->pause(30000);    // pre-burn timeout
+            this->pause(MQ7_PREBURN_TIMEOUT);    // pre-burn timeout
 		}
 
 		//@implement
