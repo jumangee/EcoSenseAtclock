@@ -6,7 +6,6 @@
     #include "ecosense_cfg.h"
 
     class UrlParam {
-            //byte paramId;
             union {
                 uint16_t ui16;
                 float f;
@@ -20,21 +19,14 @@
             bool active;
 
             UrlParam();
-
-            /*//@implement
-            byte getId() {
-                return this->paramId;
-            }*/
             
-            void set(/*byte paramId,*/ vType type);
+            void set(vType type);
 
-            void setValue(/*byte paramId,*/ uint16_t v);
+            void setValue(uint16_t v);
 
-            void setValue(/*byte paramId,*/ float v);
+            void setValue(float v);
 
             String getValue();
-
-            bool isActive();
     };
 
     /**
@@ -55,39 +47,7 @@
 
             void clear();
 
-            String getUrl(String key);
-
-            /*//@implement
-            void setParam(byte id, byte v) {
-                UrlParam param = this->getParam(id);
-                param.setValue(id, v);
-                size++;
-            }
-
-            !//@implement
-            void setParam(byte id, uint16_t v) {
-                UrlParam param = this->getParam(id);
-                param.setValue(id, v);
-                size++;
-            }
-
-            !//@implement
-            void setParam(byte id, float v) {
-                UrlParam param = this->getParam(id);
-                param.setValue(id, v);
-                size++;
-            }*/
-
-            //!@implement
-            /*byte size() {
-                byte c = 0;
-                for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-                    if (this->params[i].isActive()) {
-                        c++;
-                    }
-                }
-                return c;
-            }*/
+            String getUrl();
 
             void recount() {
                 byte c = 0;

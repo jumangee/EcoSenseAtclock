@@ -72,15 +72,6 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			return -1;
 		}
 
-		//@implement
-		void taskDone(uint16_t process_id) {
-			int pos = this->findTask(process_id);
-			if (pos == -1) return;
-
-			this->tasks[pos].state = DONE;
-			this->getHost()->stopProcess(process_id);
-		}
-
 		/**
 		 * This should be overriden by handler with logic
 		 */
@@ -107,7 +98,7 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			switch (this->getWorkState())
 			{
 				case START: {
-					TRACELNF("PwrConsumerProcess: start child processes");
+					TRACELNF("PwrConsumer: start tasks");
 					for (byte i = 0; i < tasksCnt; i++) {
 						//TaskInfo* task = this->tasks.get(i);
 						this->getHost()->addProcess(tasks[i].prcId);
@@ -118,16 +109,12 @@ class PwrConsumerProcess: public IFirmwareProcess {
 				}
 				case DONE: {
 					// shutdown
-					TRACELNF("PwrConsumerProcess: shut down");
+					TRACELNF("PwrConsumer: stop");
 					
 					this->stop();
 
 					// unlock pwr key
 					this->releaseLoad();
-
-					/*for (int i = this->tasks.size()-1; i >= 0; i--) {
-						delete this->tasks.remove(i);
-					}*/
 
 					uint16_t nextId = this->getNextConsumerId();
 					if (nextId > 0) {
@@ -148,20 +135,19 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			switch (msg->getType())
 			{
 				case TASKDONE_MESSAGE: {
-					TRACELNF("PwrConsumerProcess/TASKDONE_MESSAGE")
-					this->taskDone(((TaskDoneMessage*)msg)->getTaskId());
+					TRACELNF("PwrConsumer: task done")
+
+					uint16_t taskId = ((TaskDoneMessage*)msg)->getTaskId();
+
+					int pos = this->findTask(taskId);
+					if (pos == -1) return;
+
+					this->tasks[pos].state = DONE;
+					this->getHost()->stopProcess(taskId);
 					return false;
 				}
-				/*case PRC_ORDER_MESSAGE: {
-					if (((ProcessOrderMessage*)msg)->getNextId() != this->getId()) {
-						ProcessOrderMessage* msg = ProcessOrderMessage::goNextOf(this->getId());
-						this->getHost()->addProcess(msg->getNextId());	// start next of process list
-						this->stop();
-					}
-					return false;
-				}*/
 			}
-			if (this->getWorkState() != ACTIVE) return false;//deepSleep || 
+			if (this->getWorkState() != ACTIVE) return false;
 			return this->handleMessageLogic(msg);
 		}
 
@@ -186,15 +172,11 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			return ACTIVE;
 		}
 
-        uint32_t getPoweredTime() {
-            return this->poweredTime;
-        }
-
         //@implement
         void releaseLoad() {
             if (this->poweredTime != 0) {
 				if (!PowerloadManagement::get()->releasePin(this->poweredTime)) {
-					TRACELNF("PwrConsumerProcess//got FALSE");
+					TRACELNF("PwrConsumer: err on stop");
 				}
 				this->poweredTime = 0;
 			}

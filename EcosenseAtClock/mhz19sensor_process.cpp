@@ -8,10 +8,12 @@
         static uint8_t MHZ19SensorProcess::CMD_REBOOT[MHZ19_CMDSIZE] = {0xff, 0x01, 0x8d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x71};
 MHZ19SensorProcess::MHZ19SensorProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
             swSerial.begin(9600);
-            TRACELNF("MHZ19: reboot")
-            sendCommand( MHZ19SensorProcess::CMD_REBOOT );
+            sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
+            sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
+            getData();    // first request always fails
+            ready = false;
             // reboot timeout
-            this->pause(15000);
+            this->pause(MHZ19_PREBURN_TIMEOUT);
 }
 
 static IFirmwareProcess* MHZ19SensorProcess::factory(IProcessMessage* msg) {
@@ -20,12 +22,11 @@ static IFirmwareProcess* MHZ19SensorProcess::factory(IProcessMessage* msg) {
 
 void MHZ19SensorProcess::update(unsigned long ms) {
             if (!ready) {
-                sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
-                sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
-                getData();    // первый запрос, в любом случае возвращает -1
+                // this gets little more memory
+                this->getHost()->stopProcess(PRC_BME280);
+                this->getHost()->stopProcess(PRC_RTC);
                 ready = true;
-                this->pause(MHZ18_PREBURN_TIMEOUT);
-    			this->pause(12000);
+                this->pause(100);
                 return;
             } else {
                 getData();
@@ -35,10 +36,12 @@ void MHZ19SensorProcess::update(unsigned long ms) {
                             this->co2 > 1000 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::NORM
                         )
                     ),
-                    this->co2)
+                    (float)this->co2)
                 );
                 this->sendMessage(new TaskDoneMessage(this));
                 this->pause();
+                this->getHost()->addProcess(PRC_BME280);
+                this->getHost()->addProcess(PRC_RTC);
                 return;
             }
 }
@@ -72,18 +75,10 @@ void MHZ19SensorProcess::getData() {
     crc = 0xff - crc + 0x01;
     
     if ( !(buf[0] == 0xFF && buf[1] == 0x86 && buf[8] == crc) ) {
-        /*TRACEF("Error: 0=")
-        TRACE(buf[0])
-        TRACEF(", 1=")
-        TRACE(buf[1])
-        TRACEF(", crc=")
-        TRACE(crc)
-        TRACEF(" / ")
-        TRACELN(buf[8]);*/
         this->status = -1;
         return;
     } 
-    this->co2 = (256*((unsigned int) buf[2])) + ((unsigned int) buf[3]);
-    this->temp = (buf[4]-32)*5/9;
+    this->co2 = (256*( (uint16_t)buf[2] )) + ( (uint16_t)buf[3] );
+    //this->temp = buf[4]-40;
     this->status = buf[5];
 }	 

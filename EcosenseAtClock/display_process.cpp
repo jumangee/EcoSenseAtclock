@@ -47,7 +47,7 @@ void DisplayProcess::update(unsigned long ms) {
 
 void DisplayProcess::renderMainScreen() {
 	// time
-	oled.setCursor(0, 3);
+	oled.setCursor(0, 2);
 	oled.set2X();
 	if (this->timeH < 10) {
 		oled.print(F("0"));
@@ -59,6 +59,7 @@ void DisplayProcess::renderMainScreen() {
 	}
 	oled.print(this->timeM);
 	oled.set1X();
+	showEvent(0, 4, F(".............."));
 	// info
 	if (this->humidity > 0) {
 		oled.setCursor(95, 2);
@@ -72,6 +73,16 @@ void DisplayProcess::renderMainScreen() {
 		oled.print(round(this->pressure));
 		oled.print(F("mm"));
 	}
+	/*IFirmware* f = this->getHost();
+	if (f->getProcess(PRC_CONSUMER1)) {
+		showEvent(0, 5, F("PWR: 1"));
+	} else if (f->getProcess(PRC_CONSUMER2)) {
+		showEvent(0, 5, F("PWR: 2"));
+	} else if (f->getProcess(PRC_CONSUMER3)) {
+		showEvent(0, 5, F("PWR: 3"));
+	} else {
+		showEvent(0, 5, F("PWR: -"));
+	}*/
 	/*if (this->co2 > 0) {
 		oled.setCursor(95, 7);
 		oled.print((uint16_t)co2);
@@ -82,9 +93,10 @@ void DisplayProcess::renderMainScreen() {
 
 void DisplayProcess::renderWarningScreen() {
 	oled.set2X();
-	oled.setCursor(0, 2);
+	//oled.setCursor(0, 2);
 	WarningInfo* warn = this->warnings.get(this->showWarningNum);
-	printTitle(warn->id);
+	//oled.print(getTitle(warn->id));
+	showEvent(0, 2, getTitle(warn->id));
 	oled.setCursor(0, 5);
 	oled.print(warn->value);
 	oled.set1X();
@@ -101,7 +113,7 @@ void DisplayProcess::render() {
 }
 
 bool DisplayProcess::handleMessage(IProcessMessage* msg) {
-	oled.setCursor(0, 6);
+	//oled.setCursor(0, 6);
 	switch (msg->getType())
 	{
 		case ENVDATA_MESSAGE: {
@@ -127,19 +139,24 @@ bool DisplayProcess::handleMessage(IProcessMessage* msg) {
 			}
 			return true; // dispose
 		}
+		/*case TASKDONE_MESSAGE: {
+			TaskDoneMessage* e = (TaskDoneMessage*)msg;
+			showEvent(0, 7, F("DONE: "));
+			oled.print(e->getTaskId());
+			return false;
+		}*/
 		case WIFIEVENT_MESSAGE: {
 			WifiEventMessage* e = (WifiEventMessage*)msg;
 			if (e->event == WifiEventMessage::WifiEvent::ERROR) {
-				oled.print(F("WIFI ERR"));
+				showEvent(0, 7, F("WIFI: ERR "));
 			}
-			else if (e->event == WifiEventMessage::WifiEvent::NONE) {
-				oled.print(F("WIFI NONE"));
-			} else {
-				oled.print(F("         "));
-			}
+			/*else if (e->event == WifiEventMessage::WifiEvent::NONE) {
+				showEvent(0, 7, F("WIFI: NONE"));
+			}*/
 			return false;
 		}
 	}
+	return false;
 }
 
 void DisplayProcess::handleEnvDataMsg(EnvDataMessage* msg) {
@@ -165,18 +182,22 @@ void DisplayProcess::handleTimeMsg(CurrentTimeMsg* msg) {
 }
 
 void DisplayProcess::handleAirQualityMsg(AirQualityMsg* msg) {
-	uint16_t gasCode = static_cast<uint16_t>(msg->gasType()) + 10;
+	AirQualityMsg::GasType gas = msg->gasType();
+	uint16_t gasCode = static_cast<uint16_t>(gas) + 10;
 	uint16_t gasLevel = static_cast<uint16_t>(msg->getConcentration());
 	if (gasLevel > 1) {
 		this->addWarning(gasCode, msg->getAmount());
 	} else {
 		this->removeWarning(gasCode);
 	}
-	printTitle(gasCode);
+	/*printTitle(gasCode);
 	oled.print(F(": "));
 	oled.print(round(msg->getAmount()));
-	oled.print(F("   "));
-	/*if (msg->gasType() == AirQualityMsg::GasType::CO2) {
-		this->co2 = msg->getAmount();
-	}*/
+	oled.print(F("   "));*/
+	if (gas == AirQualityMsg::GasType::CO2) {
+		showEvent(0, 6, getTitle(gasCode));
+		oled.print(F(": "));
+		oled.print(round(msg->getAmount()));
+		oled.print(F("   "));
+	}
 }

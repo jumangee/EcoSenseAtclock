@@ -26,7 +26,8 @@
 
     // ---[ COMMON APP CONFIG ]---
     #define REPORT_TIMEOUT      60000
-    #define SLIM_BUILD          0       // debug mode: ONLY FEW PROCESSES to get more progmem
+    #define SLIM_BUILD          0       // 1=debug mode: only required processes to get more progmem
+    #define NOWIFI_BUILD        0       // 1=debug mode: NO wifi process to get more progmem
 
     // ---[ DISPLAY ]---
     #define OLED_ADDR           0x3C
@@ -61,7 +62,7 @@
     #define PPD42NS_ANALOG_PIN_ADDR2    9   // PM2.5
 
     // ---[ SENSOR PRE-BURN TIMEOUT ]---
-    #define MHZ18_PREBURN_TIMEOUT       180000
+    #define MHZ19_PREBURN_TIMEOUT       90000
     #define MQ135_PREBURN_TIMEOUT       55000
     #define MQ136_PREBURN_TIMEOUT       57500
     #define MQ7_PREBURN_TIMEOUT         50000
@@ -82,7 +83,7 @@
     #define WIFI_RX_PIN                 2
     #define WIFI_TX_PIN                 3    
     #define WIFI_SSID                   "Jumangee"
-    #define WIFI_PWD                    "54d75bc245"
+    #define WIFI_PWD                    "xxx"
 
     // ---[ THINGSPEAK ]---
     #define REPORTTOTHINGSPEAK          0
@@ -91,9 +92,9 @@
         #define THINGSPEAK_CHANNEL_KEY  "43RGUGMOBYBHCJV2"
         #define THINGSPEAKREPORT_URI    F("/update?api_key=")
     #else
-        #define THINGSPEAK_SERVER       F("example.com")
-        #define THINGSPEAK_CHANNEL_KEY  "43RGUGMOBYBHCJV2"
-        #define THINGSPEAKREPORT_URI    F("/updateTestp.php?api_key=")
+        #define THINGSPEAK_SERVER       F("example.net")
+        #define THINGSPEAK_CHANNEL_KEY  F("43RGUGMOBYBHCJV2")
+        #define THINGSPEAKREPORT_URI    F("/updateTest.php?api_key=")
     #endif
     #define THINGSPEAKPARAMS            8
 

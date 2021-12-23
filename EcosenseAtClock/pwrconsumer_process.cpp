@@ -25,13 +25,6 @@ int PwrConsumerProcess::findTask(uint16_t id) {
 	return -1;
 }
 
-void PwrConsumerProcess::taskDone(uint16_t process_id) {
-	int pos = this->findTask(process_id);
-	if (pos == -1) return;
-	this->tasks[pos].state = DONE;
-	this->getHost()->stopProcess(process_id);
-}
-
 unsigned long PwrConsumerProcess::run(unsigned long start) {
 	if (this->poweredTime == 0) {
 		this->poweredTime = PowerloadManagement::get()->requestPin(this->keyPin);
@@ -47,7 +40,7 @@ void PwrConsumerProcess::update(unsigned long ms) {
 	switch (this->getWorkState())
 	{
 		case START: {
-			TRACELNF("PwrConsumerProcess: start child processes");
+			TRACELNF("PwrConsumer: start tasks");
 			for (byte i = 0; i < tasksCnt; i++) {
 				//TaskInfo* task = this->tasks.get(i);
 				this->getHost()->addProcess(tasks[i].prcId);
@@ -58,14 +51,11 @@ void PwrConsumerProcess::update(unsigned long ms) {
 		}
 		case DONE: {
 			// shutdown
-			TRACELNF("PwrConsumerProcess: shut down");
+			TRACELNF("PwrConsumer: stop");
 			
 			this->stop();
 			// unlock pwr key
 			this->releaseLoad();
-			/*for (int i = this->tasks.size()-1; i >= 0; i--) {
-				delete this->tasks.remove(i);
-			}*/
 			uint16_t nextId = this->getNextConsumerId();
 			if (nextId > 0) {
 				this->getHost()->addProcess(nextId);	// start next of process list
@@ -83,27 +73,23 @@ bool PwrConsumerProcess::handleMessage(IProcessMessage* msg) {
 	switch (msg->getType())
 	{
 		case TASKDONE_MESSAGE: {
-			TRACELNF("PwrConsumerProcess/TASKDONE_MESSAGE")
-			this->taskDone(((TaskDoneMessage*)msg)->getTaskId());
+			TRACELNF("PwrConsumer: task done")
+			uint16_t taskId = ((TaskDoneMessage*)msg)->getTaskId();
+			int pos = this->findTask(taskId);
+			if (pos == -1) return;
+			this->tasks[pos].state = DONE;
+			this->getHost()->stopProcess(taskId);
 			return false;
 		}
-		/*case PRC_ORDER_MESSAGE: {
-			if (((ProcessOrderMessage*)msg)->getNextId() != this->getId()) {
-				ProcessOrderMessage* msg = ProcessOrderMessage::goNextOf(this->getId());
-				this->getHost()->addProcess(msg->getNextId());	// start next of process list
-				this->stop();
-			}
-			return false;
-		}*/
 	}
-	if (this->getWorkState() != ACTIVE) return false;//deepSleep || 
+	if (this->getWorkState() != ACTIVE) return false;
 	return this->handleMessageLogic(msg);
 }
 
 void PwrConsumerProcess::releaseLoad() {
     if (this->poweredTime != 0) {
 				if (!PowerloadManagement::get()->releasePin(this->poweredTime)) {
-					TRACELNF("PwrConsumerProcess//got FALSE");
+					TRACELNF("PwrConsumer: err on stop");
 				}
 				this->poweredTime = 0;
 			}

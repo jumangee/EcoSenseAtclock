@@ -1,14 +1,12 @@
 #include "pwrconsumer3process.h"
-#include "pwrconsumer_process.h"
-#include "processy_cfg.h"
 
-PwrConsumer3Process::PwrConsumer3Process(IProcessMessage* msg) : PwrConsumerProcess(10, msg){    //taskId, (*(&taskId + 1) - taskId)
+PwrConsumer3Process::PwrConsumer3Process(IProcessMessage* msg) : PwrConsumerProcess(PWRMNGMTPIN_PROCESS3, msg){
     addTask(PRC_MHZ19);
     //addTask(PRC_MQ7);
+    TRACELNF("PwrConsumer3Process::init")
 }
 
 static IFirmwareProcess* PwrConsumer3Process::factory(IProcessMessage* msg) {
-    //TRACELNF("PwrConsumer3Process::factory");
     return new PwrConsumer3Process(msg);
 }
 

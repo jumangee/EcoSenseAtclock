@@ -11,17 +11,9 @@
     #include "processy_cfg.h"
 
     #include "ecosense_cfg.h"
-    //#include "examplefirmware.h"
-    //#include "messages.h"
     #include "pwrconsumer_process.h"
 
-    /**
-     * Process consists of 1 task, pwr switch at pin 12
-     */
     class PwrConsumer1Process: public PwrConsumerProcess {
-        private:
-            //const uint16_t taskId[2] = {PRC_MQ136, PRC_CJMCU1100};
-
         public:
             PROCESSID(PRC_CONSUMER1);
             

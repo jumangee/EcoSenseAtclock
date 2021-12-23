@@ -66,7 +66,11 @@ class CurrentTimeMsg: public IProcessMessage {
 		CurrentTimeMsg(int8_t hrs, int8_t mins/*, boolean dotFlag*/): IProcessMessage(NULL, CURTIME_MESSAGE) {
 			this->hrs =  hrs;
 			this->mins = mins;
-			//this->dotFlag = dotFlag;
+			
+			TRACEF("Time: ")
+			TRACE(hrs);
+			TRACEF(":")
+			TRACELN(mins)
 		}
 
 		int8_t getHrs() {
@@ -239,18 +243,14 @@ class AirQualityMsg: public IProcessMessage {
 
 class TaskDoneMessage: public IProcessMessage {
 	public:
-		TaskDoneMessage(IFirmwareProcess* prc): IProcessMessage(NULL, TASKDONE_MESSAGE) {
-			this->taskId = prc->getId();
-			TRACEF("TaskDoneMessage: ")
-			TRACELN(this->taskId)
+		TaskDoneMessage(IFirmwareProcess* prc): IProcessMessage(prc, TASKDONE_MESSAGE) {
+			TRACEF("TaskDone: ")
+			TRACELN(this->getTaskId())
 		}
 
 		uint16_t getTaskId() {
-			return this->taskId;
+			return getSender()->getId();
 		}
-
-	private:
-		uint16_t	taskId;
 };
 
 /** SINGLE BTN SUPPORT FOR THIS PROJECT

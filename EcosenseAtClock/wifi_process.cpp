@@ -10,11 +10,21 @@
 WifiProcess::WifiProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
 	//this->log("WifiProcess::start");
 	TRACELNF("WifiProcess::init");
-	pinMode(WIFI_RX_PIN, INPUT);
-  			pinMode(WIFI_TX_PIN, OUTPUT);
-	state = ReportState::NONE;
-	espSerial = new SoftwareSerial(WIFI_RX_PIN, WIFI_TX_PIN); // RX, TX
-	espSerial->begin(19200);
+	espSerial.begin(19200);
+	TRACELN("Initializing ESP module...")
+	EspDrv::wifiDriverInit(&espSerial);
+	if (EspDrv::getConnectionStatus() == WL_NO_SHIELD) {
+		TRACELNF("[WiFi] FAIL");
+		/*delete this->espSerial;
+		this->espSerial = NULL;
+		this->stop();*/
+		//state = ReportState::NONE;
+		//this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::NONE));
+		this->pause();
+		return;
+	}
+	TRACELNF("[WiFi] OK");
+	state = ReportState::READY;
 	this->pause(30000);
 }
 
@@ -25,53 +35,38 @@ static IFirmwareProcess* WifiProcess::factory(IProcessMessage* msg) {
 WifiProcess::~WifiProcess() {
 	// stop process
 	TRACELNF("WifiProcess::stop");
-	if (espSerial != NULL) {
-		delete espSerial;
-	}
+	//if (espSerial != NULL) {
+		//delete espSerial;
+	//}
 }
 
 void WifiProcess::update(unsigned long ms) {
-	unsigned long now = millis();
-	/*if (this->dataSendTask.size > 0 && (now - lastReportTime > REPORT_TIMEOUT)) {
+	//unsigned long now = millis();
+	/*if (this->dataSendTask.size > 0) {
 		if (WiFiConnect()) {
 			simpleSendData();
 			dataSendTask.clear();
-			WiFiDisconnect();
+			EspDrv::disconnect();
 			TRACELN("[WIFI] Send packets done")
-			lastReportTime = millis();
+			this->pause(REPORT_TIMEOUT);
+			return;
 		} else {
 			TRACELNF("[WIFI] Failed to clearing tasks buf!")
 		}
 	}*/
 	switch (state) {
-		case ReportState::NONE: {
-			TRACELN("Initializing ESP module...")
-			EspDrv::wifiDriverInit(espSerial);
-			if (EspDrv::getConnectionStatus() == WL_NO_SHIELD) {
-				TRACELNF("[WiFi] FAIL");
-				/*delete this->espSerial;
-				this->espSerial = NULL;
-				this->stop();*/
-				state = ReportState::NONE;
-				this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::NONE));
-			} else {
-				TRACELNF("[WiFi] OK");
-				state = ReportState::READY;
-			}
-			break;
-		}
 		case ReportState::READY: {
 			if ( this->dataSendTask.size > 0 ) {
 				if (WiFiConnect()) {
 					state = ReportState::CONNECTED;
+					this->pause(100);
 				} else {
 					//this->sendMessage(new WifiStateMessage(F("CONN ERR")));
 					this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::ERROR));
 					this->pause(15000);
-					return;
 				}
 			}
-			break;
+			return;
 		}
 		case ReportState::CONNECTED: {
 			//this->sendMessage(new WifiStateMessage(F("SENDING")));
@@ -82,8 +77,8 @@ void WifiProcess::update(unsigned long ms) {
 			break;
 		}
 		case ReportState::SENT: {
-			WiFiDisconnect();
-			state = ReportState::NONE;
+			EspDrv::disconnect();
+			state = ReportState::READY;
 			//this->sendMessage(new WifiStateMessage(F("READY")));
 			//lastReportTime = millis();
 			this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::OK));
@@ -92,7 +87,7 @@ void WifiProcess::update(unsigned long ms) {
 			return;
 		}
 	}
-	this->pause(2000);
+	this->pause(1000);
 }
 
 bool WifiProcess::WiFiConnect() {
@@ -104,19 +99,14 @@ bool WifiProcess::WiFiConnect() {
 			//TRACELNF("[WIFI] Connected to the network");
 			//this->dataSendTask.setParam(7, uint16_t(abs(EspDrv::getCurrentRSSI())));	//byte((double(EspDrv::getCurrentRSSI()) / 65535.0*100.0))
 			return true;
-		} else {
+		}/* else {
 			TRACELNF("[WIFI] Connection error");
-		}
+		}*/
 	} else {
 		return true;
 	}
 	//this->getHost()->sendMessage(new WiFiStateMsg(false));
 	return false;
-}
-
-void WifiProcess::WiFiDisconnect() {
-	EspDrv::disconnect();
-	//this->getHost()->sendMessage(new WiFiStateMsg(false));
 }
 
 void WifiProcess::simpleSendData() {
@@ -127,7 +117,9 @@ void WifiProcess::simpleSendData() {
 		TRACELN(server);
 		{
 			String buf = SF("GET ");
-			buf += dataSendTask.getUrl(F(THINGSPEAK_CHANNEL_KEY)); 
+			buf += THINGSPEAKREPORT_URI;
+			buf += THINGSPEAK_CHANNEL_KEY;
+			buf += dataSendTask.getUrl(); 
 			buf += F(" HTTP/1.1\r\nHost: ");
 			buf += server;
 			buf += F("\r\nConnection: close\r\n\r\n");
@@ -137,6 +129,7 @@ void WifiProcess::simpleSendData() {
 			}
 		}
 		EspDrv::stopClient(_sock);
+		dataSendTask.clear();
 	}
 }
 
@@ -162,7 +155,7 @@ bool WifiProcess::handleMessage(IProcessMessage* msg) {
 					break;
 				}
 				case AirQualityMsg::GasType::CO2: {
-					dataSendTask.getParam(THINGSPEAK_PARAM_CO2).setValue(gas->getAmount());
+					//dataSendTask.getParam(THINGSPEAK_PARAM_CO2).setValue(gas->getAmount());
 					break;
 				}
 				case AirQualityMsg::GasType::H2S: {
@@ -178,4 +171,5 @@ bool WifiProcess::handleMessage(IProcessMessage* msg) {
 			return false;
 		}
 	}
+	return false;
 }

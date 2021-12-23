@@ -23,9 +23,9 @@
 
 class WifiProcess: public IFirmwareProcess {
 	private:
-		SoftwareSerial 			*espSerial;
+		SoftwareSerial 			espSerial = SoftwareSerial(WIFI_RX_PIN, WIFI_TX_PIN);
 		//unsigned long			lastReportTime = 0;
-		ThingspeakWebSendTask	dataSendTask;
+		ThingspeakWebSendTask	dataSendTask = ThingspeakWebSendTask();
 		enum ReportState {
 			NONE = 0,
 			READY,
@@ -44,13 +44,24 @@ class WifiProcess: public IFirmwareProcess {
 
 			TRACELNF("WifiProcess::init");
 
-			pinMode(WIFI_RX_PIN, INPUT);
-  			pinMode(WIFI_TX_PIN, OUTPUT);
+			espSerial.begin(19200);
 
-			state = ReportState::NONE;
+			TRACELN("Initializing ESP module...")
+			EspDrv::wifiDriverInit(&espSerial);
 
-			espSerial = new SoftwareSerial(WIFI_RX_PIN, WIFI_TX_PIN); // RX, TX
-			espSerial->begin(19200);
+			if (EspDrv::getConnectionStatus() == WL_NO_SHIELD) {
+				TRACELNF("[WiFi] FAIL");
+				/*delete this->espSerial;
+				this->espSerial = NULL;
+				this->stop();*/
+
+				//state = ReportState::NONE;
+				//this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::NONE));
+				this->pause();
+				return;
+			}
+			TRACELNF("[WiFi] OK");
+			state = ReportState::READY;
 
 			this->pause(30000);
 		}
@@ -66,9 +77,9 @@ class WifiProcess: public IFirmwareProcess {
 		~WifiProcess() {
 			// stop process
 			TRACELNF("WifiProcess::stop");
-			if (espSerial != NULL) {
-				delete espSerial;
-			}
+			//if (espSerial != NULL) {
+				//delete espSerial;
+			//}
 		}
 
 		//@implement
@@ -77,64 +88,47 @@ class WifiProcess: public IFirmwareProcess {
 		//@include "EspDrv/EspDrv.h"
 		//@include "ecosense_messages.h"
 		void update(unsigned long ms) {
-			unsigned long now = millis();
+			//unsigned long now = millis();
 
-			/*if (this->dataSendTask.size > 0 && (now - lastReportTime > REPORT_TIMEOUT)) {
+			/*if (this->dataSendTask.size > 0) {
 				if (WiFiConnect()) {
 					simpleSendData();
 					dataSendTask.clear();
-					WiFiDisconnect();
+					EspDrv::disconnect();
 					TRACELN("[WIFI] Send packets done")
-
-					lastReportTime = millis();
+					this->pause(REPORT_TIMEOUT);
+					return;
 				} else {
 					TRACELNF("[WIFI] Failed to clearing tasks buf!")
 				}
 			}*/
 
 			switch (state) {
-				case ReportState::NONE: {
-					TRACELN("Initializing ESP module...")
-					EspDrv::wifiDriverInit(espSerial);
-
-					if (EspDrv::getConnectionStatus() == WL_NO_SHIELD) {
-						TRACELNF("[WiFi] FAIL");
-						/*delete this->espSerial;
-						this->espSerial = NULL;
-						this->stop();*/
-
-						state = ReportState::NONE;
-						this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::NONE));
-					} else {
-						TRACELNF("[WiFi] OK");
-						state = ReportState::READY;
-					}
-					break;
-				}
 				case ReportState::READY: {
 					if ( this->dataSendTask.size > 0 ) {
 						if (WiFiConnect()) {
 							state = ReportState::CONNECTED;
+							this->pause(100);
 						} else {
 							//this->sendMessage(new WifiStateMessage(F("CONN ERR")));
 							this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::ERROR));
 							this->pause(15000);
-							return;
 						}
 					}
-					break;
+					return;
 				}
 				case ReportState::CONNECTED: {
 					//this->sendMessage(new WifiStateMessage(F("SENDING")));
 					simpleSendData();
 					state = ReportState::SENT;
 					//this->sendMessage(new WifiStateMessage(F("SENT")));
+
 					TRACELN("[WIFI] Send packets done")
 					break;
 				}
 				case ReportState::SENT: {
-					WiFiDisconnect();
-					state = ReportState::NONE;
+					EspDrv::disconnect();
+					state = ReportState::READY;
 					//this->sendMessage(new WifiStateMessage(F("READY")));
 					//lastReportTime = millis();
 					this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::OK));
@@ -144,7 +138,7 @@ class WifiProcess: public IFirmwareProcess {
 				}
 			}
 
-			this->pause(2000);
+			this->pause(1000);
 		}
 
 		//@implement
@@ -157,20 +151,14 @@ class WifiProcess: public IFirmwareProcess {
 					//TRACELNF("[WIFI] Connected to the network");
 					//this->dataSendTask.setParam(7, uint16_t(abs(EspDrv::getCurrentRSSI())));	//byte((double(EspDrv::getCurrentRSSI()) / 65535.0*100.0))
 					return true;
-				} else {
+				}/* else {
 					TRACELNF("[WIFI] Connection error");
-				}
+				}*/
 			} else {
 				return true;
 			}
 			//this->getHost()->sendMessage(new WiFiStateMsg(false));
 			return false;
-		}
-
-		//@implement
-		void WiFiDisconnect() {
-			EspDrv::disconnect();
-			//this->getHost()->sendMessage(new WiFiStateMsg(false));
 		}
 
 		//@implement
@@ -182,7 +170,9 @@ class WifiProcess: public IFirmwareProcess {
 				TRACELN(server);
 				{
 					String buf = SF("GET ");
-					buf += dataSendTask.getUrl(F(THINGSPEAK_CHANNEL_KEY)); 
+					buf += THINGSPEAKREPORT_URI;
+					buf += THINGSPEAK_CHANNEL_KEY;
+					buf += dataSendTask.getUrl(); 
 					buf += F(" HTTP/1.1\r\nHost: ");
 					buf += server;
 					buf += F("\r\nConnection: close\r\n\r\n");
@@ -192,6 +182,7 @@ class WifiProcess: public IFirmwareProcess {
 					}
 				}
 				EspDrv::stopClient(_sock);
+				dataSendTask.clear();
 			}
 		}
 
@@ -219,7 +210,7 @@ class WifiProcess: public IFirmwareProcess {
 							break;
 						}
 						case AirQualityMsg::GasType::CO2: {
-							dataSendTask.getParam(THINGSPEAK_PARAM_CO2).setValue(gas->getAmount());
+							//dataSendTask.getParam(THINGSPEAK_PARAM_CO2).setValue(gas->getAmount());
 							break;
 						}
 						case AirQualityMsg::GasType::H2S: {
@@ -236,6 +227,7 @@ class WifiProcess: public IFirmwareProcess {
 					return false;
 				}
 			}
+			return false;
 		}
 };
 

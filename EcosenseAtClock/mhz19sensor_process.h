@@ -21,9 +21,9 @@ class MHZ19SensorProcess: public IFirmwareProcess {
         SoftwareSerial  swSerial = SoftwareSerial(MHZ19_RXPIN, MHZ19_TXPIN);
 
         int     co2 = 0;
-        int     temp = 0;
+        //int     temp = 0;
         int     status = -1;
-        bool    ready = false;
+        bool    ready;
 
         static uint8_t CMD_GETPPM[MHZ19_CMDSIZE];
         static uint8_t CMD_SETRNG5000[MHZ19_CMDSIZE];

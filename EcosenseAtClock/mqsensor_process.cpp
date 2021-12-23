@@ -16,12 +16,14 @@ void MQSensorProcess::update(unsigned long ms) {
 		bool done = this->readingsDone(MQ_READINGS_PER_RESULT);
 		ADCMuxManagement::get()->release(ticket);
 		if (done) {
-			TRACEF("MQSensorProcess:done!")
+			TRACELNF("MQSensorProcess:done!")
 			IProcessMessage* result = this->getResultMsg();
 			if (result) {
 				this->sendMessage(result);
 				this->sendMessage(new TaskDoneMessage(this));
 			}
+			this->pause();
+			return;
 		}
 	}
 	TRACEF("MQSensor: ")

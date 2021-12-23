@@ -12,14 +12,16 @@ EcosenseAtClockFirmware::EcosenseAtClockFirmware() : IFirmware(){
 	analogReference(EXTERNAL);	// important!
 	addProcess(PRC_DISPLAY);
 	addProcess(PRC_RTC);
+	#if NOWIFI_BUILD != 1
 	addProcess(PRC_WIFI);
+	#endif
 	addProcess(PRC_BME280);
 	addProcess(PRC_BTN);
 	#if SLIM_BUILD != 1
 	PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));	//EcosenseAtClockFirmware::PwrMngmtPins, (*(&PwrMngmtPins + 1) - PwrMngmtPins)
-	TRACELNF("Power management: started");
+	//TRACELNF("Power management: started");
 	ADCMuxManagement::init(EcosenseAtClockFirmware::AdcMuxMngmtPins);
-	TRACELNF("AdcMux management: started");
+	//TRACELNF("AdcMux management: started");
 	
 	addProcess(PRC_CONSUMER1);	//, ProcessOrderMessage::start()
 	#endif
@@ -29,7 +31,9 @@ ProcessFactory EcosenseAtClockFirmware::getFactory(uint16_t pId) {
 	const static ProcessFactoryReg factoryList[] = {	//	factories list	//TOTAL_FACTORIES_INCLUDED
 		FACTORY(DisplayProcess)
 		,FACTORY(RTClockProcess)
+		#if NOWIFI_BUILD != 1
 		,FACTORY(WifiProcess)
+		#endif
 		,FACTORY(BME280SensorProcess)
 		,FACTORY(ButtonSensorProcess)
 		#if SLIM_BUILD != 1

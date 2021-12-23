@@ -53,8 +53,6 @@ class PwrConsumerProcess: public IFirmwareProcess {
 
 		int findTask(uint16_t id);
 
-		void taskDone(uint16_t process_id);
-
 		/**
 		 * This should be overriden by handler with logic
 		 */
@@ -86,10 +84,6 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			}
 			return ACTIVE;
 		}
-
-        uint32_t getPoweredTime() {
-            return this->poweredTime;
-        }
 
         void releaseLoad();
 };

@@ -197,7 +197,7 @@ class IFirmware {
 				process->resetUsedMs();
 			}
 			TRACEF("MEM FREE:");
-			//this->sendMessage(new MemUsageMessage());
+			this->sendMessage(new MemUsageMessage());
 			TRACELN(freeMemory())
 			TRACELNF("--------------------------------------");
 			#endif

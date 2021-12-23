@@ -23,9 +23,9 @@
 
 class WifiProcess: public IFirmwareProcess {
 	private:
-		SoftwareSerial 			*espSerial;
+		SoftwareSerial 			espSerial = SoftwareSerial(WIFI_RX_PIN, WIFI_TX_PIN);
 		//unsigned long			lastReportTime = 0;
-		ThingspeakWebSendTask	dataSendTask;
+		ThingspeakWebSendTask	dataSendTask = ThingspeakWebSendTask();
 		enum ReportState {
 			NONE = 0,
 			READY,
@@ -44,8 +44,6 @@ class WifiProcess: public IFirmwareProcess {
 		void update(unsigned long ms);
 
 		bool WiFiConnect();
-
-		void WiFiDisconnect();
 
 		void simpleSendData();
 

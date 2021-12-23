@@ -91,21 +91,21 @@ class DisplayProcess: public IFirmwareProcess {
 
 		void renderMainScreen();
 
-		void printTitle(uint16_t code) {
+		const __FlashStringHelper* getTitle(uint16_t code) {
 			switch (code) {
-				case 1: oled.print(F("TEMPERATURE")); return;
-				case 2: oled.print(F("HUMIDITY")); return;
-				case 10: oled.print(F("GASes")); return;
-				case 11: oled.print(F("H2S")); return;
-				case 12: oled.print(F("CO")); return;
-				//case 13: oled.print(F("SO2")); return;
-				case 14: oled.print(F("CO2")); return;
-				case 15: oled.print(F("CH4")); break;
-				//case 16: oled.print(F("CH2O")); break;
-				//case 17: oled.print(F("C6H5_CH3")); return;
-				//case 18: oled.print(F("PM1")); return;
-				case 19: oled.print(F("PM25")); return;
-				case 20: oled.print(F("VOCs")); return;
+				case 1: return F("TEMPERATURE");
+				case 2: return F("HUMIDITY");
+				case 10: return F("GASes");
+				case 11: return F("H2S");
+				case 12: return F("CO");
+				//case 13: return F("SO2");
+				case 14: return F("CO2");
+				case 15: return F("CH4");
+				//case 16: return F("CH2O");
+				//case 17: return F("C6H5_CH3");
+				//case 18: return F("PM1");
+				case 19: return F("PM25");
+				case 20: return F("VOCs");
 			}
 		}
 
@@ -135,7 +135,7 @@ class DisplayProcess: public IFirmwareProcess {
 				}
 			}
 			if (this->showWarningNum > -1) {
-				oled.setCursor(118-(i+1)*10, 0);
+				oled.setCursor(118-i*10, 0);
 				oled.print(F("*"));
 			}
 			oled.set1X();
@@ -144,6 +144,11 @@ class DisplayProcess: public IFirmwareProcess {
 		}
 
 		bool handleMessage(IProcessMessage* msg);
+
+		void showEvent(uint8_t x, uint8_t y, const __FlashStringHelper *pstr) {
+			oled.setCursor(x, y);
+			oled.print(pstr);
+		}
 
 		void handleEnvDataMsg(EnvDataMessage* msg);
 

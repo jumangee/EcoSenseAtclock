@@ -135,7 +135,7 @@ void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
 		process->resetUsedMs();
 	}
 	TRACEF("MEM FREE:");
-	//this->sendMessage(new MemUsageMessage());
+	this->sendMessage(new MemUsageMessage());
 	TRACELN(freeMemory())
 	TRACELNF("--------------------------------------");
 	#endif

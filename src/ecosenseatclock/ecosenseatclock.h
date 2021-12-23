@@ -16,25 +16,25 @@
 // ---[ PROCESSES ]---
 #include "display_process.h"
 #include "rtc_process.h"
-#include "wifi_process.h"
 #include "bme280_process.h"
-
 #include "btn_process.h"
 
+#if NOWIFI_BUILD != 1
+	#include "wifi_process.h"
+#endif
+
 #if SLIM_BUILD != 1
+	#include "mq136sensor_process.h"
+	#include "mq4sensor_process.h"
+	#include "cjmcu1100sensor_process.h"
+	#include "mhz19sensor_process.h"
+	#include "mq135sensor_process.h"
+	#include "mq7sensor_process.h"
 
-#include "mq136sensor_process.h"
-#include "mq4sensor_process.h"
-#include "cjmcu1100sensor_process.h"
-#include "mhz19sensor_process.h"
-#include "mq135sensor_process.h"
-#include "mq7sensor_process.h"
-
-#include "pwrconsumer_process.h"
-#include "pwrconsumer1process.h"
-#include "pwrconsumer2process.h"
-#include "pwrconsumer3process.h"
-
+	#include "pwrconsumer_process.h"
+	#include "pwrconsumer1process.h"
+	#include "pwrconsumer2process.h"
+	#include "pwrconsumer3process.h"
 #endif
 // -------------------
 
@@ -62,17 +62,19 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 
 		addProcess(PRC_DISPLAY);
 		addProcess(PRC_RTC);
+		#if NOWIFI_BUILD != 1
 		addProcess(PRC_WIFI);
+		#endif
 		addProcess(PRC_BME280);
 		addProcess(PRC_BTN);
 
 		#if SLIM_BUILD != 1
 
 		PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));	//EcosenseAtClockFirmware::PwrMngmtPins, (*(&PwrMngmtPins + 1) - PwrMngmtPins)
-		TRACELNF("Power management: started");
+		//TRACELNF("Power management: started");
 
 		ADCMuxManagement::init(EcosenseAtClockFirmware::AdcMuxMngmtPins);
-		TRACELNF("AdcMux management: started");
+		//TRACELNF("AdcMux management: started");
 		
 		addProcess(PRC_CONSUMER1);	//, ProcessOrderMessage::start()
 
@@ -85,7 +87,9 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 			const static ProcessFactoryReg factoryList[] = {	//	factories list	//TOTAL_FACTORIES_INCLUDED
 				FACTORY(DisplayProcess)
 				,FACTORY(RTClockProcess)
+				#if NOWIFI_BUILD != 1
 				,FACTORY(WifiProcess)
+				#endif
 				,FACTORY(BME280SensorProcess)
 				,FACTORY(ButtonSensorProcess)
 
