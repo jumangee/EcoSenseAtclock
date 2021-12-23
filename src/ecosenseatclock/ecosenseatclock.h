@@ -21,6 +21,8 @@
 
 #include "btn_process.h"
 
+#if SLIM_BUILD != 1
+
 #include "mq136sensor_process.h"
 #include "mq4sensor_process.h"
 #include "cjmcu1100sensor_process.h"
@@ -32,6 +34,8 @@
 #include "pwrconsumer1process.h"
 #include "pwrconsumer2process.h"
 #include "pwrconsumer3process.h"
+
+#endif
 // -------------------
 
 #include "stuff.h"
@@ -62,6 +66,8 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 		addProcess(PRC_BME280);
 		addProcess(PRC_BTN);
 
+		#if SLIM_BUILD != 1
+
 		PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));	//EcosenseAtClockFirmware::PwrMngmtPins, (*(&PwrMngmtPins + 1) - PwrMngmtPins)
 		TRACELNF("Power management: started");
 
@@ -69,6 +75,8 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 		TRACELNF("AdcMux management: started");
 		
 		addProcess(PRC_CONSUMER1);	//, ProcessOrderMessage::start()
+
+		#endif
 	};
 	
 	public:
@@ -80,6 +88,8 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 				,FACTORY(WifiProcess)
 				,FACTORY(BME280SensorProcess)
 				,FACTORY(ButtonSensorProcess)
+
+				#if SLIM_BUILD != 1
 
 				,FACTORY(PwrConsumer1Process)
 				,FACTORY(PwrConsumer2Process)
@@ -93,6 +103,8 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 				//,FACTORY(ZE08CH2OSensorProcess)
 				,FACTORY(CJMCU1100SensorProcess)
 				,FACTORY(MHZ19SensorProcess)
+
+				#endif
 			};
 
 			int len = *(&factoryList + 1) - factoryList;	//TOTAL_FACTORIES_INCLUDED

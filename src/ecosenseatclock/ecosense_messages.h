@@ -17,7 +17,22 @@ class IFirmwareProcess;
 //#define THINGSPEAK_MESSAGE	1007
 #define TASKDONE_MESSAGE	1008
 #define BTNCLICK_MESSAGE	1009
+#define WIFIEVENT_MESSAGE	1010
 //---------------------------------
+
+class WifiEventMessage: public IProcessMessage {
+	public:
+		enum WifiEvent{
+			OK,
+			ERROR,
+			NONE
+		} event;
+
+		WifiEventMessage(WifiEvent e): IProcessMessage(NULL, WIFIEVENT_MESSAGE) {
+			this->event = e;
+		}
+};
+
 
 class EnvDataMessage: public IProcessMessage {
 	public:
@@ -35,7 +50,7 @@ class EnvDataMessage: public IProcessMessage {
 			return this->humidity;
 		}
 
-		uint16_t	getPressure() {
+		uint16_t getPressure() {
 			return this->pressure;
 		}
 
