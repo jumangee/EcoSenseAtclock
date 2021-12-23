@@ -23,9 +23,15 @@
 
 class WifiProcess: public IFirmwareProcess {
 	private:
-		SoftwareSerial *espSerial;
-		unsigned long lastReportTime;
-		ThingspeakWebSendTask dataSendTask;
+		SoftwareSerial 			*espSerial;
+		//unsigned long			lastReportTime = 0;
+		ThingspeakWebSendTask	dataSendTask;
+		enum ReportState {
+			NONE = 0,
+			READY,
+			CONNECTED,
+			SENT
+		}						state;
 	public:
 		PROCESSID(PRC_WIFI);
 

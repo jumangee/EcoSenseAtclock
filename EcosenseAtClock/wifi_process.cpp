@@ -5,26 +5,16 @@
 #include <Arduino.h>
 #include "processy_cfg.h"
 #include "EspDrv/EspDrv.h"
+#include "ecosense_messages.h"
 
 WifiProcess::WifiProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
 	//this->log("WifiProcess::start");
 	TRACELNF("WifiProcess::init");
 	pinMode(WIFI_RX_PIN, INPUT);
   			pinMode(WIFI_TX_PIN, OUTPUT);
-	lastReportTime = 0;
+	state = ReportState::NONE;
 	espSerial = new SoftwareSerial(WIFI_RX_PIN, WIFI_TX_PIN); // RX, TX
 	espSerial->begin(19200);
-	TRACELN("Initializing ESP module...")
-	EspDrv::wifiDriverInit(espSerial); 
-	// check for the presence of the shield
-	if (EspDrv::getConnectionStatus() == WL_NO_SHIELD) {
-		TRACELNF("[WiFi] FAIL");
-		delete this->espSerial;
-		this->espSerial = NULL;
-		this->stop();
-		return;
-	}
-	TRACELNF("[WiFi] OK");
 	this->pause(30000);
 }
 
@@ -42,7 +32,7 @@ WifiProcess::~WifiProcess() {
 
 void WifiProcess::update(unsigned long ms) {
 	unsigned long now = millis();
-	if (this->dataSendTask.size > 0 && (now - lastReportTime > REPORT_TIMEOUT)) {
+	/*if (this->dataSendTask.size > 0 && (now - lastReportTime > REPORT_TIMEOUT)) {
 		if (WiFiConnect()) {
 			simpleSendData();
 			dataSendTask.clear();
@@ -52,8 +42,57 @@ void WifiProcess::update(unsigned long ms) {
 		} else {
 			TRACELNF("[WIFI] Failed to clearing tasks buf!")
 		}
+	}*/
+	switch (state) {
+		case ReportState::NONE: {
+			TRACELN("Initializing ESP module...")
+			EspDrv::wifiDriverInit(espSerial);
+			if (EspDrv::getConnectionStatus() == WL_NO_SHIELD) {
+				TRACELNF("[WiFi] FAIL");
+				/*delete this->espSerial;
+				this->espSerial = NULL;
+				this->stop();*/
+				state = ReportState::NONE;
+				this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::NONE));
+			} else {
+				TRACELNF("[WiFi] OK");
+				state = ReportState::READY;
+			}
+			break;
+		}
+		case ReportState::READY: {
+			if ( this->dataSendTask.size > 0 ) {
+				if (WiFiConnect()) {
+					state = ReportState::CONNECTED;
+				} else {
+					//this->sendMessage(new WifiStateMessage(F("CONN ERR")));
+					this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::ERROR));
+					this->pause(15000);
+					return;
+				}
+			}
+			break;
+		}
+		case ReportState::CONNECTED: {
+			//this->sendMessage(new WifiStateMessage(F("SENDING")));
+			simpleSendData();
+			state = ReportState::SENT;
+			//this->sendMessage(new WifiStateMessage(F("SENT")));
+			TRACELN("[WIFI] Send packets done")
+			break;
+		}
+		case ReportState::SENT: {
+			WiFiDisconnect();
+			state = ReportState::NONE;
+			//this->sendMessage(new WifiStateMessage(F("READY")));
+			//lastReportTime = millis();
+			this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::OK));
+			
+			this->pause(REPORT_TIMEOUT);
+			return;
+		}
 	}
-	this->pause(15000);
+	this->pause(2000);
 }
 
 bool WifiProcess::WiFiConnect() {
@@ -107,10 +146,11 @@ bool WifiProcess::handleMessage(IProcessMessage* msg) {
 		case ENVDATA_MESSAGE: {
 			EnvDataMessage* env = (EnvDataMessage*)msg;
 			
-			dataSendTask.getParam(THINGSPEAK_PARAM_TEMP).setValue(THINGSPEAK_PARAM_TEMP, env->getTemp());
-			dataSendTask.getParam(THINGSPEAK_PARAM_HUMIDITY).setValue(THINGSPEAK_PARAM_HUMIDITY, env->getHumidity());
-			dataSendTask.getParam(THINGSPEAK_PARAM_PRESSURE).setValue(THINGSPEAK_PARAM_PRESSURE, env->getPressure());
-			break;
+			dataSendTask.getParam(THINGSPEAK_PARAM_TEMP).setValue(env->getTemp());
+			dataSendTask.getParam(THINGSPEAK_PARAM_HUMIDITY).setValue(env->getHumidity());
+			dataSendTask.getParam(THINGSPEAK_PARAM_PRESSURE).setValue(env->getPressure());
+			dataSendTask.recount();
+			return false;
 		}
 		case AIRQUALITY_MESSAGE: {
 			//this->handleAirQualityMsg((AirQualityMsg*)msg);
@@ -118,25 +158,24 @@ bool WifiProcess::handleMessage(IProcessMessage* msg) {
 			switch (gas->gasType())
 			{
 				case AirQualityMsg::GasType::COMMON: {
-					dataSendTask.getParam(THINGSPEAK_PARAM_COMMON).setValue(THINGSPEAK_PARAM_COMMON, gas->getAmount());
+					dataSendTask.getParam(THINGSPEAK_PARAM_COMMON).setValue(gas->getAmount());
 					break;
 				}
 				case AirQualityMsg::GasType::CO2: {
-					dataSendTask.getParam(THINGSPEAK_PARAM_CO2).setValue(THINGSPEAK_PARAM_CO2, gas->getAmount());
+					dataSendTask.getParam(THINGSPEAK_PARAM_CO2).setValue(gas->getAmount());
 					break;
 				}
 				case AirQualityMsg::GasType::H2S: {
-					dataSendTask.getParam(THINGSPEAK_PARAM_H2S).setValue(THINGSPEAK_PARAM_H2S, gas->getAmount());
+					dataSendTask.getParam(THINGSPEAK_PARAM_H2S).setValue(gas->getAmount());
 					break;
 				}
 				case AirQualityMsg::GasType::VOCs: {
-					dataSendTask.getParam(THINGSPEAK_PARAM_VOCS).setValue(THINGSPEAK_PARAM_VOCS, gas->getAmount());
+					dataSendTask.getParam(THINGSPEAK_PARAM_VOCS).setValue(gas->getAmount());
 					break;
 				}
 			}
-			break;
+			dataSendTask.recount();
+			return false;
 		}
 	}
-	dataSendTask.recount();
-	return false;
 }

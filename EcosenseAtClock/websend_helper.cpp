@@ -4,24 +4,20 @@ UrlParam::UrlParam() {
     this->active = false;
 }
 
-byte UrlParam::getId() {
-    return this->paramId;
-}
-
-void UrlParam::setId(byte paramId, vType type) {
-    this->paramId = paramId;
+void UrlParam::set(/*byte paramId,*/ vType type) {
+    //this->paramId = paramId;
     this->valueType = type;
     this->active = true;
 }
 
-void UrlParam::setValue(byte paramId, uint16_t v) {
+void UrlParam::setValue(/*byte paramId,*/ uint16_t v) {
     this->ui16 = v;
-    setId(paramId, UINT);
+    set(UINT);
 }
 
-void UrlParam::setValue(byte paramId, float v) {
+void UrlParam::setValue(/*byte paramId,*/ float v) {
     this->f = v;
-    setId(paramId, FLOAT);
+    set(FLOAT);
 }
 
 String UrlParam::getValue() {
@@ -40,7 +36,7 @@ bool UrlParam::isActive() {
 
 void ThingspeakWebSendTask::clear() {
     for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-        this->params[i].setValue(i, (uint16_t)0);
+        this->params[i].setValue((uint16_t)0);
         this->params[i].active = false;
     }
     size = 0;
@@ -49,14 +45,14 @@ void ThingspeakWebSendTask::clear() {
 String ThingspeakWebSendTask::getUrl(String key) {
     String url;
     url.reserve(14 + key.length() + size * 15);
-    url += SF("/update?api_key=") + key;
+    url += String(THINGSPEAKREPORT_URI) + key;
     for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
         UrlParam p = this->getParam(i);
         if (p.isActive()) {
             String buf;
             buf.reserve(15);
             buf += F("&field");
-            buf += p.getId();
+            buf += (i + 1);
             buf += F("=");
             buf += p.getValue().substring(0, 5);
             url += buf;

@@ -84,24 +84,7 @@ void DisplayProcess::renderWarningScreen() {
 	oled.set2X();
 	oled.setCursor(0, 2);
 	WarningInfo* warn = this->warnings.get(this->showWarningNum);
-	switch (warn->id) {
-		case 1: oled.print(F("TEMPERATURE")); break;
-		case 2: oled.print(F("HUMIDITY")); break;
-		case 10: oled.print(F("AIR QUALITY")); break;
-		case 11: oled.print(F("H2S")); break;
-		case 12: oled.print(F("CO")); break;
-		//case 13: oled.print(F("SO2")); break;
-		case 14: oled.print(F("CO2")); break;
-		//case 15: oled.print(F("CH4")); break;
-		//case 16: oled.print(F("CH2O")); break;
-		//case 17: oled.print(F("C6H5_CH3")); break;
-		//case 18: oled.print(F("PM1")); break;
-		case 19: oled.print(F("PM25")); break;
-		case 20: oled.print(F("VOCs")); break;
-		/*default: {
-			oled.print(warn->id);
-		}*/
-	}
+	printTitle(warn->id);
 	oled.setCursor(0, 5);
 	oled.print(warn->value);
 	oled.set1X();
@@ -118,19 +101,20 @@ void DisplayProcess::render() {
 }
 
 bool DisplayProcess::handleMessage(IProcessMessage* msg) {
+	oled.setCursor(0, 6);
 	switch (msg->getType())
 	{
 		case ENVDATA_MESSAGE: {
 			this->handleEnvDataMsg((EnvDataMessage*)msg);
-			break;
+			return false;
 		}
 		case AIRQUALITY_MESSAGE: {
 			this->handleAirQualityMsg((AirQualityMsg*)msg);
-			break;
+			return false;
 		}
 		case CURTIME_MESSAGE: {
 			this->handleTimeMsg((CurrentTimeMsg*)msg);
-			return true; // dispose
+			return false;
 		}
 		case BTNCLICK_MESSAGE: {
 			if (warnings.size() > 0) {
@@ -143,8 +127,19 @@ bool DisplayProcess::handleMessage(IProcessMessage* msg) {
 			}
 			return true; // dispose
 		}
+		case WIFIEVENT_MESSAGE: {
+			WifiEventMessage* e = (WifiEventMessage*)msg;
+			if (e->event == WifiEventMessage::WifiEvent::ERROR) {
+				oled.print(F("WIFI ERR"));
+			}
+			else if (e->event == WifiEventMessage::WifiEvent::NONE) {
+				oled.print(F("WIFI NONE"));
+			} else {
+				oled.print(F("         "));
+			}
+			return false;
+		}
 	}
-	return false;
 }
 
 void DisplayProcess::handleEnvDataMsg(EnvDataMessage* msg) {
@@ -177,6 +172,10 @@ void DisplayProcess::handleAirQualityMsg(AirQualityMsg* msg) {
 	} else {
 		this->removeWarning(gasCode);
 	}
+	printTitle(gasCode);
+	oled.print(F(": "));
+	oled.print(round(msg->getAmount()));
+	oled.print(F("   "));
 	/*if (msg->gasType() == AirQualityMsg::GasType::CO2) {
 		this->co2 = msg->getAmount();
 	}*/

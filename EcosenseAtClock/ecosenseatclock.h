@@ -21,6 +21,8 @@
 
 #include "btn_process.h"
 
+#if SLIM_BUILD != 1
+
 #include "mq136sensor_process.h"
 #include "mq4sensor_process.h"
 #include "cjmcu1100sensor_process.h"
@@ -32,6 +34,8 @@
 #include "pwrconsumer1process.h"
 #include "pwrconsumer2process.h"
 #include "pwrconsumer3process.h"
+
+#endif
 // -------------------
 
 #include "stuff.h"

@@ -5,15 +5,13 @@
         static uint8_t MHZ19SensorProcess::CMD_GETPPM[MHZ19_CMDSIZE] = {0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
         static uint8_t MHZ19SensorProcess::CMD_SETRNG5000[MHZ19_CMDSIZE] = {0xFF, 0x01, 0x99, 0x00, 0x00, 0x00, 0x13, 0x88, 0xCB};
         static uint8_t MHZ19SensorProcess::CMD_AUTOCALOFF[MHZ19_CMDSIZE] = {0xff, 0x01, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86};         
-        static uint8_t MHZ19SensorProcess::CMD_REBOOT[MHZ19_CMDSIZE] = {0xff, 0x01, 0x8d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x73};
+        static uint8_t MHZ19SensorProcess::CMD_REBOOT[MHZ19_CMDSIZE] = {0xff, 0x01, 0x8d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x71};
 MHZ19SensorProcess::MHZ19SensorProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
             swSerial.begin(9600);
-            sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
-            sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
-	getData();    // первый запрос, в любом случае возвращает -1
-            // pre-burn timeout
-            this->pause(60000);    //mhz19
-            TRACELNF("MHZ19SensorProcess pre-burn timeout")
+            TRACELNF("MHZ19: reboot")
+            sendCommand( MHZ19SensorProcess::CMD_REBOOT );
+            // reboot timeout
+            this->pause(15000);
 }
 
 static IFirmwareProcess* MHZ19SensorProcess::factory(IProcessMessage* msg) {
@@ -21,18 +19,28 @@ static IFirmwareProcess* MHZ19SensorProcess::factory(IProcessMessage* msg) {
 }
 
 void MHZ19SensorProcess::update(unsigned long ms) {
-            getData();
-            if (this->status != -1) {
-                measureCount++;
-                TRACEF("co2=")
-                TRACELN(this->co2);
-                if (measureCount > 2) {
-                    this->report();
-                    return;
-                }
+            if (!ready) {
+                sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
+                sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
+                getData();    // первый запрос, в любом случае возвращает -1
+                ready = true;
+                this->pause(MHZ18_PREBURN_TIMEOUT);
+    			this->pause(12000);
+                return;
+            } else {
+                getData();
+                this->sendMessage(new AirQualityMsg(AirQualityMsg::GasType::CO2, 
+                    this->co2 < 600 ? AirQualityMsg::GasConcentration::MINIMAL : (
+                        this->co2 > 2500 ? AirQualityMsg::GasConcentration::DANGER : (
+                            this->co2 > 1000 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::NORM
+                        )
+                    ),
+                    this->co2)
+                );
+                this->sendMessage(new TaskDoneMessage(this));
+                this->pause();
+                return;
             }
-            
-	this->pause(12000);
 }
 
 void MHZ19SensorProcess::sendCommand(uint8_t cmd[], uint8_t* response = NULL) {

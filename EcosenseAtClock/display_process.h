@@ -27,7 +27,7 @@
 #include "LinkedList/LinkedList.h"
 
 struct WarningInfo {
-	uint32_t id;
+	uint16_t id;
 	float value;
 };
 
@@ -91,6 +91,24 @@ class DisplayProcess: public IFirmwareProcess {
 
 		void renderMainScreen();
 
+		void printTitle(uint16_t code) {
+			switch (code) {
+				case 1: oled.print(F("TEMPERATURE")); return;
+				case 2: oled.print(F("HUMIDITY")); return;
+				case 10: oled.print(F("GASes")); return;
+				case 11: oled.print(F("H2S")); return;
+				case 12: oled.print(F("CO")); return;
+				//case 13: oled.print(F("SO2")); return;
+				case 14: oled.print(F("CO2")); return;
+				case 15: oled.print(F("CH4")); break;
+				//case 16: oled.print(F("CH2O")); break;
+				//case 17: oled.print(F("C6H5_CH3")); return;
+				//case 18: oled.print(F("PM1")); return;
+				case 19: oled.print(F("PM25")); return;
+				case 20: oled.print(F("VOCs")); return;
+			}
+		}
+
 		void renderWarningScreen();
 
 		void render();
@@ -98,8 +116,8 @@ class DisplayProcess: public IFirmwareProcess {
 		void renderWarnings() {
 			oled.setCursor(0, 0);
 			oled.set2X();
-			//oled.clearToEOL();
-			oled.print(F("                  "));
+			oled.clearToEOL();
+			//oled.print(F("                  "));
 			//oled.setInvertMode(true);
 			uint16_t i;
 			for (i = 0; i < this->warnings.size(); i++) {

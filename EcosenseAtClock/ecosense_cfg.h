@@ -26,6 +26,7 @@
 
     // ---[ COMMON APP CONFIG ]---
     #define REPORT_TIMEOUT      60000
+    #define SLIM_BUILD          0       // debug mode: ONLY FEW PROCESSES to get more progmem
 
     // ---[ DISPLAY ]---
     #define OLED_ADDR           0x3C
@@ -59,12 +60,20 @@
     #define PPD42NS_ANALOG_PIN_ADDR1    8   // PM1
     #define PPD42NS_ANALOG_PIN_ADDR2    9   // PM2.5
 
+    // ---[ SENSOR PRE-BURN TIMEOUT ]---
+    #define MHZ18_PREBURN_TIMEOUT       180000
+    #define MQ135_PREBURN_TIMEOUT       55000
+    #define MQ136_PREBURN_TIMEOUT       57500
+    #define MQ7_PREBURN_TIMEOUT         50000
+    #define MQ4_PREBURN_TIMEOUT         65000
+    #define CJMCU1100_PREBURN_TIMEOUT   77500
+
     // ---[ BME280 ]---
     //#define BME280_ADDRESS              (0x76)
 
     // ---[ MHZ19 UART ]---
-    #define WAIT_READ_TIMES	100
-    #define WAIT_READ_DELAY	10
+    #define WAIT_READ_TIMES             100
+    #define WAIT_READ_DELAY             10
 
     #define MHZ19_RXPIN 4
     #define MHZ19_TXPIN 5
@@ -76,17 +85,26 @@
     #define WIFI_PWD                    "54d75bc245"
 
     // ---[ THINGSPEAK ]---
-    #define THINGSPEAK_SERVER           F("api.thingspeak.com")
-    #define THINGSPEAK_CHANNEL_KEY      "43RGUGMOBYBHCJV2"
-    
-    #define THINGSPEAK_PARAM_TEMP       1
-    #define THINGSPEAK_PARAM_HUMIDITY   2
-    #define THINGSPEAK_PARAM_PRESSURE   3
-    #define THINGSPEAK_PARAM_COMMON     4
-    #define THINGSPEAK_PARAM_CO2        5
-    #define THINGSPEAK_PARAM_H2S        6
-    #define THINGSPEAK_PARAM_VOCS       7
-    #define THINGSPEAK_PARAM_PM25       8
+    #define REPORTTOTHINGSPEAK          0
+    #if REPORTTOTHINGSPEAK == 1
+        #define THINGSPEAK_SERVER       F("api.thingspeak.com")
+        #define THINGSPEAK_CHANNEL_KEY  "43RGUGMOBYBHCJV2"
+        #define THINGSPEAKREPORT_URI    F("/update?api_key=")
+    #else
+        #define THINGSPEAK_SERVER       F("example.com")
+        #define THINGSPEAK_CHANNEL_KEY  "43RGUGMOBYBHCJV2"
+        #define THINGSPEAKREPORT_URI    F("/updateTestp.php?api_key=")
+    #endif
+    #define THINGSPEAKPARAMS            8
+
+    #define THINGSPEAK_PARAM_TEMP       0
+    #define THINGSPEAK_PARAM_HUMIDITY   1
+    #define THINGSPEAK_PARAM_PRESSURE   2
+    #define THINGSPEAK_PARAM_COMMON     3
+    #define THINGSPEAK_PARAM_CO2        4
+    #define THINGSPEAK_PARAM_H2S        5
+    #define THINGSPEAK_PARAM_VOCS       6
+    #define THINGSPEAK_PARAM_PM25       7
 
     // ---[ REAL-TIME CLOCK ]---
     #define RTC_I2C_ADDR                0x68

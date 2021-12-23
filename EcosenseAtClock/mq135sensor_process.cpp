@@ -3,7 +3,7 @@
 #include "ecosense_messages.h"
 
 MQ135SensorProcess::MQ135SensorProcess(IProcessMessage* msg) : MQSensorProcess(MUXCHANNEL_MQ135, msg){
-            this->pause(30000);    // pre-burn timeout
+            this->pause(MQ135_PREBURN_TIMEOUT);    // pre-burn timeout
 }
 
 static IFirmwareProcess* MQ135SensorProcess::factory(IProcessMessage* msg) {

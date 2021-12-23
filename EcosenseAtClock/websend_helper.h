@@ -6,7 +6,7 @@
     #include "ecosense_cfg.h"
 
     class UrlParam {
-            byte paramId;
+            //byte paramId;
             union {
                 uint16_t ui16;
                 float f;
@@ -21,20 +21,21 @@
 
             UrlParam();
 
-            byte getId();
+            /*//@implement
+            byte getId() {
+                return this->paramId;
+            }*/
             
-            void setId(byte paramId, vType type);
+            void set(/*byte paramId,*/ vType type);
 
-            void setValue(byte paramId, uint16_t v);
+            void setValue(/*byte paramId,*/ uint16_t v);
 
-            void setValue(byte paramId, float v);
+            void setValue(/*byte paramId,*/ float v);
 
             String getValue();
 
             bool isActive();
     };
-
-    #define THINGSPEAKPARAMS 8
 
     /**
      * ThingSpeak API implementation
