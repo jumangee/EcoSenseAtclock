@@ -6,7 +6,7 @@
     #include "ecosense_cfg.h"
 
     class UrlParam {
-            byte paramId;
+            //byte paramId;
             union {
                 uint16_t ui16;
                 float f;
@@ -24,28 +24,28 @@
                 this->active = false;
             }
 
-            //@implement
+            /*//@implement
             byte getId() {
                 return this->paramId;
-            }
+            }*/
             
             //@implement
-            void setId(byte paramId, vType type) {
-                this->paramId = paramId;
+            void set(/*byte paramId,*/ vType type) {
+                //this->paramId = paramId;
                 this->valueType = type;
                 this->active = true;
             }
 
             //@implement
-            void setValue(byte paramId, uint16_t v) {
+            void setValue(/*byte paramId,*/ uint16_t v) {
                 this->ui16 = v;
-                setId(paramId, UINT);
+                set(UINT);
             }
 
             //@implement
-            void setValue(byte paramId, float v) {
+            void setValue(/*byte paramId,*/ float v) {
                 this->f = v;
-                setId(paramId, FLOAT);
+                set(FLOAT);
             }
 
             //@implement
@@ -64,8 +64,6 @@
                 return this->active;
             }
     };
-
-    #define THINGSPEAKPARAMS 8
 
     /**
      * ThingSpeak API implementation
@@ -86,7 +84,7 @@
             //@implement
             void clear() {
                 for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-                    this->params[i].setValue(i, (uint16_t)0);
+                    this->params[i].setValue((uint16_t)0);
                     this->params[i].active = false;
                 }
                 size = 0;
@@ -96,14 +94,14 @@
             String getUrl(String key) {
                 String url;
                 url.reserve(14 + key.length() + size * 15);
-                url += SF("/update?api_key=") + key;
+                url += String(THINGSPEAKREPORT_URI) + key;
                 for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
                     UrlParam p = this->getParam(i);
                     if (p.isActive()) {
                         String buf;
                         buf.reserve(15);
                         buf += F("&field");
-                        buf += p.getId();
+                        buf += (i + 1);
                         buf += F("=");
                         buf += p.getValue().substring(0, 5);
                         url += buf;
