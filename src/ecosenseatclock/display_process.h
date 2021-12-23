@@ -27,7 +27,7 @@
 #include "LinkedList/LinkedList.h"
 
 struct WarningInfo {
-	uint32_t id;
+	uint16_t id;
 	float value;
 };
 
@@ -176,29 +176,30 @@ class DisplayProcess: public IFirmwareProcess {
 			}*/
 		}
 
+		void printTitle(uint16_t code) {
+			switch (code) {
+				case 1: oled.print(F("TEMPERATURE")); return;
+				case 2: oled.print(F("HUMIDITY")); return;
+				case 10: oled.print(F("GASes")); return;
+				case 11: oled.print(F("H2S")); return;
+				case 12: oled.print(F("CO")); return;
+				//case 13: oled.print(F("SO2")); return;
+				case 14: oled.print(F("CO2")); return;
+				case 15: oled.print(F("CH4")); break;
+				//case 16: oled.print(F("CH2O")); break;
+				//case 17: oled.print(F("C6H5_CH3")); return;
+				//case 18: oled.print(F("PM1")); return;
+				case 19: oled.print(F("PM25")); return;
+				case 20: oled.print(F("VOCs")); return;
+			}
+		}
+
 		//@implement
 		void renderWarningScreen() {
 			oled.set2X();
 			oled.setCursor(0, 2);
 			WarningInfo* warn = this->warnings.get(this->showWarningNum);
-			switch (warn->id) {
-				case 1: oled.print(F("TEMPERATURE")); break;
-				case 2: oled.print(F("HUMIDITY")); break;
-				case 10: oled.print(F("AIR QUALITY")); break;
-				case 11: oled.print(F("H2S")); break;
-				case 12: oled.print(F("CO")); break;
-				//case 13: oled.print(F("SO2")); break;
-				case 14: oled.print(F("CO2")); break;
-				//case 15: oled.print(F("CH4")); break;
-				//case 16: oled.print(F("CH2O")); break;
-				//case 17: oled.print(F("C6H5_CH3")); break;
-				//case 18: oled.print(F("PM1")); break;
-				case 19: oled.print(F("PM25")); break;
-				case 20: oled.print(F("VOCs")); break;
-				/*default: {
-					oled.print(warn->id);
-				}*/
-			}
+			printTitle(warn->id);
 			oled.setCursor(0, 5);
 			oled.print(warn->value);
 			oled.set1X();
@@ -220,8 +221,8 @@ class DisplayProcess: public IFirmwareProcess {
 		void renderWarnings() {
 			oled.setCursor(0, 0);
 			oled.set2X();
-			//oled.clearToEOL();
-			oled.print(F("                  "));
+			oled.clearToEOL();
+			//oled.print(F("                  "));
 			//oled.setInvertMode(true);
 			uint16_t i;
 			for (i = 0; i < this->warnings.size(); i++) {
@@ -250,19 +251,21 @@ class DisplayProcess: public IFirmwareProcess {
 		//@implement
 		//@include "ecosense_messages.h"
 		bool handleMessage(IProcessMessage* msg) {
+			oled.setCursor(0, 6);
+
 			switch (msg->getType())
 			{
 				case ENVDATA_MESSAGE: {
 					this->handleEnvDataMsg((EnvDataMessage*)msg);
-					break;
+					return false;
 				}
 				case AIRQUALITY_MESSAGE: {
 					this->handleAirQualityMsg((AirQualityMsg*)msg);
-					break;
+					return false;
 				}
 				case CURTIME_MESSAGE: {
 					this->handleTimeMsg((CurrentTimeMsg*)msg);
-					return true; // dispose
+					return false;
 				}
 				case BTNCLICK_MESSAGE: {
 					if (warnings.size() > 0) {
@@ -275,8 +278,20 @@ class DisplayProcess: public IFirmwareProcess {
 					}
 					return true; // dispose
 				}
+				case WIFIEVENT_MESSAGE: {
+					WifiEventMessage* e = (WifiEventMessage*)msg;
+					if (e->event == WifiEventMessage::WifiEvent::ERROR) {
+						oled.print(F("WIFI ERR"));
+					}
+					else if (e->event == WifiEventMessage::WifiEvent::NONE) {
+						oled.print(F("WIFI NONE"));
+					} else {
+						oled.print(F("         "));
+					}
+					delay(100);
+					return false;
+				}
 			}
-			return false;
 		}
 
 		//@implement
@@ -315,6 +330,11 @@ class DisplayProcess: public IFirmwareProcess {
 			} else {
 				this->removeWarning(gasCode);
 			}
+
+			printTitle(gasCode);
+			oled.print(F(": "));
+			oled.print(round(msg->getAmount()));
+			oled.print(F("   "));
 
 			/*if (msg->gasType() == AirQualityMsg::GasType::CO2) {
 				this->co2 = msg->getAmount();
