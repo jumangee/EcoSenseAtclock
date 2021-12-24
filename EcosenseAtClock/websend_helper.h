@@ -33,11 +33,13 @@
      * ThingSpeak API implementation
      */
     class ThingspeakWebSendTask {
-            UrlParam    params[THINGSPEAKPARAMS];
+            UrlParam                    params[THINGSPEAKPARAMS];
+            const __FlashStringHelper*  apiKey;
         public:
             byte        size=0;
 
-            ThingspeakWebSendTask() {
+            ThingspeakWebSendTask(const __FlashStringHelper* apiKey) {
+                this->apiKey = apiKey;
                 clear();
             }
 
@@ -46,6 +48,8 @@
             }
 
             void clear();
+
+            const __FlashStringHelper* getApiKey();
 
             String getUrl();
 

@@ -18,7 +18,7 @@
 
 class MHZ19SensorProcess: public IFirmwareProcess {
     protected:
-        SoftwareSerial  swSerial = SoftwareSerial(MHZ19_RXPIN, MHZ19_TXPIN);
+        SoftwareSerial  *swSerial = NULL;
 
         int     co2 = 0;
         //int     temp = 0;
@@ -45,9 +45,6 @@ class MHZ19SensorProcess: public IFirmwareProcess {
 		//@implement
         //@include "SoftwareSerial.h"
 		MHZ19SensorProcess(IProcessMessage* msg): IFirmwareProcess(msg) {
-            ready = false;
-
-            // reboot timeout
             this->pause(MHZ19_PREBURN_TIMEOUT);
 		}
 
@@ -58,20 +55,25 @@ class MHZ19SensorProcess: public IFirmwareProcess {
 
 		//@implement
         //@include "ecosense_messages.h"
+        //@include "swserialsingleton.h"
 		void update(unsigned long ms) {
-            if (!ready) {
-                swSerial.begin(9600);
-                sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
-                sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
-                getData();    // first request always fails
-
+            if (swSerial == NULL) {
+                TRACELN("MHZ19: trying to connect")
+                swSerial = SoftwareSerialSingleton::get(MHZ19_RXPIN, MHZ19_TXPIN, 9600);
+                if (swSerial != NULL) {
+                    TRACELN("MHZ19: GOT! ticket")
+                    sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
+                    sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
+                    getData();    // first request always fails
+                } else {
+                    TRACELN("MHZ19: no ticket")
+                }
                 this->pause(500);
-
-                ready = true;
-
                 return;
             } else {
                 getData();
+
+                swSerial = SoftwareSerialSingleton::unlock();
 
                 this->sendMessage(new AirQualityMsg(AirQualityMsg::GasType::CO2, 
                     this->co2 < 600 ? AirQualityMsg::GasConcentration::MINIMAL : (
@@ -82,9 +84,9 @@ class MHZ19SensorProcess: public IFirmwareProcess {
                     (float)this->co2)
                 );
 
-                this->sendMessage(new TaskDoneMessage(this));
-                this->pause();
-
+                //this->sendMessage(new TaskDoneMessage(this));
+                //this->pause();
+                this->pause(CONSUMERPROCESSTIMEOUT);
                 return;
             }
 		}
@@ -93,12 +95,12 @@ class MHZ19SensorProcess: public IFirmwareProcess {
         //@implement
         void sendCommand(uint8_t cmd[], uint8_t* response = NULL) {
 
-            swSerial.write(cmd, MHZ19_CMDSIZE);
-            swSerial.flush();
+            swSerial->write(cmd, MHZ19_CMDSIZE);
+            swSerial->flush();
             
             if (response != NULL) {
                 int i = 0;
-                while(swSerial.available() <= 0) {
+                while(swSerial->available() <= 0) {
                     if( ++i > WAIT_READ_TIMES ) {
                         TRACELNF("error: can't get MH-Z19 response.");
                         return;
@@ -106,7 +108,7 @@ class MHZ19SensorProcess: public IFirmwareProcess {
                     yield();
                     delay(WAIT_READ_DELAY);
                 }
-                swSerial.readBytes(response, MHZ19_CMDSIZE);
+                swSerial->readBytes(response, MHZ19_CMDSIZE);
             }
         }
 

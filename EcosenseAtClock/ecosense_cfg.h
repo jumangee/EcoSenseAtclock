@@ -13,7 +13,7 @@
 
     #define PRC_BME280          301
     #define PRC_MHZ19			302
-	//#define PRC_PPD42NS			303
+	#define PRC_PPD42NS			303
 	#define PRC_CJMCU1100		304
 	//#define PRC_ZE08CH20		305
 
@@ -53,6 +53,8 @@
     #define MUXCHANNEL_CJMCU1100    5
     #define MUXCHANNEL_MQ7          6 // broken sensor :(
     #define MUXCHANNEL_BTN          7
+    #define MUXCHANNEL_PM1          8
+    #define MUXCHANNEL_PM2          9
 	
     // ---[ SENSORS ]---
     #define MQ_READINGS_PER_RESULT		5
@@ -62,7 +64,7 @@
     #define PPD42NS_ANALOG_PIN_ADDR2    9   // PM2.5
 
     // ---[ SENSOR PRE-BURN TIMEOUT ]---
-    #define MHZ19_PREBURN_TIMEOUT       1200000
+    #define MHZ19_PREBURN_TIMEOUT       90000
     #define MQ135_PREBURN_TIMEOUT       55000
     #define MQ136_PREBURN_TIMEOUT       57500
     #define MQ7_PREBURN_TIMEOUT         50000
@@ -79,6 +81,10 @@
     #define MHZ19_RXPIN 4
     #define MHZ19_TXPIN 5
 
+    // ---[ PPD42NS ]---
+    #define PPD42NS_SAMPLE_TIME_MS      15000
+    #define PPD42NS_READS_COUNT         3   // number of reads before completion (uses average value!)
+
     // ---[ WIFI ]---
     #define WIFI_RX_PIN                 2
     #define WIFI_TX_PIN                 3    
@@ -89,23 +95,28 @@
     #define REPORTTOTHINGSPEAK          1
     #if REPORTTOTHINGSPEAK == 1
         #define THINGSPEAK_SERVER       F("api.thingspeak.com")
-        #define THINGSPEAK_CHANNEL_KEY  "43RGUGMOBYBHCJV2"
+        #define THINGSPEAK_CHANNEL1_KEY F("43RGUGMOBYBHCJV2")
+        #define THINGSPEAK_CHANNEL2_KEY F("6CREDT9BTI3QYL3T")
         #define THINGSPEAKREPORT_URI    F("/update?api_key=")
     #else
-        #define THINGSPEAK_SERVER       F("jumangee.net")
-        #define THINGSPEAK_CHANNEL_KEY  F("TEST")
+        #define THINGSPEAK_SERVER       F("example.net")
+        #define THINGSPEAK_CHANNEL1_KEY F("TEST")
+        #define THINGSPEAK_CHANNEL2_KEY F("TEST2")
         #define THINGSPEAKREPORT_URI    F("/updateTest.php?api_key=")
     #endif
     #define THINGSPEAKPARAMS            8
 
+    // THINGSPEAK/CHANNEL1
     #define THINGSPEAK_PARAM_TEMP       0
     #define THINGSPEAK_PARAM_HUMIDITY   1
     #define THINGSPEAK_PARAM_PRESSURE   2
-    #define THINGSPEAK_PARAM_COMMON     3
-    #define THINGSPEAK_PARAM_CO2        4
-    #define THINGSPEAK_PARAM_H2S        5
-    #define THINGSPEAK_PARAM_VOCS       6
-    #define THINGSPEAK_PARAM_PM25       7
+
+    // THINGSPEAK/CHANNEL2
+    #define THINGSPEAK_PARAM_COMMON     0
+    #define THINGSPEAK_PARAM_CO2        1
+    #define THINGSPEAK_PARAM_H2S        2
+    #define THINGSPEAK_PARAM_VOCS       3
+    #define THINGSPEAK_PARAM_PM25       4
 
     // ---[ REAL-TIME CLOCK ]---
     #define RTC_I2C_ADDR                0x68

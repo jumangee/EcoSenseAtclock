@@ -36,6 +36,10 @@ void ThingspeakWebSendTask::clear() {
     size = 0;
 }
 
+const __FlashStringHelper* ThingspeakWebSendTask::getApiKey() {
+    return apiKey;
+}
+
 String ThingspeakWebSendTask::getUrl() {
     String url;
     url.reserve(size * 15);

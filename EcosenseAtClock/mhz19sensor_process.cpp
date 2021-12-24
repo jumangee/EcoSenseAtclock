@@ -1,13 +1,12 @@
 #include "mhz19sensor_process.h"
 #include "SoftwareSerial.h"
 #include "ecosense_messages.h"
+#include "swserialsingleton.h"
 
         static uint8_t MHZ19SensorProcess::CMD_GETPPM[MHZ19_CMDSIZE] = {0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
         static uint8_t MHZ19SensorProcess::CMD_SETRNG5000[MHZ19_CMDSIZE] = {0xFF, 0x01, 0x99, 0x00, 0x00, 0x00, 0x13, 0x88, 0xCB};
         static uint8_t MHZ19SensorProcess::CMD_AUTOCALOFF[MHZ19_CMDSIZE] = {0xff, 0x01, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86};         
 MHZ19SensorProcess::MHZ19SensorProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
-            ready = false;
-            // reboot timeout
             this->pause(MHZ19_PREBURN_TIMEOUT);
 }
 
@@ -16,19 +15,22 @@ static IFirmwareProcess* MHZ19SensorProcess::factory(IProcessMessage* msg) {
 }
 
 void MHZ19SensorProcess::update(unsigned long ms) {
-            if (!ready) {
-                // this gets little more memory
-                this->getHost()->stopProcess(PRC_BME280);
-                
-                swSerial.begin(9600);
-                sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
-                sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
-                getData();    // first request always fails
+            if (swSerial == NULL) {
+                TRACELN("MHZ19: trying to connect")
+                swSerial = SoftwareSerialSingleton::get(MHZ19_RXPIN, MHZ19_TXPIN, 9600);
+                if (swSerial != NULL) {
+                    TRACELN("MHZ19: GOT! ticket")
+                    sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
+                    sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
+                    getData();    // first request always fails
+                } else {
+                    TRACELN("MHZ19: no ticket")
+                }
                 this->pause(500);
-                ready = true;
                 return;
             } else {
                 getData();
+                swSerial = SoftwareSerialSingleton::unlock();
                 this->sendMessage(new AirQualityMsg(AirQualityMsg::GasType::CO2, 
                     this->co2 < 600 ? AirQualityMsg::GasConcentration::MINIMAL : (
                         this->co2 > 2500 ? AirQualityMsg::GasConcentration::DANGER : (
@@ -37,21 +39,20 @@ void MHZ19SensorProcess::update(unsigned long ms) {
                     ),
                     (float)this->co2)
                 );
-                this->sendMessage(new TaskDoneMessage(this));
-                this->getHost()->addProcess(PRC_BME280);
-                this->pause();
-                
+                //this->sendMessage(new TaskDoneMessage(this));
+                //this->pause();
+                this->pause(CONSUMERPROCESSTIMEOUT);
                 return;
             }
 }
 
 void MHZ19SensorProcess::sendCommand(uint8_t cmd[], uint8_t* response = NULL) {
-    swSerial.write(cmd, MHZ19_CMDSIZE);
-    swSerial.flush();
+    swSerial->write(cmd, MHZ19_CMDSIZE);
+    swSerial->flush();
     
     if (response != NULL) {
         int i = 0;
-        while(swSerial.available() <= 0) {
+        while(swSerial->available() <= 0) {
             if( ++i > WAIT_READ_TIMES ) {
                 TRACELNF("error: can't get MH-Z19 response.");
                 return;
@@ -59,7 +60,7 @@ void MHZ19SensorProcess::sendCommand(uint8_t cmd[], uint8_t* response = NULL) {
             yield();
             delay(WAIT_READ_DELAY);
         }
-        swSerial.readBytes(response, MHZ19_CMDSIZE);
+        swSerial->readBytes(response, MHZ19_CMDSIZE);
     }
 }
 

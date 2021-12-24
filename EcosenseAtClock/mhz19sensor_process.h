@@ -18,7 +18,7 @@
 
 class MHZ19SensorProcess: public IFirmwareProcess {
     protected:
-        SoftwareSerial  swSerial = SoftwareSerial(MHZ19_RXPIN, MHZ19_TXPIN);
+        SoftwareSerial  *swSerial = NULL;
 
         int     co2 = 0;
         //int     temp = 0;

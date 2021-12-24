@@ -17,13 +17,12 @@ EcosenseAtClockFirmware::EcosenseAtClockFirmware() : IFirmware(){
 	#endif
 	addProcess(PRC_BME280);
 	addProcess(PRC_BTN);
+	addProcess(PRC_MHZ19);
 	#if SLIM_BUILD != 1
 	PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));	//EcosenseAtClockFirmware::PwrMngmtPins, (*(&PwrMngmtPins + 1) - PwrMngmtPins)
-	//TRACELNF("Power management: started");
 	ADCMuxManagement::init(EcosenseAtClockFirmware::AdcMuxMngmtPins);
-	//TRACELNF("AdcMux management: started");
-	
-	addProcess(PRC_CONSUMER1);	//, ProcessOrderMessage::start()
+
+	addProcess(PRC_CONSUMER1);
 	#endif
 };
 
@@ -36,18 +35,18 @@ ProcessFactory EcosenseAtClockFirmware::getFactory(uint16_t pId) {
 		#endif
 		,FACTORY(BME280SensorProcess)
 		,FACTORY(ButtonSensorProcess)
+		,FACTORY(MHZ19SensorProcess)
 		#if SLIM_BUILD != 1
 		,FACTORY(PwrConsumer1Process)
 		,FACTORY(PwrConsumer2Process)
-		,FACTORY(PwrConsumer3Process)
+		//,FACTORY(PwrConsumer3Process)
 		,FACTORY(MQ136SensorProcess)
 		//,FACTORY(MQ7SensorProcess)
 		,FACTORY(MQ135SensorProcess)
 		,FACTORY(MQ4SensorProcess)
-		//,FACTORY(PPD42SensorProcess)
+		//,FACTORY(ParticlePPD42SensorProcess)
 		//,FACTORY(ZE08CH2OSensorProcess)
 		,FACTORY(CJMCU1100SensorProcess)
-		,FACTORY(MHZ19SensorProcess)
 		#endif
 	};
 	int len = *(&factoryList + 1) - factoryList;	//TOTAL_FACTORIES_INCLUDED

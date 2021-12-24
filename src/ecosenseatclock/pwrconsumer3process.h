@@ -19,7 +19,7 @@
 
             //@implement
             PwrConsumer3Process(IProcessMessage* msg): PwrConsumerProcess(PWRMNGMTPIN_PROCESS3, msg) {
-                addTask(PRC_MHZ19);
+                //addTask(PRC_PPD42NS);
                 //addTask(PRC_MQ7);
                 TRACELNF("PwrConsumer3Process::init")
             }

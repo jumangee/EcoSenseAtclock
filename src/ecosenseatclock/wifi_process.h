@@ -23,9 +23,11 @@
 
 class WifiProcess: public IFirmwareProcess {
 	private:
-		SoftwareSerial 			*espSerial;
-		//unsigned long			lastReportTime = 0;
-		ThingspeakWebSendTask	dataSendTask = ThingspeakWebSendTask();
+		SoftwareSerial 			*espSerial = NULL;
+		
+		ThingspeakWebSendTask*	dataSendTask1;
+		ThingspeakWebSendTask*	dataSendTask2;
+
 		enum ReportState {
 			NONE = 0,
 			READY,
@@ -40,12 +42,11 @@ class WifiProcess: public IFirmwareProcess {
 		//@include "EspDrv/RingBuffer.cpp"
 		//@include "EspDrv/EspDrv.cpp"
 		WifiProcess(IProcessMessage* msg): IFirmwareProcess(msg) {
-			//this->log("WifiProcess::start");
+			dataSendTask1 = new ThingspeakWebSendTask(THINGSPEAK_CHANNEL1_KEY);
+			dataSendTask2 = new ThingspeakWebSendTask(THINGSPEAK_CHANNEL2_KEY);
 
 			TRACELNF("WifiProcess::init");
-
 			this->state = NONE;
-
 			this->pause(30000);
 		}
 
@@ -63,6 +64,8 @@ class WifiProcess: public IFirmwareProcess {
 			espStop();
 		}
 
+		//@implement
+		//@include "swserialsingleton.h"
 		void espStop() {
 			if (espSerial != NULL) {
 				if (EspDrv::getConnectionStatus() == WL_CONNECTED) {			
@@ -70,9 +73,9 @@ class WifiProcess: public IFirmwareProcess {
 				}
 
 				espSerial->end();
-				delete espSerial;
-				espSerial = NULL; 
+				espSerial = SoftwareSerialSingleton::unlock();
 			}
+			state = ReportState::NONE;
 		}
 
 		//@implement
@@ -80,53 +83,51 @@ class WifiProcess: public IFirmwareProcess {
 		//@include "ecosense_cfg.h"
 		//@include "EspDrv/EspDrv.h"
 		//@include "ecosense_messages.h"
+		//@include "swserialsingleton.h"
 		void update(unsigned long ms) {
 			//unsigned long now = millis();
 
-			// wait until MHZ19 finishes
-			if (this->getHost()->getProcess(PRC_MHZ19) != NULL) {
-				if (state == ReportState::CONNECTED) {
-					// cant stop right now - can be online
-					return;
-				}
-				espStop();
-				pause(5000);
-				return;
-			}
-
 			switch (state) {
 				case ReportState::NONE: {
-					espSerial = new SoftwareSerial(WIFI_RX_PIN, WIFI_TX_PIN);
-					espSerial->begin(19200);
+					if ( this->dataSendTask1->size > 0 || this->dataSendTask2->size > 0) {
+						espSerial = SoftwareSerialSingleton::get(WIFI_RX_PIN, WIFI_TX_PIN, 19200);
+						if (espSerial != NULL) {
+							TRACELN("Initializing ESP module...")
+							EspDrv::wifiDriverInit(espSerial);
 
-					TRACELN("Initializing ESP module...")
-					EspDrv::wifiDriverInit(espSerial);
-
-					if (EspDrv::getConnectionStatus() == WL_NO_SHIELD) {
-						TRACELNF("[WiFi] FAIL");
-						espStop();
-						this->pause();
-						return;
+							if (EspDrv::getConnectionStatus() == WL_NO_SHIELD) {
+								TRACELNF("[WiFi] FAIL");
+								espStop();
+								this->pause();
+								return;
+							}
+							TRACELNF("[WiFi] OK");
+							state = ReportState::READY;
+						}
 					}
-					TRACELNF("[WiFi] OK");
-					state = ReportState::READY;
-
+					this->pause(500);
 					return;
 				}
 				case ReportState::READY: {
-					if ( this->dataSendTask.size > 0 ) {
+					if ( this->dataSendTask1->size > 0 || this->dataSendTask2->size > 0) {
 						if (WiFiConnect()) {
 							state = ReportState::CONNECTED;
 							this->pause(100);
 						} else {
 							this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::ERROR));
 							this->pause(15000);
+							espStop();
 						}
 					}
 					return;
 				}
 				case ReportState::CONNECTED: {
-					simpleSendData();
+					if ( dataSendTask1->size > 0) {
+						simpleSendData(dataSendTask1);
+					}
+					if ( dataSendTask2->size > 0) {
+						simpleSendData(dataSendTask2);
+					}
 					state = ReportState::SENT;
 
 					TRACELN("[WIFI] Send packets done")
@@ -134,15 +135,12 @@ class WifiProcess: public IFirmwareProcess {
 				}
 				case ReportState::SENT: {
 					espStop();
-					state = ReportState::NONE;
 					this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::OK));
 					
 					this->pause(REPORT_TIMEOUT);
 					return;
 				}
 			}
-
-			this->pause(1000);
 		}
 
 		//@implement
@@ -164,7 +162,7 @@ class WifiProcess: public IFirmwareProcess {
 		}
 
 		//@implement
-		void simpleSendData() {
+		void simpleSendData(ThingspeakWebSendTask *task) {
 			uint8_t _sock = 1;
 			String server = THINGSPEAK_SERVER;
 			if (EspDrv::startClient(server.c_str(), 80, _sock, TCP_MODE)) {
@@ -173,8 +171,8 @@ class WifiProcess: public IFirmwareProcess {
 				{
 					String buf = SF("GET ");
 					buf += THINGSPEAKREPORT_URI;
-					buf += THINGSPEAK_CHANNEL_KEY;
-					buf += dataSendTask.getUrl(); 
+					buf += task->getApiKey();
+					buf += task->getUrl(); 
 					buf += F(" HTTP/1.1\r\nHost: ");
 					buf += server;
 					buf += F("\r\nConnection: close\r\n\r\n");
@@ -184,7 +182,7 @@ class WifiProcess: public IFirmwareProcess {
 					}
 				}
 				EspDrv::stopClient(_sock);
-				dataSendTask.clear();
+				task->clear();
 			}
 		}
 
@@ -195,11 +193,11 @@ class WifiProcess: public IFirmwareProcess {
 				case ENVDATA_MESSAGE: {
 					EnvDataMessage* env = (EnvDataMessage*)msg;
 					
-					dataSendTask.getParam(THINGSPEAK_PARAM_TEMP).setValue(env->getTemp());
-					dataSendTask.getParam(THINGSPEAK_PARAM_HUMIDITY).setValue(env->getHumidity());
-					dataSendTask.getParam(THINGSPEAK_PARAM_PRESSURE).setValue(env->getPressure());
+					dataSendTask1->getParam(THINGSPEAK_PARAM_TEMP).setValue(env->getTemp());
+					dataSendTask1->getParam(THINGSPEAK_PARAM_HUMIDITY).setValue(env->getHumidity());
+					dataSendTask1->getParam(THINGSPEAK_PARAM_PRESSURE).setValue(env->getPressure());
 
-					dataSendTask.recount();
+					dataSendTask1->recount();
 					return false;
 				}
 				case AIRQUALITY_MESSAGE: {
@@ -207,24 +205,24 @@ class WifiProcess: public IFirmwareProcess {
 					switch (gas->gasType())
 					{
 						case AirQualityMsg::GasType::COMMON: {
-							dataSendTask.getParam(THINGSPEAK_PARAM_COMMON).setValue(gas->getAmount());
+							dataSendTask2->getParam(THINGSPEAK_PARAM_COMMON).setValue(gas->getAmount());
 							break;
 						}
 						case AirQualityMsg::GasType::CO2: {
-							dataSendTask.getParam(THINGSPEAK_PARAM_CO2).setValue(gas->getAmount());
+							dataSendTask2->getParam(THINGSPEAK_PARAM_CO2).setValue(gas->getAmount());
 							break;
 						}
 						case AirQualityMsg::GasType::H2S: {
-							dataSendTask.getParam(THINGSPEAK_PARAM_H2S).setValue(gas->getAmount());
+							dataSendTask2->getParam(THINGSPEAK_PARAM_H2S).setValue(gas->getAmount());
 							break;
 						}
 						case AirQualityMsg::GasType::VOCs: {
-							dataSendTask.getParam(THINGSPEAK_PARAM_VOCS).setValue(gas->getAmount());
+							dataSendTask2->getParam(THINGSPEAK_PARAM_VOCS).setValue(gas->getAmount());
 							break;
 						}
 					}
 
-					dataSendTask.recount();
+					dataSendTask2->recount();
 					return false;
 				}
 			}

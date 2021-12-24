@@ -18,6 +18,7 @@ class IFirmwareProcess;
 #define TASKDONE_MESSAGE	1008
 #define BTNCLICK_MESSAGE	1009
 #define WIFIEVENT_MESSAGE	1010
+#define PPD42NS_MESSAGE		1011
 //---------------------------------
 
 class WifiEventMessage: public IProcessMessage {
@@ -63,7 +64,7 @@ class EnvDataMessage: public IProcessMessage {
 
 class CurrentTimeMsg: public IProcessMessage {
 	public:
-		CurrentTimeMsg(int8_t hrs, int8_t mins/*, boolean dotFlag*/): IProcessMessage(NULL, CURTIME_MESSAGE) {
+		CurrentTimeMsg(int8_t hrs, int8_t mins): IProcessMessage(NULL, CURTIME_MESSAGE) {
 			this->hrs =  hrs;
 			this->mins = mins;
 			
@@ -80,25 +81,6 @@ class CurrentTimeMsg: public IProcessMessage {
 		int8_t getMins() {
 			return this->mins;
 		}
-
-		/*boolean	getDots() {
-			return this->dotFlag;
-		}
-
-		String getTime() {
-			String time;
-			time.reserve(5);
-			if (getHrs() < 10) {
-				time += '0'; //String(F("0"));
-			}
-			time += String(getHrs());
-			time += getDots() ? ':' : ' '; //F(":") : F(" ");
-			if (getMins() < 10) {
-				time += '0'; //String(F("0"));
-			}
-			time += getMins();
-			return time;
-		}*/
 
 	private:
 		int8_t hrs, mins;
@@ -259,6 +241,22 @@ class ButtonClickMessage: public IProcessMessage {
 	public:
 		ButtonClickMessage(): IProcessMessage(NULL, BTNCLICK_MESSAGE) {
 		}
+};
+
+
+class ParticlePPD42Message: public IProcessMessage {
+	public:
+		ParticlePPD42Message(float ratioPm1, float concentrationPm1, float ratioPm2, float concentrationPm2): IProcessMessage(NULL, PPD42NS_MESSAGE) {
+			this->ratioPm1 = ratioPm1;
+			this->ratioPm2 = ratioPm2;
+			this->concentrationPm1 = concentrationPm1;
+			this->concentrationPm2 = concentrationPm2;
+		}
+
+		float ratioPm1;
+		float ratioPm2;
+		float concentrationPm1;
+		float concentrationPm2;
 };
 
 #endif
