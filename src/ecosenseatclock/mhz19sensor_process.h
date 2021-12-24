@@ -28,7 +28,7 @@ class MHZ19SensorProcess: public IFirmwareProcess {
         static uint8_t CMD_GETPPM[MHZ19_CMDSIZE];
         static uint8_t CMD_SETRNG5000[MHZ19_CMDSIZE];
         static uint8_t CMD_AUTOCALOFF[MHZ19_CMDSIZE];
-        static uint8_t CMD_REBOOT[MHZ19_CMDSIZE];
+        //static uint8_t CMD_RESET[MHZ19_CMDSIZE];
 
         //@cpp
         static uint8_t MHZ19SensorProcess::CMD_GETPPM[MHZ19_CMDSIZE] = {0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
@@ -36,8 +36,8 @@ class MHZ19SensorProcess: public IFirmwareProcess {
         static uint8_t MHZ19SensorProcess::CMD_SETRNG5000[MHZ19_CMDSIZE] = {0xFF, 0x01, 0x99, 0x00, 0x00, 0x00, 0x13, 0x88, 0xCB};
         //@cpp
         static uint8_t MHZ19SensorProcess::CMD_AUTOCALOFF[MHZ19_CMDSIZE] = {0xff, 0x01, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86};         
-        //@cpp
-        static uint8_t MHZ19SensorProcess::CMD_REBOOT[MHZ19_CMDSIZE] = {0xff, 0x01, 0x8d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x71};
+        /*//@cpp
+        static uint8_t MHZ19SensorProcess::CMD_RESET[MHZ19_CMDSIZE] = {0xff, 0x01, 0x8d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x71};*/
 
 	public:
         PROCESSID(PRC_MHZ19);
@@ -45,12 +45,6 @@ class MHZ19SensorProcess: public IFirmwareProcess {
 		//@implement
         //@include "SoftwareSerial.h"
 		MHZ19SensorProcess(IProcessMessage* msg): IFirmwareProcess(msg) {
-            swSerial.begin(9600);
-
-            sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
-            sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
-            getData();    // first request always fails
-
             ready = false;
 
             // reboot timeout
@@ -66,13 +60,15 @@ class MHZ19SensorProcess: public IFirmwareProcess {
         //@include "ecosense_messages.h"
 		void update(unsigned long ms) {
             if (!ready) {
-                // this gets little more memory
-                this->getHost()->stopProcess(PRC_BME280);
-                this->getHost()->stopProcess(PRC_RTC);
+                swSerial.begin(9600);
+                sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
+                sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
+                getData();    // first request always fails
+
+                this->pause(500);
 
                 ready = true;
 
-                this->pause(100);
                 return;
             } else {
                 getData();
@@ -88,9 +84,6 @@ class MHZ19SensorProcess: public IFirmwareProcess {
 
                 this->sendMessage(new TaskDoneMessage(this));
                 this->pause();
-
-                this->getHost()->addProcess(PRC_BME280);
-                this->getHost()->addProcess(PRC_RTC);
 
                 return;
             }

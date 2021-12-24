@@ -23,7 +23,7 @@
 
 class WifiProcess: public IFirmwareProcess {
 	private:
-		SoftwareSerial 			espSerial = SoftwareSerial(WIFI_RX_PIN, WIFI_TX_PIN);
+		SoftwareSerial 			*espSerial; ;
 		//unsigned long			lastReportTime = 0;
 		ThingspeakWebSendTask	dataSendTask = ThingspeakWebSendTask();
 		enum ReportState {
@@ -40,6 +40,17 @@ class WifiProcess: public IFirmwareProcess {
 		static IFirmwareProcess* factory(IProcessMessage* msg);
 
 		~WifiProcess();
+
+		void espStop() {
+			if (espSerial != NULL) {
+				if (EspDrv::getConnectionStatus() == WL_CONNECTED) {			
+					EspDrv::disconnect();
+				}
+				espSerial->end();
+				delete espSerial;
+				espSerial = NULL; 
+			}
+		}
 
 		void update(unsigned long ms);
 

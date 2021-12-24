@@ -5,12 +5,7 @@
         static uint8_t MHZ19SensorProcess::CMD_GETPPM[MHZ19_CMDSIZE] = {0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
         static uint8_t MHZ19SensorProcess::CMD_SETRNG5000[MHZ19_CMDSIZE] = {0xFF, 0x01, 0x99, 0x00, 0x00, 0x00, 0x13, 0x88, 0xCB};
         static uint8_t MHZ19SensorProcess::CMD_AUTOCALOFF[MHZ19_CMDSIZE] = {0xff, 0x01, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86};         
-        static uint8_t MHZ19SensorProcess::CMD_REBOOT[MHZ19_CMDSIZE] = {0xff, 0x01, 0x8d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x71};
 MHZ19SensorProcess::MHZ19SensorProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
-            swSerial.begin(9600);
-            sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
-            sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
-            getData();    // first request always fails
             ready = false;
             // reboot timeout
             this->pause(MHZ19_PREBURN_TIMEOUT);
@@ -24,9 +19,13 @@ void MHZ19SensorProcess::update(unsigned long ms) {
             if (!ready) {
                 // this gets little more memory
                 this->getHost()->stopProcess(PRC_BME280);
-                this->getHost()->stopProcess(PRC_RTC);
+                
+                swSerial.begin(9600);
+                sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
+                sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
+                getData();    // first request always fails
+                this->pause(500);
                 ready = true;
-                this->pause(100);
                 return;
             } else {
                 getData();
@@ -39,9 +38,9 @@ void MHZ19SensorProcess::update(unsigned long ms) {
                     (float)this->co2)
                 );
                 this->sendMessage(new TaskDoneMessage(this));
-                this->pause();
                 this->getHost()->addProcess(PRC_BME280);
-                this->getHost()->addProcess(PRC_RTC);
+                this->pause();
+                
                 return;
             }
 }

@@ -150,9 +150,9 @@ bool DisplayProcess::handleMessage(IProcessMessage* msg) {
 			if (e->event == WifiEventMessage::WifiEvent::ERROR) {
 				showEvent(0, 7, F("WIFI: ERR "));
 			}
-			/*else if (e->event == WifiEventMessage::WifiEvent::NONE) {
-				showEvent(0, 7, F("WIFI: NONE"));
-			}*/
+			else if (e->event == WifiEventMessage::WifiEvent::NONE) {
+				showEvent(0, 7, F("WIFI: OK  "));
+			}
 			return false;
 		}
 	}

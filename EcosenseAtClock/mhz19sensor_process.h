@@ -28,8 +28,10 @@ class MHZ19SensorProcess: public IFirmwareProcess {
         static uint8_t CMD_GETPPM[MHZ19_CMDSIZE];
         static uint8_t CMD_SETRNG5000[MHZ19_CMDSIZE];
         static uint8_t CMD_AUTOCALOFF[MHZ19_CMDSIZE];
-        static uint8_t CMD_REBOOT[MHZ19_CMDSIZE];
+        //static uint8_t CMD_RESET[MHZ19_CMDSIZE];
 
+        /*//@cpp
+        static uint8_t MHZ19SensorProcess::CMD_RESET[MHZ19_CMDSIZE] = {0xff, 0x01, 0x8d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x71};*/
 
 	public:
         PROCESSID(PRC_MHZ19);

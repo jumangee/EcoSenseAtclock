@@ -62,7 +62,7 @@
     #define PPD42NS_ANALOG_PIN_ADDR2    9   // PM2.5
 
     // ---[ SENSOR PRE-BURN TIMEOUT ]---
-    #define MHZ19_PREBURN_TIMEOUT       90000
+    #define MHZ19_PREBURN_TIMEOUT       1200000
     #define MQ135_PREBURN_TIMEOUT       55000
     #define MQ136_PREBURN_TIMEOUT       57500
     #define MQ7_PREBURN_TIMEOUT         50000
@@ -83,17 +83,17 @@
     #define WIFI_RX_PIN                 2
     #define WIFI_TX_PIN                 3    
     #define WIFI_SSID                   "Jumangee"
-    #define WIFI_PWD                    "xxx"
+    #define WIFI_PWD                    "54d75bc245"
 
     // ---[ THINGSPEAK ]---
-    #define REPORTTOTHINGSPEAK          0
+    #define REPORTTOTHINGSPEAK          1
     #if REPORTTOTHINGSPEAK == 1
         #define THINGSPEAK_SERVER       F("api.thingspeak.com")
         #define THINGSPEAK_CHANNEL_KEY  "43RGUGMOBYBHCJV2"
         #define THINGSPEAKREPORT_URI    F("/update?api_key=")
     #else
-        #define THINGSPEAK_SERVER       F("example.net")
-        #define THINGSPEAK_CHANNEL_KEY  F("43RGUGMOBYBHCJV2")
+        #define THINGSPEAK_SERVER       F("jumangee.net")
+        #define THINGSPEAK_CHANNEL_KEY  F("TEST")
         #define THINGSPEAKREPORT_URI    F("/updateTest.php?api_key=")
     #endif
     #define THINGSPEAKPARAMS            8

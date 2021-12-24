@@ -10,21 +10,7 @@
 WifiProcess::WifiProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
 	//this->log("WifiProcess::start");
 	TRACELNF("WifiProcess::init");
-	espSerial.begin(19200);
-	TRACELN("Initializing ESP module...")
-	EspDrv::wifiDriverInit(&espSerial);
-	if (EspDrv::getConnectionStatus() == WL_NO_SHIELD) {
-		TRACELNF("[WiFi] FAIL");
-		/*delete this->espSerial;
-		this->espSerial = NULL;
-		this->stop();*/
-		//state = ReportState::NONE;
-		//this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::NONE));
-		this->pause();
-		return;
-	}
-	TRACELNF("[WiFi] OK");
-	state = ReportState::READY;
+	this->state = NONE;
 	this->pause(30000);
 }
 
@@ -35,33 +21,43 @@ static IFirmwareProcess* WifiProcess::factory(IProcessMessage* msg) {
 WifiProcess::~WifiProcess() {
 	// stop process
 	TRACELNF("WifiProcess::stop");
-	//if (espSerial != NULL) {
-		//delete espSerial;
-	//}
+	espStop();
 }
 
 void WifiProcess::update(unsigned long ms) {
 	//unsigned long now = millis();
-	/*if (this->dataSendTask.size > 0) {
-		if (WiFiConnect()) {
-			simpleSendData();
-			dataSendTask.clear();
-			EspDrv::disconnect();
-			TRACELN("[WIFI] Send packets done")
-			this->pause(REPORT_TIMEOUT);
+	// wait until MHZ19 finishes
+	if (this->getHost()->getProcess(PRC_MHZ19) != NULL) {
+		if (state == ReportState::CONNECTED) {
+			// cant stop right now - can be online
 			return;
-		} else {
-			TRACELNF("[WIFI] Failed to clearing tasks buf!")
 		}
-	}*/
+		espStop();
+		pause(5000);
+		return;
+	}
 	switch (state) {
+		case ReportState::NONE: {
+			espSerial = new SoftwareSerial(WIFI_RX_PIN, WIFI_TX_PIN);
+			espSerial->begin(19200);
+			TRACELN("Initializing ESP module...")
+			EspDrv::wifiDriverInit(espSerial);
+			if (EspDrv::getConnectionStatus() == WL_NO_SHIELD) {
+				TRACELNF("[WiFi] FAIL");
+				espStop();
+				this->pause();
+				return;
+			}
+			TRACELNF("[WiFi] OK");
+			state = ReportState::READY;
+			return;
+		}
 		case ReportState::READY: {
 			if ( this->dataSendTask.size > 0 ) {
 				if (WiFiConnect()) {
 					state = ReportState::CONNECTED;
 					this->pause(100);
 				} else {
-					//this->sendMessage(new WifiStateMessage(F("CONN ERR")));
 					this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::ERROR));
 					this->pause(15000);
 				}
@@ -69,18 +65,14 @@ void WifiProcess::update(unsigned long ms) {
 			return;
 		}
 		case ReportState::CONNECTED: {
-			//this->sendMessage(new WifiStateMessage(F("SENDING")));
 			simpleSendData();
 			state = ReportState::SENT;
-			//this->sendMessage(new WifiStateMessage(F("SENT")));
 			TRACELN("[WIFI] Send packets done")
 			break;
 		}
 		case ReportState::SENT: {
-			EspDrv::disconnect();
-			state = ReportState::READY;
-			//this->sendMessage(new WifiStateMessage(F("READY")));
-			//lastReportTime = millis();
+			espStop();
+			state = ReportState::NONE;
 			this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::OK));
 			
 			this->pause(REPORT_TIMEOUT);
@@ -92,7 +84,6 @@ void WifiProcess::update(unsigned long ms) {
 
 bool WifiProcess::WiFiConnect() {
 	// attempt to connect to WiFi network
-	//this->getHost()->sendMessage(new WiFiStateMsg(true));
 	if (EspDrv::getConnectionStatus() != WL_CONNECTED) {
 		TRACELNF("[WIFI] Attempting to connect");
 		if (EspDrv::wifiConnect(SF(WIFI_SSID).c_str(), SF(WIFI_PWD).c_str())) {
@@ -105,7 +96,6 @@ bool WifiProcess::WiFiConnect() {
 	} else {
 		return true;
 	}
-	//this->getHost()->sendMessage(new WiFiStateMsg(false));
 	return false;
 }
 
@@ -146,7 +136,6 @@ bool WifiProcess::handleMessage(IProcessMessage* msg) {
 			return false;
 		}
 		case AIRQUALITY_MESSAGE: {
-			//this->handleAirQualityMsg((AirQualityMsg*)msg);
 			AirQualityMsg* gas = (AirQualityMsg*)msg;
 			switch (gas->gasType())
 			{
@@ -155,7 +144,7 @@ bool WifiProcess::handleMessage(IProcessMessage* msg) {
 					break;
 				}
 				case AirQualityMsg::GasType::CO2: {
-					//dataSendTask.getParam(THINGSPEAK_PARAM_CO2).setValue(gas->getAmount());
+					dataSendTask.getParam(THINGSPEAK_PARAM_CO2).setValue(gas->getAmount());
 					break;
 				}
 				case AirQualityMsg::GasType::H2S: {
