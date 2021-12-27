@@ -35,7 +35,7 @@
 	#include "pwrconsumer_process.h"
 	#include "pwrconsumer1process.h"
 	#include "pwrconsumer2process.h"
-	//#include "pwrconsumer3process.h"
+	#include "pwrconsumer3process.h"
 #endif
 // -------------------
 

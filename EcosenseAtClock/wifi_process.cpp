@@ -65,7 +65,7 @@ void WifiProcess::update(unsigned long ms) {
 					state = ReportState::CONNECTED;
 					this->pause(100);
 				} else {
-					this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::ERROR));
+					//this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::ERROR));
 					this->pause(15000);
 					espStop();
 				}
@@ -85,7 +85,7 @@ void WifiProcess::update(unsigned long ms) {
 		}
 		case ReportState::SENT: {
 			espStop();
-			this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::OK));
+			//this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::OK));
 			
 			this->pause(REPORT_TIMEOUT);
 			return;
@@ -170,6 +170,16 @@ bool WifiProcess::handleMessage(IProcessMessage* msg) {
 			dataSendTask2->recount();
 			return false;
 		}
+		/*case BTNCLICK_MESSAGE: {
+			if (((ButtonClickMessage*)msg)->event == ButtonClickMessage::ButtonEvent::HOLD) {
+				if (this->state == DISABLED) {
+					this->state = NONE;
+				} else {
+					espStop();
+					this->state = DISABLED;
+				}
+			}
+		}*/
 	}
 	return false;
 }

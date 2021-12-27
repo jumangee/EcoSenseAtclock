@@ -13,13 +13,8 @@ uint32_t PinSwitchManager::requestPin(byte targetPin) {
 }
 
 bool PinSwitchManager::releasePin(uint32_t & key) {
-    /*TRACEF("PinSwitchManager//release: ")
-    TRACE(key)
-    TRACEF(", current: ")
-    TRACELN(this->useStarted)*/
     if (key == 0 || key == this->useStarted) {
         this->closeAll();   // fully off
-        //TRACELNF("PinSwitchManager//USEDPIN_NONE")
         return true;
     }
     return false; // nothing changed!
@@ -28,8 +23,6 @@ bool PinSwitchManager::releasePin(uint32_t & key) {
 void PinSwitchManager::closeAll() {
     for (byte i = 0; i < this->pinsCnt; i++) {
         byte pin = this->keyPins[i];
-        /*TRACEF("PinSwitchManager//pinOff: ")
-        TRACELN(pin)*/
         digitalWrite(pin, LOW);
     }
     this->useStarted = 0;
@@ -41,16 +34,10 @@ void PinSwitchManager::usePin(byte num) {
     this->closeAll();
     for (byte i = 0; i < this->pinsCnt; i++) {
         byte pin = this->keyPins[i];
-        /*TRACEF("PinSwitchManager//check pin=")
-        TRACE(pin)
-        TRACEF(", to=")
-        TRACELN(num)*/
         if (num == pin) {
             digitalWrite(num, HIGH);
             this->currentPin = num;
             this->useStarted = millis();
-            /*TRACEF("PinSwitchManager//used pin=")
-            TRACELN(currentPin)*/
         }
     }
 }

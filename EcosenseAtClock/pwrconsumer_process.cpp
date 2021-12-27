@@ -4,8 +4,6 @@
 #include "ecosense_messages.h"
 
 PwrConsumerProcess::PwrConsumerProcess(byte keyPin, IProcessMessage* msg) : IFirmwareProcess(msg){
-	/*this->taskIdList = idList;
-	this->taskCnt = tasks;*/
 	this->keyPin = keyPin;
 	this->poweredTime = 0;
 }
@@ -42,10 +40,8 @@ void PwrConsumerProcess::update(unsigned long ms) {
 		case START: {
 			TRACELNF("PwrConsumer: start tasks");
 			for (byte i = 0; i < tasksCnt; i++) {
-				//TaskInfo* task = this->tasks.get(i);
 				this->getHost()->addProcess(tasks[i].prcId);
 				tasks[i].state = ACTIVE;
-				//task->state = ACTIVE;
 			}
 			return;
 		}

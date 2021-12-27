@@ -2,7 +2,6 @@
 #include "ecosense_messages.h"
 
 RTClockProcess::RTClockProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
-            //dotFlag = false;
 	#if RESET_CLOCK == 1
 		const char* compile_date_time = __DATE__ " " __TIME__;
 		datetime_t compiled_time_t = rtc.str20ToTime(compile_date_time);
@@ -31,8 +30,7 @@ static IFirmwareProcess* RTClockProcess::factory(IProcessMessage* msg) {
 void RTClockProcess::update(unsigned long ms) {
 	if (rtc.isDateTimeValid()) {
 		datetime_t now = rtc.getNow();
-		//dotFlag = !dotFlag;
-		this->sendMessage(new CurrentTimeMsg(now.hour, now.min/*, dotFlag*/));
+		this->sendMessage(new CurrentTimeMsg(now.hour, now.min));
 	}
 	this->pause(950);
 }

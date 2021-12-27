@@ -11,7 +11,9 @@
 
 #include "ecosense_cfg.h"
 
-class ButtonSensorProcess: public IFirmwareProcess {
+#include "adcmuxchannel_process.h"
+
+class ButtonSensorProcess: public ADCMuxChannelProcess {
 	private:
         bool lastState = false;
         uint32_t pressDn = 0;

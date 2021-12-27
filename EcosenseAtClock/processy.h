@@ -74,7 +74,6 @@ class IFirmware {
 		#ifdef DEBUG_PRO_MS
 		void resetProcessMsTotal() {
 			for (int i = 0; i < this->processList.size(); i++) {
-				//IFirmwareProcess* process = ;
 				this->processList.get(i)->resetUsedMs();
 			}
 		}

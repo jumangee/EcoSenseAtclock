@@ -34,10 +34,6 @@ class PwrConsumerProcess: public IFirmwareProcess {
 
         byte        	keyPin;
         uint32_t    	poweredTime;
-		//WorkState		tasksArr[MAXTASKCOUNT];
-		//const uint16_t	*taskIdList;
-		//byte			taskCnt;
-		//LinkedList<TaskInfo*> tasks;
 
 		TaskInfo		tasks[MAXTASKCOUNT];
 		byte			tasksCnt = 0;

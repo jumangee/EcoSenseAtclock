@@ -28,7 +28,7 @@
 #include "processy_process.h"
 
 #include "simplesensor_process.h"
-#include "adcmux_mngmnt.h"
+//#include "adcmux_mngmnt.h"
 
 #include "ecosense_messages.h"
 
@@ -58,10 +58,11 @@ class MQSensorProcess: public SimpleSensorProcess {
 		//@include "ecosense_cfg.h"
 		//@include "ecosense_messages.h"
 		void update(unsigned long ms) {
-			uint32_t ticket = ADCMuxManagement::get()->requestChannel(this->channel);	// ADC MUX PIN!
-			if (ticket) {
+			//uint32_t ticket = ADCMuxManagement::get()->requestChannel(this->channel);	// ADC MUX PIN!
+			if (this->getChannel(this->channel)) {
 				bool done = this->readingsDone(MQ_READINGS_PER_RESULT);
-				ADCMuxManagement::get()->release(ticket);
+				//ADCMuxManagement::get()->release(ticket);
+				this->freeChannel();
 				if (done) {
 					TRACELNF("MQSensorProcess:done!")
 					IProcessMessage* result = this->getResultMsg();

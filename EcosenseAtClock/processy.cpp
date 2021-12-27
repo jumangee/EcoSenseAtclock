@@ -115,28 +115,30 @@ void IFirmware::addProcess(uint16_t pId, IProcessMessage* msg = NULL) {
 	this->processList.add(newProcess);
 }
 
-		//*** OVERRIDE THIS ***/
 void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
 	#ifdef DEBUG_PRO_MS
-	TRACEF("----- PROC SUMMARY (for ");
-	TRACE(dT);
-	TRACELNF("ms) -----");
-	for (int i = 0; i < this->processList.size(); i++) {
-		IFirmwareProcess* process = processList.get(i);
-		{
-			uint32_t used = process->getUsedMs();
-			TRACE(process->getId())
-			TRACEF(": ")
-			TRACE(used)
-			TRACEF("ms (");
-			TRACE(round((used * 100) / dT))
-			TRACELNF("%)");
+		#if PROCESSY_DEBUG_SERIAL == 1
+		TRACEF("----- PROC SUMMARY (for ");
+		TRACE(dT);
+		TRACELNF("ms) -----");
+		for (int i = 0; i < this->processList.size(); i++) {
+			IFirmwareProcess* process = processList.get(i);
+			{
+				uint32_t used = process->getUsedMs();
+				TRACE(process->getId())
+				TRACEF(": ")
+				TRACE(used)
+				TRACEF("ms (");
+				TRACE(round((used * 100) / dT))
+				TRACELNF("%)");
+			}
+			process->resetUsedMs();
 		}
-		process->resetUsedMs();
-	}
+		#endif
+	int free = freeMemory();
+	this->sendMessage(new MemUsageMessage(free));
 	TRACEF("MEM FREE:");
-	this->sendMessage(new MemUsageMessage());
-	TRACELN(freeMemory())
+	TRACELN(free)
 	TRACELNF("--------------------------------------");
 	#endif
 }

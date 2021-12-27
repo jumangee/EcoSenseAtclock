@@ -28,7 +28,7 @@
 #include "processy_process.h"
 
 #include "simplesensor_process.h"
-#include "adcmux_mngmnt.h"
+//#include "adcmux_mngmnt.h"
 
 #include "ecosense_messages.h"
 

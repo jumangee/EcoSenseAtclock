@@ -2,7 +2,7 @@
 
 PwrConsumer3Process::PwrConsumer3Process(IProcessMessage* msg) : PwrConsumerProcess(PWRMNGMTPIN_PROCESS3, msg){
     //addTask(PRC_PPD42NS);
-    //addTask(PRC_MQ7);
+    addTask(PRC_MQ7);
     TRACELNF("PwrConsumer3Process::init")
 }
 

@@ -46,6 +46,7 @@ class DisplayProcess: public IFirmwareProcess {
 		bool				timeDots = true;
 		LinkedList<WarningInfo*> warnings;
 		int					showWarningNum = -1;
+		bool				wifiOn = true;
 
 	public:
 		PROCESSID(PRC_DISPLAY);

@@ -46,6 +46,7 @@ class DisplayProcess: public IFirmwareProcess {
 		bool				timeDots = true;
 		LinkedList<WarningInfo*> warnings;
 		int					showWarningNum = -1;
+		bool				wifiOn = true;
 
 	public:
 		PROCESSID(PRC_DISPLAY);
@@ -282,15 +283,31 @@ class DisplayProcess: public IFirmwareProcess {
 					return false;
 				}
 				case BTNCLICK_MESSAGE: {
-					if (warnings.size() > 0) {
-						if (this->showWarningNum == -1) {
-							oled.clear();
+					switch (((ButtonClickMessage*)msg)->event)
+					{
+						case ButtonClickMessage::ButtonEvent::CLICK: {
+							if (warnings.size() > 0) {
+								if (this->showWarningNum == -1) {
+									oled.clear();
+								}
+								this->showWarningNum++;
+								this->updateWarnings = true;
+								this->updateScreen = true;
+							}
+							return true; // dispose
 						}
-						this->showWarningNum++;
-						this->updateWarnings = true;
-						this->updateScreen = true;
+						/*case ButtonClickMessage::ButtonEvent::HOLD: {
+							oled.clear();
+							oled.set2X();
+							wifiOn = !wifiOn;
+							showEvent(0, 3, wifiOn ? F("WIFI ON") : F("WIFI OFF"));
+							oled.set1X();
+							this->pause(1000);
+							this->updateWarnings = true;
+							this->updateScreen = true;
+							return false;
+						}*/
 					}
-					return true; // dispose
 				}
 				/*case TASKDONE_MESSAGE: {
 					TaskDoneMessage* e = (TaskDoneMessage*)msg;
@@ -298,7 +315,7 @@ class DisplayProcess: public IFirmwareProcess {
 					oled.print(e->getTaskId());
 					return false;
 				}*/
-				case WIFIEVENT_MESSAGE: {
+				/*case WIFIEVENT_MESSAGE: {
 					WifiEventMessage* e = (WifiEventMessage*)msg;
 					if (e->event == WifiEventMessage::WifiEvent::ERROR) {
 						showEvent(0, 7, F("WIFI: ERR "));
@@ -307,7 +324,7 @@ class DisplayProcess: public IFirmwareProcess {
 						showEvent(0, 7, F("WIFI: OK  "));
 					}
 					return false;
-				}
+				}*/
 			}
 			return false;
 		}
@@ -360,7 +377,7 @@ class DisplayProcess: public IFirmwareProcess {
 			oled.print(round(msg->getAmount()));
 			oled.print(F("   "));*/
 
-			if (gas == AirQualityMsg::GasType::CO2) {
+			if (gas == AirQualityMsg::GasType::CO2 && showWarningNum == -1) {
 				showEvent(0, 6, getTitle(gasCode));
 				oled.print(F(": "));
 				oled.print(round(msg->getAmount()));

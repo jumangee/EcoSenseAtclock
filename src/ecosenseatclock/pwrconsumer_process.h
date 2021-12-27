@@ -34,10 +34,6 @@ class PwrConsumerProcess: public IFirmwareProcess {
 
         byte        	keyPin;
         uint32_t    	poweredTime;
-		//WorkState		tasksArr[MAXTASKCOUNT];
-		//const uint16_t	*taskIdList;
-		//byte			taskCnt;
-		//LinkedList<TaskInfo*> tasks;
 
 		TaskInfo		tasks[MAXTASKCOUNT];
 		byte			tasksCnt = 0;
@@ -49,8 +45,6 @@ class PwrConsumerProcess: public IFirmwareProcess {
 
 		//@implement
 		PwrConsumerProcess(byte keyPin, IProcessMessage* msg): IFirmwareProcess(msg) {
-			/*this->taskIdList = idList;
-			this->taskCnt = tasks;*/
 			this->keyPin = keyPin;
 			this->poweredTime = 0;
 		}
@@ -100,10 +94,8 @@ class PwrConsumerProcess: public IFirmwareProcess {
 				case START: {
 					TRACELNF("PwrConsumer: start tasks");
 					for (byte i = 0; i < tasksCnt; i++) {
-						//TaskInfo* task = this->tasks.get(i);
 						this->getHost()->addProcess(tasks[i].prcId);
 						tasks[i].state = ACTIVE;
-						//task->state = ACTIVE;
 					}
 					return;
 				}

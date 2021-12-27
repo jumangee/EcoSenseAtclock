@@ -65,11 +65,11 @@
 
     // ---[ SENSOR PRE-BURN TIMEOUT ]---
     #define MHZ19_PREBURN_TIMEOUT       90000
-    #define MQ135_PREBURN_TIMEOUT       55000
-    #define MQ136_PREBURN_TIMEOUT       57500
-    #define MQ7_PREBURN_TIMEOUT         50000
-    #define MQ4_PREBURN_TIMEOUT         65000
-    #define CJMCU1100_PREBURN_TIMEOUT   77500
+    #define MQ135_PREBURN_TIMEOUT       75000
+    #define MQ136_PREBURN_TIMEOUT       77500
+    #define MQ7_PREBURN_TIMEOUT         70000
+    #define MQ4_PREBURN_TIMEOUT         74500
+    #define CJMCU1100_PREBURN_TIMEOUT   77000
 
     // ---[ BME280 ]---
     //#define BME280_ADDRESS              (0x76)

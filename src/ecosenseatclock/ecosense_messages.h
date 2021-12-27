@@ -239,12 +239,18 @@ class TaskDoneMessage: public IProcessMessage {
  */
 class ButtonClickMessage: public IProcessMessage {
 	public:
-		ButtonClickMessage(): IProcessMessage(NULL, BTNCLICK_MESSAGE) {
+		enum ButtonEvent {
+			CLICK,
+			HOLD
+		} event;
+
+		ButtonClickMessage(ButtonEvent e = CLICK): IProcessMessage(NULL, BTNCLICK_MESSAGE) {
+			this->event = e;
 		}
 };
 
 
-class ParticlePPD42Message: public IProcessMessage {
+/*class ParticlePPD42Message: public IProcessMessage {
 	public:
 		ParticlePPD42Message(float ratioPm1, float concentrationPm1, float ratioPm2, float concentrationPm2): IProcessMessage(NULL, PPD42NS_MESSAGE) {
 			this->ratioPm1 = ratioPm1;
@@ -257,6 +263,6 @@ class ParticlePPD42Message: public IProcessMessage {
 		float ratioPm2;
 		float concentrationPm1;
 		float concentrationPm2;
-};
+};*/
 
 #endif

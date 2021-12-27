@@ -58,10 +58,8 @@ class MHZ19SensorProcess: public IFirmwareProcess {
         //@include "swserialsingleton.h"
 		void update(unsigned long ms) {
             if (swSerial == NULL) {
-                TRACELN("MHZ19: trying to connect")
                 swSerial = SoftwareSerialSingleton::get(MHZ19_RXPIN, MHZ19_TXPIN, 9600);
                 if (swSerial != NULL) {
-                    TRACELN("MHZ19: GOT! ticket")
                     sendCommand( MHZ19SensorProcess::CMD_AUTOCALOFF );
                     sendCommand( MHZ19SensorProcess::CMD_SETRNG5000 );
                     getData();    // first request always fails
@@ -78,14 +76,12 @@ class MHZ19SensorProcess: public IFirmwareProcess {
                 this->sendMessage(new AirQualityMsg(AirQualityMsg::GasType::CO2, 
                     this->co2 < 600 ? AirQualityMsg::GasConcentration::MINIMAL : (
                         this->co2 > 2500 ? AirQualityMsg::GasConcentration::DANGER : (
-                            this->co2 > 1000 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::NORM
+                            this->co2 > 800 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::NORM
                         )
                     ),
                     (float)this->co2)
                 );
 
-                //this->sendMessage(new TaskDoneMessage(this));
-                //this->pause();
                 this->pause(CONSUMERPROCESSTIMEOUT);
                 return;
             }

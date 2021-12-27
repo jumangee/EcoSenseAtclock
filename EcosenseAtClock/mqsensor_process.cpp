@@ -11,10 +11,11 @@ uint16_t MQSensorProcess::getInstantValue() {
         }
 
 void MQSensorProcess::update(unsigned long ms) {
-	uint32_t ticket = ADCMuxManagement::get()->requestChannel(this->channel);	// ADC MUX PIN!
-	if (ticket) {
+	//uint32_t ticket = ADCMuxManagement::get()->requestChannel(this->channel);	// ADC MUX PIN!
+	if (this->getChannel(this->channel)) {
 		bool done = this->readingsDone(MQ_READINGS_PER_RESULT);
-		ADCMuxManagement::get()->release(ticket);
+		//ADCMuxManagement::get()->release(ticket);
+		this->freeChannel();
 		if (done) {
 			TRACELNF("MQSensorProcess:done!")
 			IProcessMessage* result = this->getResultMsg();

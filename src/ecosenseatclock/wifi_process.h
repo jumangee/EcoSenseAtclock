@@ -32,7 +32,8 @@ class WifiProcess: public IFirmwareProcess {
 			NONE = 0,
 			READY,
 			CONNECTED,
-			SENT
+			SENT,
+			DISABLED
 		}						state;
 	public:
 		PROCESSID(PRC_WIFI);
@@ -114,7 +115,7 @@ class WifiProcess: public IFirmwareProcess {
 							state = ReportState::CONNECTED;
 							this->pause(100);
 						} else {
-							this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::ERROR));
+							//this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::ERROR));
 							this->pause(15000);
 							espStop();
 						}
@@ -135,7 +136,7 @@ class WifiProcess: public IFirmwareProcess {
 				}
 				case ReportState::SENT: {
 					espStop();
-					this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::OK));
+					//this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::OK));
 					
 					this->pause(REPORT_TIMEOUT);
 					return;
@@ -225,6 +226,16 @@ class WifiProcess: public IFirmwareProcess {
 					dataSendTask2->recount();
 					return false;
 				}
+				/*case BTNCLICK_MESSAGE: {
+					if (((ButtonClickMessage*)msg)->event == ButtonClickMessage::ButtonEvent::HOLD) {
+						if (this->state == DISABLED) {
+							this->state = NONE;
+						} else {
+							espStop();
+							this->state = DISABLED;
+						}
+					}
+				}*/
 			}
 			return false;
 		}

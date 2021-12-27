@@ -12,20 +12,17 @@
 #include "ecosense_cfg.h"
 #include <Arduino.h>
 
+#include "adcmuxchannel_process.h"
 
-class ParticlePPD42SensorProcess: public IFirmwareProcess {
+
+class ParticlePPD42SensorProcess: public ADCMuxChannelProcess {
 	private:
-		byte currentSample = 0;
-		byte currentMeasureMode = 0;
+		float ratioPm1;
+		float ratioPm2;
+		float concentrationPm1;
+		float concentrationPm2;
 
-		struct PPD42SampleData {
-			float ratioPm1;
-			float ratioPm2;
-			float concentrationPm1;
-			float concentrationPm2;
-		};
-
-		PPD42SampleData samples[PPD42NS_READS_COUNT];
+		bool statePm1 = true;
 
 		unsigned long lowpulseoccupancy = 0;
 		unsigned long sampleTotalTime = 0;
@@ -33,11 +30,9 @@ class ParticlePPD42SensorProcess: public IFirmwareProcess {
 	public:
 		PROCESSID(PRC_PPD42NS);
 
-		ParticlePPD42SensorProcess(IProcessMessage* msg);
+		ParticlePPD42SensorProcess();
 
 		static IFirmwareProcess* factory(IProcessMessage* msg);
-
-		void done();
 
 		void update(unsigned long ms);
 };

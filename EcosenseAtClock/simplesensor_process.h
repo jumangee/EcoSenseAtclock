@@ -9,7 +9,9 @@
 #include "processy.h"
 #include "processy_process.h"
 
-class SimpleSensorProcess: public IFirmwareProcess {
+#include "adcmuxchannel_process.h"
+
+class SimpleSensorProcess: public ADCMuxChannelProcess {
 	private:
 		byte readingsCount;
         float value;

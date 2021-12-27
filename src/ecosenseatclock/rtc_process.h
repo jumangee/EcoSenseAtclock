@@ -18,7 +18,6 @@
 
 class RTClockProcess: public IFirmwareProcess {
 	private:
-        //boolean dotFlag;
 		RtcDS3231SimpleI2C	rtc = RtcDS3231SimpleI2C(RTC_I2C_ADDR);
 
 	public:
@@ -26,7 +25,6 @@ class RTClockProcess: public IFirmwareProcess {
 		
 		//@implement
 		RTClockProcess(IProcessMessage* msg): IFirmwareProcess(msg) {
-            //dotFlag = false;
 
 			#if RESET_CLOCK == 1
 				const char* compile_date_time = __DATE__ " " __TIME__;
@@ -62,8 +60,7 @@ class RTClockProcess: public IFirmwareProcess {
 		void update(unsigned long ms) {
 			if (rtc.isDateTimeValid()) {
 				datetime_t now = rtc.getNow();
-				//dotFlag = !dotFlag;
-				this->sendMessage(new CurrentTimeMsg(now.hour, now.min/*, dotFlag*/));
+				this->sendMessage(new CurrentTimeMsg(now.hour, now.min));
 			}
 
 			this->pause(950);

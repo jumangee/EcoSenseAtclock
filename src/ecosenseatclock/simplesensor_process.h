@@ -9,14 +9,16 @@
 #include "processy.h"
 #include "processy_process.h"
 
-class SimpleSensorProcess: public IFirmwareProcess {
+#include "adcmuxchannel_process.h"
+
+class SimpleSensorProcess: public ADCMuxChannelProcess {
 	private:
 		byte readingsCount;
         float value;
 
 	public:
 		//@implement
-		SimpleSensorProcess(IProcessMessage* msg): IFirmwareProcess(msg) {
+		SimpleSensorProcess(IProcessMessage* msg): ADCMuxChannelProcess(msg) {
 			this->readingsCount = 0;
             this->value = 0;
 		}

@@ -32,7 +32,8 @@ class WifiProcess: public IFirmwareProcess {
 			NONE = 0,
 			READY,
 			CONNECTED,
-			SENT
+			SENT,
+			DISABLED
 		}						state;
 	public:
 		PROCESSID(PRC_WIFI);

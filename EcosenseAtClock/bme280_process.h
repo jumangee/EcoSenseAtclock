@@ -25,8 +25,6 @@ class BME280SensorProcess: public IFirmwareProcess {
 		static IFirmwareProcess* factory(IProcessMessage* msg);
 
 		void update(unsigned long ms);
-
-		IProcessMessage* readBME280();
 };
 
 #endif
