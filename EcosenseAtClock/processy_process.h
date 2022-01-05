@@ -42,15 +42,7 @@ class IFirmwareProcess {
 
 		void stop();
 
-		virtual bool isPaused(unsigned long start) {
-			if (this->state == ProcessState::PAUSE) {
-				if (start < this->pausedUpTo) {
-					return true;
-				}
-				this->unPause();
-			}
-			return false;
-		}
+		virtual bool isPaused(unsigned long start);
 
 		virtual unsigned long run(unsigned long start);
 

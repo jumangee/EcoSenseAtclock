@@ -19,6 +19,16 @@ void IFirmwareProcess::stop() {
 	this->state = ProcessState::STOP;
 }
 
+bool IFirmwareProcess::isPaused(unsigned long start) {
+	if (this->state == ProcessState::PAUSE) {
+		if (start < this->pausedUpTo) {
+			return true;
+		}
+		this->unPause();
+	}
+	return false;
+}
+
 unsigned long IFirmwareProcess::run(unsigned long start) {
 	unsigned long ms = start - this->lastUpdate;
 	this->update(ms);
@@ -47,7 +57,9 @@ bool IFirmwareProcess::handleMessage(IProcessMessage* msg) {
 };
 
 void IFirmwareProcess::sendMessage(IProcessMessage* msg) {
-	this->getHost()->sendMessage(msg);
+	if (msg != NULL) {
+		this->getHost()->sendMessage(msg);
+	}
 };
 
 IFirmware* IFirmwareProcess::getHost() {

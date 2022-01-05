@@ -2,10 +2,18 @@
 #define _PROCESSY_CFG_H
 
     /*** processy config ***/
-    #define DEBUG_PRO_MS_
-    #define DEBUG_PRO_PERIOD_MS 10000
+	#define	PROCESSY_MAX_LIST		30	
+    
+	/**
+	 * @brief Add system debug info
+	 * 0 - OFF
+	 * 1 - Standart (ifirmware built-in)
+	 * 2 - Custom (save a little of progmem)
+	 */
+	#define DEBUG_PRO_MS			2
+    #define DEBUG_PRO_PERIOD_MS		10000
 
-	#define PROCESSY_DEBUG_SERIAL 0
+	#define PROCESSY_DEBUG_SERIAL	0
 
     /*** processy inlines ***/
     #define S(t) String(t)

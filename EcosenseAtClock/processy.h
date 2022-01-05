@@ -5,40 +5,55 @@
 #ifndef _FIRMWARE_FRAMEWORK_H
 #define _FIRMWARE_FRAMEWORK_H
 
-#include "LinkedList/LinkedList.h"
-
 #include "processy_cfg.h"
 #include "processy_process.h"
 #include "processy_message.h"
 #include <math.h>
 
-#define FACTORY(className) ProcessFactoryReg(className::ID, &className::factory)
-
 typedef IFirmwareProcess* (*ProcessFactory)(IProcessMessage*);
 
-class ProcessFactoryReg {
-	public:
-		uint16_t 		id;
-		ProcessFactory	factory;
+#define PROCESS_REG(className) registerProcess(className::ID, &className::factory)
 
-		ProcessFactoryReg(uint16_t pId, ProcessFactory f) {
-			this->id = pId;
-			this->factory = f;
+struct IFirmwareProcessRegistration {
+	public:
+		uint16_t 			id;
+		ProcessFactory		factory;
+		IFirmwareProcess*	prc;
+
+		IFirmwareProcessRegistration(uint16_t pId, ProcessFactory f) {
+			id = pId;
+			factory = f;
+			prc = NULL;
+		}
+
+		void kill() {
+			if (prc != NULL) {
+				delete this->prc;
+				this->prc = NULL;
+			}
+		}
+
+		bool isActive() {
+			return prc != NULL;
 		}
 };
 
 class IFirmware {
 	protected:
-		static IFirmware* instance;
+		static IFirmware*				instance;
+		IFirmwareProcessRegistration*	processList[PROCESSY_MAX_LIST];
+		uint16_t						processListSize = 0;
 
-		IFirmware();
+		IFirmware() {
+			#ifdef DEBUG_PRO_MS
+			this->resetMsDebugTimer(millis());
+			#endif
+		}
 
 	public:
 		static IFirmware* get() {
 			return IFirmware::instance;
 		}
-
-		virtual ProcessFactory getFactory(uint16_t pId) = 0;
 
 		IFirmwareProcess* getProcess(uint16_t pId);
 
@@ -59,8 +74,6 @@ class IFirmware {
 		void addProcess(uint16_t pId, IProcessMessage* msg = NULL);
 
 	protected:
-		LinkedList<IFirmwareProcess*> processList;
-
 		#ifdef DEBUG_PRO_MS
 		unsigned long msDebugTimerStart;
 
@@ -69,21 +82,15 @@ class IFirmware {
 		}
 		#endif
 
-		void handlerProcessDebugTimer(unsigned long dT);
-
-		#ifdef DEBUG_PRO_MS
-		void resetProcessMsTotal() {
-			for (int i = 0; i < this->processList.size(); i++) {
-				this->processList.get(i)->resetUsedMs();
-			}
-		}
-		#endif
+		virtual void handlerProcessDebugTimer(unsigned long dT);
 
 		bool update(unsigned long ms);
 
-		IFirmwareProcess* createProcess(uint16_t pId, IProcessMessage* msg);
-
 		int findProcess(uint16_t pId);
+
+		IFirmwareProcessRegistration* findRegistration(uint16_t pId);
+
+		void registerProcess(uint16_t pId, ProcessFactory f);
 
 };
 

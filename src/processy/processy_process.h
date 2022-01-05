@@ -58,6 +58,7 @@ class IFirmwareProcess {
 			this->state = ProcessState::STOP;
 		}
 
+		//@implement
 		virtual bool isPaused(unsigned long start) {
 			if (this->state == ProcessState::PAUSE) {
 				if (start < this->pausedUpTo) {
@@ -108,7 +109,9 @@ class IFirmwareProcess {
 
 		//@implement
 		void sendMessage(IProcessMessage* msg) {
-			this->getHost()->sendMessage(msg);
+			if (msg != NULL) {
+				this->getHost()->sendMessage(msg);
+			}
 		};
 
 	private:
