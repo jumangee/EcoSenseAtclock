@@ -51,7 +51,24 @@
 
             const __FlashStringHelper* getApiKey();
 
-            String getUrl();
+            /*//@implement
+            String getUrl() {
+                String url;
+                url.reserve(size * 15);
+                for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
+                    UrlParam p = this->getParam(i);
+                    if (p.active) {
+                        String buf;
+                        buf.reserve(15);
+                        buf += F("&field");
+                        buf += (i + 1);
+                        buf += F("=");
+                        buf += p.getValue();
+                        url += buf;
+                    }
+                }
+                return url;
+            }*/
 
             void recount() {
                 byte c = 0;

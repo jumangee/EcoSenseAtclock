@@ -24,9 +24,7 @@
 class WifiProcess: public IFirmwareProcess {
 	private:
 		SoftwareSerial 			*espSerial = NULL;
-		
-		ThingspeakWebSendTask*	dataSendTask1;
-		ThingspeakWebSendTask*	dataSendTask2;
+		ThingspeakWebSendTask*	dataSendTask[THINGSPEAK_CHANNELS];
 
 		enum ReportState {
 			NONE = 0,
@@ -35,6 +33,7 @@ class WifiProcess: public IFirmwareProcess {
 			SENT,
 			DISABLED
 		}						state;
+		
 	public:
 		PROCESSID(PRC_WIFI);
 
@@ -52,7 +51,20 @@ class WifiProcess: public IFirmwareProcess {
 
 		void simpleSendData(ThingspeakWebSendTask *task);
 
+		void sendPacket(String data) {
+			EspDrv::sendData(1, data.c_str(), data.length());
+		}
+
 		bool handleMessage(IProcessMessage* msg);
+
+		bool dataReadyToSend() {
+			for (byte i = 0; i < THINGSPEAK_CHANNELS; i++) {
+				if (dataSendTask[i]->size > 0) {
+					return true;
+				}
+			}
+			return false;
+		}
 };
 
 #endif

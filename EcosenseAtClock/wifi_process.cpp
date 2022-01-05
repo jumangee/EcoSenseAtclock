@@ -4,14 +4,13 @@
 #include "EspDrv/EspDrv.cpp"
 #include <Arduino.h>
 #include "swserialsingleton.h"
-#include "processy_cfg.h"
 #include "EspDrv/EspDrv.h"
 #include "ecosense_messages.h"
 
 WifiProcess::WifiProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
-	dataSendTask1 = new ThingspeakWebSendTask(THINGSPEAK_CHANNEL1_KEY);
-	dataSendTask2 = new ThingspeakWebSendTask(THINGSPEAK_CHANNEL2_KEY);
-	TRACELNF("WifiProcess::init");
+	// initializers count must be equal to THINGSPEAK_CHANNELS!
+	dataSendTask[THINGSPEAKCHANNEL_COMMON] = new ThingspeakWebSendTask(THINGSPEAK_CHANNEL1_KEY);
+	dataSendTask[THINGSPEAKCHANNEL_AIRQUALITY] = new ThingspeakWebSendTask(THINGSPEAK_CHANNEL2_KEY);
 	this->state = NONE;
 	this->pause(30000);
 }
@@ -24,6 +23,9 @@ WifiProcess::~WifiProcess() {
 	// stop process
 	TRACELNF("WifiProcess::stop");
 	espStop();
+	for (byte i = 0; i < THINGSPEAK_CHANNELS; i++) {
+		delete dataSendTask[i];
+	}
 }
 
 void WifiProcess::espStop() {
@@ -41,7 +43,7 @@ void WifiProcess::update(unsigned long ms) {
 	//unsigned long now = millis();
 	switch (state) {
 		case ReportState::NONE: {
-			if ( this->dataSendTask1->size > 0 || this->dataSendTask2->size > 0) {
+			if ( dataReadyToSend() ) {
 				espSerial = SoftwareSerialSingleton::get(WIFI_RX_PIN, WIFI_TX_PIN, 19200);
 				if (espSerial != NULL) {
 					TRACELN("Initializing ESP module...")
@@ -60,24 +62,21 @@ void WifiProcess::update(unsigned long ms) {
 			return;
 		}
 		case ReportState::READY: {
-			if ( this->dataSendTask1->size > 0 || this->dataSendTask2->size > 0) {
-				if (WiFiConnect()) {
-					state = ReportState::CONNECTED;
-					this->pause(100);
-				} else {
-					//this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::ERROR));
-					this->pause(15000);
-					espStop();
-				}
+			if (WiFiConnect()) {
+				state = ReportState::CONNECTED;
+				this->pause(100);
+			} else {
+				//this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::ERROR));
+				this->pause(15000);
+				espStop();
 			}
 			return;
 		}
 		case ReportState::CONNECTED: {
-			if ( dataSendTask1->size > 0) {
-				simpleSendData(dataSendTask1);
-			}
-			if ( dataSendTask2->size > 0) {
-				simpleSendData(dataSendTask2);
+			for (byte i = 0; i < THINGSPEAK_CHANNELS; i++) {
+				if ( dataSendTask[i]->size > 0 ) {
+					simpleSendData(dataSendTask[i]);
+				}
 			}
 			state = ReportState::SENT;
 			TRACELN("[WIFI] Send packets done")
@@ -111,25 +110,31 @@ bool WifiProcess::WiFiConnect() {
 }
 
 void WifiProcess::simpleSendData(ThingspeakWebSendTask *task) {
-	uint8_t _sock = 1;
+	//uint8_t _sock = 1;
 	String server = THINGSPEAK_SERVER;
-	if (EspDrv::startClient(server.c_str(), 80, _sock, TCP_MODE)) {
+	if (EspDrv::startClient(server.c_str(), 80, 1, TCP_MODE)) {
 		TRACEF("Connected to server ");
 		TRACELN(server);
 		{
 			String buf = SF("GET ");
 			buf += THINGSPEAKREPORT_URI;
 			buf += task->getApiKey();
-			buf += task->getUrl(); 
-			buf += F(" HTTP/1.1\r\nHost: ");
+			sendPacket(buf);
+			for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
+				UrlParam p = task->getParam(i);
+				if (p.active) {
+					sendPacket(SF("&field"));
+					sendPacket(String(i + 1));
+					sendPacket(SF("="));
+					sendPacket(p.getValue());
+				}
+			}
+			buf = F(" HTTP/1.1\r\nHost: ");
 			buf += server;
 			buf += F("\r\nConnection: close\r\n\r\n");
-			TRACELN(buf);
-			if (!EspDrv::sendData(_sock, buf.c_str(), buf.length())) {
-				TRACELNF("[simpleSendData] Error");
-			}
+			sendPacket(buf);
 		}
-		EspDrv::stopClient(_sock);
+		EspDrv::stopClient(1);
 		task->clear();
 	}
 }
@@ -139,35 +144,54 @@ bool WifiProcess::handleMessage(IProcessMessage* msg) {
 	{
 		case ENVDATA_MESSAGE: {
 			EnvDataMessage* env = (EnvDataMessage*)msg;
+			ThingspeakWebSendTask* task = dataSendTask[THINGSPEAKCHANNEL_COMMON];
 			
-			dataSendTask1->getParam(THINGSPEAK_PARAM_TEMP).setValue(env->getTemp());
-			dataSendTask1->getParam(THINGSPEAK_PARAM_HUMIDITY).setValue(env->getHumidity());
-			dataSendTask1->getParam(THINGSPEAK_PARAM_PRESSURE).setValue(env->getPressure());
-			dataSendTask1->recount();
+			task->getParam(THINGSPEAK_PARAM_TEMP).setValue(env->temp);
+			task->getParam(THINGSPEAK_PARAM_HUMIDITY).setValue(env->humidity);
+			task->getParam(THINGSPEAK_PARAM_PRESSURE).setValue(env->pressure);
+			task->recount();
+			return false;
+		}
+		case SELFREPORT_MESSAGE: {
+			SelfReportMessage* report = (SelfReportMessage*)msg;
+			ThingspeakWebSendTask* task = dataSendTask[THINGSPEAKCHANNEL_COMMON];
+			
+			task->getParam(THINGSPEAK_PARAM_PROCESSES).setValue((uint16_t)report->processCount);
+			task->getParam(THINGSPEAK_PARAM_FREEMEM).setValue(report->freemem);
+			task->recount();
 			return false;
 		}
 		case AIRQUALITY_MESSAGE: {
 			AirQualityMsg* gas = (AirQualityMsg*)msg;
+			ThingspeakWebSendTask* task = dataSendTask[THINGSPEAKCHANNEL_AIRQUALITY];
 			switch (gas->gasType())
 			{
 				case AirQualityMsg::GasType::COMMON: {
-					dataSendTask2->getParam(THINGSPEAK_PARAM_COMMON).setValue(gas->getAmount());
+					task->getParam(THINGSPEAK_PARAM_COMMON).setValue(gas->getAmount());
 					break;
 				}
 				case AirQualityMsg::GasType::CO2: {
-					dataSendTask2->getParam(THINGSPEAK_PARAM_CO2).setValue(gas->getAmount());
+					task->getParam(THINGSPEAK_PARAM_CO2).setValue((uint16_t)gas->getAmount());
 					break;
 				}
 				case AirQualityMsg::GasType::H2S: {
-					dataSendTask2->getParam(THINGSPEAK_PARAM_H2S).setValue(gas->getAmount());
+					task->getParam(THINGSPEAK_PARAM_H2S).setValue(gas->getAmount());
 					break;
 				}
 				case AirQualityMsg::GasType::VOCs: {
-					dataSendTask2->getParam(THINGSPEAK_PARAM_VOCS).setValue(gas->getAmount());
+					task->getParam(THINGSPEAK_PARAM_VOCS).setValue(gas->getAmount());
+					break;
+				}
+				case AirQualityMsg::GasType::CO: {
+					task->getParam(THINGSPEAK_PARAM_CO).setValue(gas->getAmount());
+					break;
+				}
+				case AirQualityMsg::GasType::PM25: {
+					task->getParam(THINGSPEAK_PARAM_PM25).setValue(gas->getAmount());
 					break;
 				}
 			}
-			dataSendTask2->recount();
+			task->recount();
 			return false;
 		}
 		/*case BTNCLICK_MESSAGE: {
