@@ -1,3 +1,0 @@
-https://api.thingspeak.com/channels/<channel_id>/feeds.<format>
-
-https://api.thingspeak.com/channels/1283005/feeds.xml
