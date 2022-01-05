@@ -12,8 +12,6 @@
 #include "pwrload_mngmnt.h"
 #include "ecosense_cfg.h"
 
-//#include "LinkedList/LinkedList.h"
-
 /**
  * @brief Power management process: controls state and then ready - starts child processes, which do the work
  */

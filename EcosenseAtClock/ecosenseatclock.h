@@ -17,7 +17,7 @@
 #include "display_process.h"
 #include "rtc_process.h"
 #include "bme280_process.h"
-#include "btn_process.h"
+#include "mainbtn_process.h"
 #include "mhz19sensor_process.h"
 
 #if NOWIFI_BUILD != 1
@@ -37,6 +37,7 @@
 	#include "pwrconsumer2process.h"
 	#include "pwrconsumer3process.h"
 #endif
+
 // -------------------
 
 #include "stuff.h"
@@ -49,9 +50,10 @@ class EcosenseAtClockFirmware: public IFirmware {
 	EcosenseAtClockFirmware();
 	
 	public:
-		ProcessFactory getFactory(uint16_t pId);
-
 		static IFirmware* get();
+
+	protected:
+		virtual void handlerProcessDebugTimer(unsigned long dT);
 
 };
 

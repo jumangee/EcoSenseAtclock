@@ -8,6 +8,7 @@
         static uint8_t MHZ19SensorProcess::CMD_AUTOCALOFF[MHZ19_CMDSIZE] = {0xff, 0x01, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86};         
 MHZ19SensorProcess::MHZ19SensorProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
             this->pause(MHZ19_PREBURN_TIMEOUT);
+	TRACELNF("MHZ19: pre-burn timeout")
 }
 
 static IFirmwareProcess* MHZ19SensorProcess::factory(IProcessMessage* msg) {

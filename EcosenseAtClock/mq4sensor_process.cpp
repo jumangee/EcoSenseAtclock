@@ -4,6 +4,7 @@
 
 MQ4SensorProcess::MQ4SensorProcess(IProcessMessage* msg) : MQSensorProcess(MUXCHANNEL_MQ4, msg){
             this->pause(MQ4_PREBURN_TIMEOUT);    // pre-burn timeout
+	TRACELNF("MQ4: pre-burn timeout")
 }
 
 static IFirmwareProcess* MQ4SensorProcess::factory(IProcessMessage* msg) {

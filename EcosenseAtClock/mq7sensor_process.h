@@ -18,6 +18,7 @@ class MQ7SensorProcess: public MQSensorProcess {
 		
 		MQ7SensorProcess(IProcessMessage* msg): MQSensorProcess(MUXCHANNEL_MQ7, msg) {
             this->pause(MQ7_PREBURN_TIMEOUT);    // pre-burn timeout
+			TRACELNF("MQ7: pre-burn timeout")
 		}
 
 		static IFirmwareProcess* factory(IProcessMessage* msg);

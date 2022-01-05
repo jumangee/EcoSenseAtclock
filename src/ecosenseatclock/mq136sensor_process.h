@@ -34,6 +34,7 @@ class MQ136SensorProcess: public MQSensorProcess {
 		//@implement
 		MQ136SensorProcess(IProcessMessage* msg): MQSensorProcess(MUXCHANNEL_MQ136, msg) {
             this->pause(MQ136_PREBURN_TIMEOUT);    // pre-burn timeout
+			TRACELNF("MQ136: pre-burn timeout")
 		}
 
 		//@implement

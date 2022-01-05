@@ -12,8 +12,6 @@
 #include "pwrload_mngmnt.h"
 #include "ecosense_cfg.h"
 
-//#include "LinkedList/LinkedList.h"
-
 /**
  * @brief Power management process: controls state and then ready - starts child processes, which do the work
  */
@@ -100,9 +98,6 @@ class PwrConsumerProcess: public IFirmwareProcess {
 					return;
 				}
 				case DONE: {
-					// shutdown
-					TRACELNF("PwrConsumer: stop");
-					
 					this->stop();
 
 					// unlock pwr key
@@ -127,8 +122,6 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			switch (msg->getType())
 			{
 				case TASKDONE_MESSAGE: {
-					TRACELNF("PwrConsumer: task done")
-
 					uint16_t taskId = ((TaskDoneMessage*)msg)->getTaskId();
 
 					int pos = this->findTask(taskId);

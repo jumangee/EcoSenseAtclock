@@ -46,6 +46,7 @@ class MHZ19SensorProcess: public IFirmwareProcess {
         //@include "SoftwareSerial.h"
 		MHZ19SensorProcess(IProcessMessage* msg): IFirmwareProcess(msg) {
             this->pause(MHZ19_PREBURN_TIMEOUT);
+			TRACELNF("MHZ19: pre-burn timeout")
 		}
 
 		//@implement

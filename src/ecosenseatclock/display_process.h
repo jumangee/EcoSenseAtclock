@@ -24,8 +24,6 @@
 
 #include <math.h>
 
-#include "LinkedList/LinkedList.h"
-
 struct WarningInfo {
 	uint16_t id;
 	float value;
@@ -44,7 +42,9 @@ class DisplayProcess: public IFirmwareProcess {
 		uint8_t				timeH = 0;
 		uint8_t				timeM = 0;
 		bool				timeDots = true;
-		LinkedList<WarningInfo*> warnings;
+
+		WarningInfo			*warnings[MAX_DISPLAY_WARNINGS];
+		uint8_t				warningsCount;
 		int					showWarningNum = -1;
 		bool				wifiOn = true;
 
@@ -54,6 +54,10 @@ class DisplayProcess: public IFirmwareProcess {
 		//@implement
 		//@include <SSD1306AsciiWire.h>
 		DisplayProcess(IProcessMessage* msg): IFirmwareProcess(msg) {
+			for (uint8_t i = 0; i < MAX_DISPLAY_WARNINGS; i++) {
+				this->warnings[i] = NULL;
+			}
+
 			Wire.setClock(400000L);
 			oled.begin(&Adafruit128x64, OLED_ADDR);
 			oled.clear();
@@ -63,21 +67,30 @@ class DisplayProcess: public IFirmwareProcess {
 		void addWarning(uint32_t id, float value) {
 			int warnPos = this->findWarning(id);
 			if (warnPos > -1) {
-				this->warnings.get(warnPos)->value = value;
+				this->warnings[warnPos]->value = value;
+				return;
+			}
+			if (warningsCount >= MAX_DISPLAY_WARNINGS) {
 				return;
 			}
 
-			WarningInfo* warning = new WarningInfo();
-			warning->id = id;
-			warning->value = value;
-			warnings.add(warning);
+			for (warnPos = 0; warnPos < MAX_DISPLAY_WARNINGS; warnPos++) {
+				if (this->warnings[warnPos] == NULL) {
+					WarningInfo* warning = new WarningInfo();
+					warning->id = id;
+					warning->value = value;
+					warningsCount++;
 
-			updateWarnings = true;
+					this->warnings[warnPos] = warning;
+					updateWarnings = true;
+					return;
+				}
+			} 
 		}
 
 		int findWarning(uint32_t id) {
-			for (uint8_t i = 0; i < this->warnings.size(); i++) {
-				if (this->warnings.get(i)->id == id) {
+			for (uint8_t i = 0; i < MAX_DISPLAY_WARNINGS; i++) {
+				if (this->warnings[i] != NULL && this->warnings[i]->id == id) {
 					return i;
 				}
 			}
@@ -89,7 +102,9 @@ class DisplayProcess: public IFirmwareProcess {
 			if (warnPos == -1) {
 				return;
 			}
-			delete this->warnings.remove(warnPos);
+			delete this->warnings[warnPos];
+			this->warnings[warnPos] = NULL;
+			warningsCount--;
 			updateWarnings = true;
 		}
 
@@ -118,7 +133,7 @@ class DisplayProcess: public IFirmwareProcess {
 				}
 			}
 
-			if (showWarningNum > this->warnings.size()-1) {
+			if (showWarningNum >= warningsCount) {
 				showWarningNum = -1;
 				oled.clear();
 				updateScreen = true;
@@ -208,12 +223,27 @@ class DisplayProcess: public IFirmwareProcess {
 			}
 		}
 
+		int warnNumToPos(uint8_t num) {
+			uint8_t cur = 0;
+			for (uint8_t i = 0; i < warningsCount; i++) {
+				if (this->warnings[i] != NULL) {
+					if (cur == num) {
+						return i;
+					}
+					cur++;
+				}
+			}
+			return -1;
+		}
+
 		//@implement
 		void renderWarningScreen() {
 			oled.set2X();
-			//oled.setCursor(0, 2);
-			WarningInfo* warn = this->warnings.get(this->showWarningNum);
-			//oled.print(getTitle(warn->id));
+			uint8_t warnPos = warnNumToPos(this->showWarningNum);
+			if (warnPos == -1) {
+				return;
+			}
+			WarningInfo* warn = this->warnings[warnPos];
 			showEvent(0, 2, getTitle(warn->id));
 			oled.setCursor(0, 5);
 			oled.print(warn->value);
@@ -240,7 +270,7 @@ class DisplayProcess: public IFirmwareProcess {
 			//oled.print(F("                  "));
 			//oled.setInvertMode(true);
 			uint16_t i;
-			for (i = 0; i < this->warnings.size(); i++) {
+			for (i = 0; i < warningsCount; i++) {
 				uint8_t pos = 118-i*10;
 				if (pos < 1) {
 					break;
@@ -286,7 +316,7 @@ class DisplayProcess: public IFirmwareProcess {
 					switch (((ButtonClickMessage*)msg)->event)
 					{
 						case ButtonClickMessage::ButtonEvent::CLICK: {
-							if (warnings.size() > 0) {
+							if (warningsCount > 0) {
 								if (this->showWarningNum == -1) {
 									oled.clear();
 								}
@@ -336,20 +366,10 @@ class DisplayProcess: public IFirmwareProcess {
 
 		//@implement
 		void handleEnvDataMsg(EnvDataMessage* msg) {
-			//if (this->temp != msg->getTemp()) {
-				this->temp = msg->getTemp();
-			//	this->updateScreen = true;
-			//}
-
-			//if (this->humidity != msg->getHumidity()) {
-				this->humidity = msg->getHumidity();
-			//	this->updateScreen = true;
-			//}
-
-			//if (this->pressure != msg->getPressure()) {
-				this->pressure = msg->getPressure();
-				this->updateScreen = true;
-			//}
+			this->temp = msg->temp;
+			this->humidity = msg->humidity;
+			this->pressure = msg->pressure;
+			this->updateScreen = true;
 		}
 
 		//@implement

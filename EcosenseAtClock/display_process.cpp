@@ -3,6 +3,9 @@
 #include "ecosense_messages.h"
 
 DisplayProcess::DisplayProcess(IProcessMessage* msg) : IFirmwareProcess(msg){
+	for (uint8_t i = 0; i < MAX_DISPLAY_WARNINGS; i++) {
+		this->warnings[i] = NULL;
+	}
 	Wire.setClock(400000L);
 	oled.begin(&Adafruit128x64, OLED_ADDR);
 	oled.clear();
@@ -30,7 +33,7 @@ void DisplayProcess::update(unsigned long ms) {
 			this->removeWarning(2);
 		}
 	}
-	if (showWarningNum > this->warnings.size()-1) {
+	if (showWarningNum >= warningsCount) {
 		showWarningNum = -1;
 		oled.clear();
 		updateScreen = true;
@@ -93,9 +96,11 @@ void DisplayProcess::renderMainScreen() {
 
 void DisplayProcess::renderWarningScreen() {
 	oled.set2X();
-	//oled.setCursor(0, 2);
-	WarningInfo* warn = this->warnings.get(this->showWarningNum);
-	//oled.print(getTitle(warn->id));
+	uint8_t warnPos = warnNumToPos(this->showWarningNum);
+	if (warnPos == -1) {
+		return;
+	}
+	WarningInfo* warn = this->warnings[warnPos];
 	showEvent(0, 2, getTitle(warn->id));
 	oled.setCursor(0, 5);
 	oled.print(warn->value);
@@ -132,7 +137,7 @@ bool DisplayProcess::handleMessage(IProcessMessage* msg) {
 			switch (((ButtonClickMessage*)msg)->event)
 			{
 				case ButtonClickMessage::ButtonEvent::CLICK: {
-					if (warnings.size() > 0) {
+					if (warningsCount > 0) {
 						if (this->showWarningNum == -1) {
 							oled.clear();
 						}
@@ -176,18 +181,10 @@ bool DisplayProcess::handleMessage(IProcessMessage* msg) {
 }
 
 void DisplayProcess::handleEnvDataMsg(EnvDataMessage* msg) {
-	//if (this->temp != msg->getTemp()) {
-		this->temp = msg->getTemp();
-	//	this->updateScreen = true;
-	//}
-	//if (this->humidity != msg->getHumidity()) {
-		this->humidity = msg->getHumidity();
-	//	this->updateScreen = true;
-	//}
-	//if (this->pressure != msg->getPressure()) {
-		this->pressure = msg->getPressure();
-		this->updateScreen = true;
-	//}
+	this->temp = msg->temp;
+	this->humidity = msg->humidity;
+	this->pressure = msg->pressure;
+	this->updateScreen = true;
 }
 
 void DisplayProcess::handleTimeMsg(CurrentTimeMsg* msg) {

@@ -1,5 +1,7 @@
 #include "ecosenseatclock.h"
 #include <Arduino.h>
+#include "stuff.h"
+#include "MemoryFree.h"
 
 const static byte EcosenseAtClockFirmware::PwrMngmtPins[] = PWRMNGMTPINS;
 const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
@@ -10,57 +12,61 @@ EcosenseAtClockFirmware::EcosenseAtClockFirmware() : IFirmware(){
 	TRACELNF("START");
 	#endif
 	analogReference(EXTERNAL);	// important!
+	// ---[ TASK REGISTRATION ]---
+	PROCESS_REG(DisplayProcess);
+	PROCESS_REG(RTClockProcess);
+	#if NOWIFI_BUILD != 1
+		PROCESS_REG(WifiProcess);
+	#endif
+	PROCESS_REG(BME280SensorProcess);
+	PROCESS_REG(EcoSenseAtClockBtnProcess);
+	PROCESS_REG(MHZ19SensorProcess);
+	#if SLIM_BUILD != 1
+		PROCESS_REG(PwrConsumer1Process);
+		PROCESS_REG(PwrConsumer2Process);
+		PROCESS_REG(PwrConsumer3Process);
+		PROCESS_REG(MQ136SensorProcess);
+		PROCESS_REG(MQ7SensorProcess);
+		PROCESS_REG(MQ135SensorProcess);
+		PROCESS_REG(MQ4SensorProcess);
+		PROCESS_REG(PPD42SensorProcess);
+		PROCESS_REG(CJMCU1100SensorProcess);
+	#endif
+	// ---[ STARTUP ]---
 	addProcess(PRC_DISPLAY);
 	addProcess(PRC_RTC);
 	#if NOWIFI_BUILD != 1
-	addProcess(PRC_WIFI);
+		addProcess(PRC_WIFI);
 	#endif
 	addProcess(PRC_BME280);
 	addProcess(PRC_BTN);
 	addProcess(PRC_MHZ19);
 	#if SLIM_BUILD != 1
-	PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));	//EcosenseAtClockFirmware::PwrMngmtPins, (*(&PwrMngmtPins + 1) - PwrMngmtPins)
-	ADCMuxManagement::init(EcosenseAtClockFirmware::AdcMuxMngmtPins);
-
-	addProcess(PRC_CONSUMER1);
+		PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));
+		ADCMuxManagement::init(EcosenseAtClockFirmware::AdcMuxMngmtPins);
+	
+		addProcess(PRC_CONSUMER1);
 	#endif
 };
-
-ProcessFactory EcosenseAtClockFirmware::getFactory(uint16_t pId) {
-	const static ProcessFactoryReg factoryList[] = {	//	factories list	//TOTAL_FACTORIES_INCLUDED
-		FACTORY(DisplayProcess)
-		,FACTORY(RTClockProcess)
-		#if NOWIFI_BUILD != 1
-		,FACTORY(WifiProcess)
-		#endif
-		,FACTORY(BME280SensorProcess)
-		,FACTORY(ButtonSensorProcess)
-		,FACTORY(MHZ19SensorProcess)
-		#if SLIM_BUILD != 1
-		,FACTORY(PwrConsumer1Process)
-		,FACTORY(PwrConsumer2Process)
-		//,FACTORY(PwrConsumer3Process)
-		,FACTORY(MQ136SensorProcess)
-		//,FACTORY(MQ7SensorProcess)
-		,FACTORY(MQ135SensorProcess)
-		,FACTORY(MQ4SensorProcess)
-		//,FACTORY(ParticlePPD42SensorProcess)
-		//,FACTORY(ZE08CH2OSensorProcess)
-		,FACTORY(CJMCU1100SensorProcess)
-		#endif
-	};
-	int len = *(&factoryList + 1) - factoryList;	//TOTAL_FACTORIES_INCLUDED
-	for (byte i = 0; i < len; i++) {
-		if (factoryList[i].id == pId) {
-			return factoryList[i].factory;
-		}
-	}
-	return NULL;
-}
 
 static IFirmware* EcosenseAtClockFirmware::get() {
 	if (IFirmware::instance == NULL) {
 		IFirmware::instance = new EcosenseAtClockFirmware();
 	}
 	return IFirmware::instance;
+}
+
+void EcosenseAtClockFirmware::handlerProcessDebugTimer(unsigned long dT) {
+	byte processCount = 0;
+	for (uint16_t i = 0; i < this->processListSize; i++) {
+		IFirmwareProcessRegistration* reg = this->processList[i];
+		if (reg->isActive()) {
+			processCount++;
+		}
+	}
+	this->sendMessage(new SelfReportMessage(processCount, freeMemory()));
+	TRACEF("SYS REPORT: processes=")
+	TRACE(processCount)
+	TRACEF(", freemem=")
+	TRACELN(freeMemory())
 }

@@ -13,27 +13,10 @@ class IFirmwareProcess;
 #define ENVDATA_MESSAGE		1001
 #define CURTIME_MESSAGE		1002
 #define AIRQUALITY_MESSAGE	1003
-//#define PRC_ORDER_MESSAGE	1006
-//#define THINGSPEAK_MESSAGE	1007
+#define SELFREPORT_MESSAGE	1007
 #define TASKDONE_MESSAGE	1008
 #define BTNCLICK_MESSAGE	1009
-#define WIFIEVENT_MESSAGE	1010
-#define PPD42NS_MESSAGE		1011
 //---------------------------------
-
-class WifiEventMessage: public IProcessMessage {
-	public:
-		enum WifiEvent{
-			OK,
-			ERROR,
-			NONE
-		} event;
-
-		WifiEventMessage(WifiEvent e): IProcessMessage(NULL, WIFIEVENT_MESSAGE) {
-			this->event = e;
-		}
-};
-
 
 class EnvDataMessage: public IProcessMessage {
 	public:
@@ -43,19 +26,6 @@ class EnvDataMessage: public IProcessMessage {
 			this->pressure = p;
 		}
 
-		float getTemp() {
-			return this->temp;
-		}
-
-		float getHumidity() {
-			return this->humidity;
-		}
-
-		uint16_t getPressure() {
-			return this->pressure;
-		}
-
-	private:
 		float		temp;
 		float		humidity;
 		uint16_t	pressure;
@@ -68,10 +38,10 @@ class CurrentTimeMsg: public IProcessMessage {
 			this->hrs =  hrs;
 			this->mins = mins;
 			
-			TRACEF("Time: ")
+			/*TRACEF("Time: ")
 			TRACE(hrs);
 			TRACEF(":")
-			TRACELN(mins)
+			TRACELN(mins)*/
 		}
 
 		int8_t getHrs() {
@@ -86,6 +56,7 @@ class CurrentTimeMsg: public IProcessMessage {
 		int8_t hrs, mins;
         //boolean dotFlag;
 };
+
 
 class AirQualityMsg: public IProcessMessage {
 	public:
@@ -150,79 +121,6 @@ class AirQualityMsg: public IProcessMessage {
 };
 
 
-/*class ProcessOrderMessage: public IProcessMessage {
-	public:
-		static ProcessOrderMessage* start() {
-			return new ProcessOrderMessage();
-		}
-
-		static ProcessOrderMessage* goNextOf(uint16_t currentId) {
-			return new ProcessOrderMessage(currentId);
-		}
-
-		uint16_t getNextId() {
-			return this->nextId;
-		}
-
-	private:
-		uint16_t nextId;
-
-		uint16_t processOrderList[3] = {PRC_CONSUMER1, PRC_CONSUMER2, PRC_CONSUMER3};
-
-		ProcessOrderMessage(const uint16_t lastPid = 0): IProcessMessage(NULL, PRC_ORDER_MESSAGE) {
-			byte len = sizeof(this->processOrderList)/sizeof(this->processOrderList[0]);
-
-			byte pos = 0;
-			if (lastPid != 0) {
-				for (byte i = 1; i <= len; i++) {
-					if (lastPid == this->processOrderList[i-1]) {
-						if (i < len) {
-							pos = i;
-						} else {
-							pos = 0;	// restart list
-						}
-						break;
-					}
-				}
-			}
-
-			this->nextId = this->processOrderList[pos];
-			return;
-		}
-};*/
-
-/*class ThingspeakFieldMessage: public IProcessMessage {
-	public:
-		enum ThingspeakChannel {
-			CHANNEL1,
-			CHANNEL2,
-			CHANNEL3
-		};
-
-		ThingspeakFieldMessage(ThingspeakChannel channel, byte field, float value): IProcessMessage(NULL, THINGSPEAK_MESSAGE) {
-			this->channel = channel;
-			this->field = field;
-			this->value = value;
-		}
-
-		ThingspeakChannel getChannel() {
-			return this->channel;
-		}
-
-		byte getField() {
-			return this->field;
-		}
-
-		float getValue() {
-			return this->value;
-		}
-
-	private:
-		ThingspeakChannel channel;
-		byte field;
-		float value;
-};*/
-
 class TaskDoneMessage: public IProcessMessage {
 	public:
 		TaskDoneMessage(IFirmwareProcess* prc): IProcessMessage(prc, TASKDONE_MESSAGE) {
@@ -235,13 +133,15 @@ class TaskDoneMessage: public IProcessMessage {
 		}
 };
 
-/** SINGLE BTN SUPPORT FOR THIS PROJECT
- */
+
+#define BUTTON_EVENT ButtonClickMessage::ButtonEvent
+
 class ButtonClickMessage: public IProcessMessage {
 	public:
 		enum ButtonEvent {
 			CLICK,
-			HOLD
+			HOLD,
+			DBLCLICK
 		} event;
 
 		ButtonClickMessage(ButtonEvent e = CLICK): IProcessMessage(NULL, BTNCLICK_MESSAGE) {
@@ -250,19 +150,15 @@ class ButtonClickMessage: public IProcessMessage {
 };
 
 
-/*class ParticlePPD42Message: public IProcessMessage {
+class SelfReportMessage: public IProcessMessage {
 	public:
-		ParticlePPD42Message(float ratioPm1, float concentrationPm1, float ratioPm2, float concentrationPm2): IProcessMessage(NULL, PPD42NS_MESSAGE) {
-			this->ratioPm1 = ratioPm1;
-			this->ratioPm2 = ratioPm2;
-			this->concentrationPm1 = concentrationPm1;
-			this->concentrationPm2 = concentrationPm2;
+		SelfReportMessage(byte p, uint16_t m): IProcessMessage(NULL, SELFREPORT_MESSAGE) {
+			processCount = p;
+			freemem = m;
 		}
 
-		float ratioPm1;
-		float ratioPm2;
-		float concentrationPm1;
-		float concentrationPm2;
-};*/
+		byte processCount;
+		uint16_t freemem;
+};
 
 #endif

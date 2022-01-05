@@ -24,7 +24,7 @@
             bool handleMessageLogic(IProcessMessage* msg);
 
             uint16_t getNextConsumerId() {
-                return PRC_CONSUMER3;   // skip CONSUMER3 for now
+                return PRC_CONSUMER3;
             }
     };
 

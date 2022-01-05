@@ -4,7 +4,7 @@
 
 CJMCU1100SensorProcess::CJMCU1100SensorProcess(IProcessMessage* msg) : MQSensorProcess(MUXCHANNEL_CJMCU1100, msg){
             this->pause(CJMCU1100_PREBURN_TIMEOUT);    // pre-burn timeout
-	TRACELNF("CJMCU1100SensorProcess: pre-burn timeout")
+	TRACELNF("CJMCU1100: pre-burn timeout")
 }
 
 static IFirmwareProcess* CJMCU1100SensorProcess::factory(IProcessMessage* msg) {

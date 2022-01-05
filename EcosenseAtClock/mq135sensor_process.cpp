@@ -4,6 +4,7 @@
 
 MQ135SensorProcess::MQ135SensorProcess(IProcessMessage* msg) : MQSensorProcess(MUXCHANNEL_MQ135, msg){
             this->pause(MQ135_PREBURN_TIMEOUT);    // pre-burn timeout
+	TRACELNF("MQ135: pre-burn timeout")
 }
 
 static IFirmwareProcess* MQ135SensorProcess::factory(IProcessMessage* msg) {

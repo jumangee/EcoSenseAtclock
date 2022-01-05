@@ -46,9 +46,6 @@ void PwrConsumerProcess::update(unsigned long ms) {
 			return;
 		}
 		case DONE: {
-			// shutdown
-			TRACELNF("PwrConsumer: stop");
-			
 			this->stop();
 			// unlock pwr key
 			this->releaseLoad();
@@ -69,7 +66,6 @@ bool PwrConsumerProcess::handleMessage(IProcessMessage* msg) {
 	switch (msg->getType())
 	{
 		case TASKDONE_MESSAGE: {
-			TRACELNF("PwrConsumer: task done")
 			uint16_t taskId = ((TaskDoneMessage*)msg)->getTaskId();
 			int pos = this->findTask(taskId);
 			if (pos == -1) return;
