@@ -1,4 +1,4 @@
-# EcoSenseAtclock
+# EcoSense@clock
 
 Tiny, simple and cheap indoor air quality controller with meteo station, clocks, OLED and web-reporting using Arduino Nano and ESP-01S
 Photos and more description at [Hackaday.io](https://hackaday.io/project/183222-ecosenseclock)
