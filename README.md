@@ -11,7 +11,7 @@ Photos and more description at [Hackaday.io](https://hackaday.io/project/183222-
 - .96" SSD1306 OLED display
 - Dual-type power adapter
 - Power management
-- Event-driven architecture (using custom firmware framework)
+- Event-driven architecture (using [Processy Firmware Framework](https://github.com/jumangee/arduino-nano-taskman))
 - Small memoty consuption and footprint
 - Easy support and upgrade
 
