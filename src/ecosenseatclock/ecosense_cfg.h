@@ -38,7 +38,7 @@
     #define OLED_ADDR           0x3C
     #define MAIN_FONT           System5x7
     //#define MAIN_FONT             fixednums7x15
-    #define MAX_DISPLAY_WARNINGS    12
+    #define MAX_DISPLAY_WARNINGS    10
 
     // ---[ PWR MNGMNT PRC ]---
     #define PWRMNGMTPIN_PROCESS1    12
@@ -96,19 +96,20 @@
     #define WIFI_RX_PIN                 2
     #define WIFI_TX_PIN                 3    
     #define WIFI_SSID                   "Jumangee"
-    #define WIFI_PWD                    "54d75bc245"
+    #define WIFI_PWD                    "xxx"
 
     // ---[ THINGSPEAK ]---
     #define REPORTTOTHINGSPEAK          1
     #if REPORTTOTHINGSPEAK == 1
-        #define THINGSPEAK_SERVER       F("api.thingspeak.com")
-        #define THINGSPEAK_CHANNEL1_KEY F("43RGUGMOBYBHCJV2")
-        #define THINGSPEAK_CHANNEL2_KEY F("6CREDT9BTI3QYL3T")
+        #define THINGSPEAK_SERVER       "api.thingspeak.com"
+        #define THINGSPEAK_CHANNEL1_KEY F("43RGUGMOBYBHCJV2")   // environment
+        #define THINGSPEAK_CHANNEL2_KEY F("6CREDT9BTI3QYL3T")   // air quality
         #define THINGSPEAKREPORT_URI    F("/update?api_key=")
     #else
-        #define THINGSPEAK_SERVER       F("example.com")
+        #define THINGSPEAK_SERVER       "example.com"
         #define THINGSPEAK_CHANNEL1_KEY F("TEST")
         #define THINGSPEAK_CHANNEL2_KEY F("TEST2")
+        #define THINGSPEAK_CHANNEL3_KEY F("TEST3")
         #define THINGSPEAKREPORT_URI    F("/updateTest.php?api_key=")
     #endif
     #define THINGSPEAKPARAMS            8
@@ -123,6 +124,8 @@
     #define THINGSPEAK_PARAM_PRESSURE   2
     #define THINGSPEAK_PARAM_PROCESSES  3
     #define THINGSPEAK_PARAM_FREEMEM    4
+    #define THINGSPEAK_PARAM_WORKTIME   5
+    #define THINGSPEAK_PARAM_RSSI       6
 
     // THINGSPEAK/CHANNEL2
     #define THINGSPEAK_PARAM_COMMON     0
@@ -131,14 +134,10 @@
     #define THINGSPEAK_PARAM_VOCS       3
     #define THINGSPEAK_PARAM_PM25       4
     #define THINGSPEAK_PARAM_CO         5
+    #define THINGSPEAK_PARAM_CH4        6
 
     // ---[ REAL-TIME CLOCK ]---
     #define RTC_I2C_ADDR                0x68
     #define RESET_CLOCK                 0
-    //#define RTC_GET_TEMPERATURE
-
-    // ---[ BEEPER ]---
-    #define BEEPER_MELODIES             2
-    #define BEEPER_MELODY_LENGTH        8
 
 #endif

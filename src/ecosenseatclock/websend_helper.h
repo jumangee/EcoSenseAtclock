@@ -16,17 +16,10 @@
             } valueType;
             
         public:
-            bool active;
-
-            //@implement
-            UrlParam() {
-                this->active = false;
-            }
-            
             //@implement
             void set(vType type) {
                 this->valueType = type;
-                this->active = true;
+                //this->active = true;
             }
 
             //@implement
@@ -51,24 +44,32 @@
      * ThingSpeak API implementation
      */
     class ThingspeakWebSendTask {
-            UrlParam                    params[THINGSPEAKPARAMS];
+            UrlParam*                   params[THINGSPEAKPARAMS];
             const __FlashStringHelper*  apiKey;
         public:
             byte        size=0;
 
             ThingspeakWebSendTask(const __FlashStringHelper* apiKey) {
                 this->apiKey = apiKey;
-                clear();
+                for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
+                    this->params[i] = NULL;
+                }
             }
 
-            UrlParam& getParam(byte id) {
+            UrlParam* getParam(byte id) {
+                if (!isParam(id)) {
+                    this->params[id] = new UrlParam();
+                }
                 return this->params[id];
             }
 
             //@implement
             void clear() {
                 for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-                    this->params[i].active = false;
+                    if (isParam(i)) {
+                        delete this->params[i];
+                    }
+                    this->params[i] = NULL;
                 }
                 size = 0;
             }
@@ -78,10 +79,14 @@
                 return apiKey;
             }
 
+            bool isParam(byte id) {
+                return (this->params[id] != NULL);
+            }
+
             void recount() {
                 byte c = 0;
                 for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-                    if (this->params[i].active) {
+                    if (isParam(i)) {
                         c++;
                     }
                 }

@@ -42,7 +42,7 @@ EcosenseAtClockFirmware::EcosenseAtClockFirmware() : IFirmware(){
 	addProcess(PRC_BTN);
 	addProcess(PRC_MHZ19);
 	#if SLIM_BUILD != 1
-		PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));
+		pwrLoadMngmnt = new PowerloadManagement(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins)); //PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));
 		ADCMuxManagement::init(EcosenseAtClockFirmware::AdcMuxMngmtPins);
 	
 		addProcess(PRC_CONSUMER1);
@@ -57,16 +57,20 @@ static IFirmware* EcosenseAtClockFirmware::get() {
 }
 
 void EcosenseAtClockFirmware::handlerProcessDebugTimer(unsigned long dT) {
-	byte processCount = 0;
-	for (uint16_t i = 0; i < this->processListSize; i++) {
-		IFirmwareProcessRegistration* reg = this->processList[i];
-		if (reg->isActive()) {
-			processCount++;
+	#if DEBUG_PRO_MS == 2
+		byte processCount = 0;
+		for (uint16_t i = 0; i < this->processListSize; i++) {
+			IFirmwareProcessRegistration* reg = this->processList[i];
+			if (reg->isActive()) {
+				processCount++;
+			}
 		}
-	}
-	this->sendMessage(new SelfReportMessage(processCount, freeMemory()));
-	TRACEF("SYS REPORT: processes=")
-	TRACE(processCount)
-	TRACEF(", freemem=")
-	TRACELN(freeMemory())
+		this->sendMessage(new SelfReportMessage(processCount, freeMemory()));
+		TRACEF("SYS REPORT: processes=")
+		TRACE(processCount)
+		TRACEF(", freemem=")
+		TRACELN(freeMemory())
+	#else
+		IFirmware::handlerProcessDebugTimer(dT);
+	#endif
 }

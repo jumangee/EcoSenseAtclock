@@ -28,10 +28,6 @@
              */
             //@implement
             uint32_t requestPin(byte targetPin) {
-                /*TRACEF("PinSwitchManager//requestPin: ")
-                TRACE(targetPin)
-                TRACEF(", cur=")
-                TRACELN(currentPin)*/
                 if (currentPin == USEDPIN_NONE) {
                     this->usePin(targetPin);
                     return this->useStarted;

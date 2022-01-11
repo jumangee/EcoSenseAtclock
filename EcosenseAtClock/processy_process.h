@@ -27,6 +27,9 @@ class IFirmwareProcess {
 	public:
 		IFirmwareProcess(IProcessMessage* msg);
 
+		virtual ~IFirmwareProcess() {
+		};
+
 		IFirmwareProcess::ProcessState getState() {
 			return this->state;
 		}
@@ -42,15 +45,15 @@ class IFirmwareProcess {
 
 		void stop();
 
-		virtual bool isPaused(unsigned long start);
+		bool isPaused(unsigned long start);
 
 		virtual unsigned long run(unsigned long start);
 
 		virtual void update(unsigned long ms) = 0;
 
-		virtual void pause(unsigned long upTo = 0);
+		void pause(unsigned long upTo = 0);
 
-		virtual void unPause();
+		void unPause();
 
 		virtual bool handleMessage(IProcessMessage* msg);
 

@@ -20,7 +20,7 @@ void IFirmwareProcess::stop() {
 }
 
 bool IFirmwareProcess::isPaused(unsigned long start) {
-	if (this->state == ProcessState::PAUSE) {
+	if (getState() == ProcessState::PAUSE) {
 		if (start < this->pausedUpTo) {
 			return true;
 		}

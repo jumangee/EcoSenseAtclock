@@ -33,7 +33,7 @@ class PwrConsumerProcess: public IFirmwareProcess {
         byte        	keyPin;
         uint32_t    	poweredTime;
 
-		TaskInfo		tasks[MAXTASKCOUNT];
+		TaskInfo*		tasks[MAXTASKCOUNT];
 		byte			tasksCnt = 0;
 
 	public:
@@ -43,9 +43,23 @@ class PwrConsumerProcess: public IFirmwareProcess {
 
 		PwrConsumerProcess(byte keyPin, IProcessMessage* msg);
 
+		virtual ~PwrConsumerProcess() {
+			for (byte i = 0; i < tasksCnt; i++) {
+				delete tasks[i];
+			}
+		}
+
 		void addTask(uint16_t prcId);
 
-		int findTask(uint16_t id);
+		PwrConsumerProcess::TaskInfo* findTask(uint16_t id) {
+			for (byte i = 0; i < tasksCnt; i++) {
+				TaskInfo* t = this->tasks[i];
+				if (t->prcId == id) {
+					return t;
+				}
+			}
+			return NULL;
+		}
 
 		/**
 		 * This should be overriden by handler with logic
@@ -63,7 +77,7 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			byte done = 0;
 
 			for (byte i = 0; i < tasksCnt; i++) {
-				WorkState s = this->tasks[i].state;
+				WorkState s = this->tasks[i]->state;
 				if (s == NONE) {
 					none++;
 				} else if (s == DONE) {

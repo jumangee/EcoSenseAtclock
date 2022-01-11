@@ -1,3 +1,3 @@
 #include "pwrload_mngmnt.h"
 
-PowerloadManagement* PowerloadManagement::instance = NULL;
+//PowerloadManagement* PowerloadManagement::instance = NULL;

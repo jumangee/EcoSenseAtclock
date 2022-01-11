@@ -43,6 +43,8 @@
 #include "stuff.h"
 
 class EcosenseAtClockFirmware: public IFirmware {
+	PowerloadManagement* pwrLoadMngmnt;
+
 	const static byte PwrMngmtPins[];
 	const static byte AdcMuxMngmtPins[];
 
@@ -52,9 +54,17 @@ class EcosenseAtClockFirmware: public IFirmware {
 	public:
 		static IFirmware* get();
 
+		/**
+		 * @brief Used by PowerloadManagement::get()
+		 * 
+		 * @return PowerloadManagement* 
+		 */
+		PowerloadManagement* getPwrLoadMngmnt() {
+			return pwrLoadMngmnt;
+		}
+
 	protected:
 		virtual void handlerProcessDebugTimer(unsigned long dT);
-
 };
 
 #endif

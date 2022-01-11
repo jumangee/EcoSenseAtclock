@@ -16,10 +16,6 @@
             } valueType;
             
         public:
-            bool active;
-
-            UrlParam();
-            
             void set(vType type);
 
             void setValue(uint16_t v);
@@ -33,17 +29,22 @@
      * ThingSpeak API implementation
      */
     class ThingspeakWebSendTask {
-            UrlParam                    params[THINGSPEAKPARAMS];
+            UrlParam*                   params[THINGSPEAKPARAMS];
             const __FlashStringHelper*  apiKey;
         public:
             byte        size=0;
 
             ThingspeakWebSendTask(const __FlashStringHelper* apiKey) {
                 this->apiKey = apiKey;
-                clear();
+                for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
+                    this->params[i] = NULL;
+                }
             }
 
-            UrlParam& getParam(byte id) {
+            UrlParam* getParam(byte id) {
+                if (!isParam(id)) {
+                    this->params[id] = new UrlParam();
+                }
                 return this->params[id];
             }
 
@@ -51,29 +52,14 @@
 
             const __FlashStringHelper* getApiKey();
 
-            /*//@implement
-            String getUrl() {
-                String url;
-                url.reserve(size * 15);
-                for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-                    UrlParam p = this->getParam(i);
-                    if (p.active) {
-                        String buf;
-                        buf.reserve(15);
-                        buf += F("&field");
-                        buf += (i + 1);
-                        buf += F("=");
-                        buf += p.getValue();
-                        url += buf;
-                    }
-                }
-                return url;
-            }*/
+            bool isParam(byte id) {
+                return (this->params[id] != NULL);
+            }
 
             void recount() {
                 byte c = 0;
                 for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-                    if (this->params[i].active) {
+                    if (isParam(i)) {
                         c++;
                     }
                 }

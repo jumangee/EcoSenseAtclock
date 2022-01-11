@@ -74,12 +74,17 @@ class MHZ19SensorProcess: public IFirmwareProcess {
 
                 swSerial = SoftwareSerialSingleton::unlock();
 
+                AirQualityMsg::GasConcentration level = AirQualityMsg::GasConcentration::MINIMAL;
+                if (this->co2 > 2000) {
+                    level = AirQualityMsg::GasConcentration::DANGER;
+                } else if (this->co2 > 950) {
+                    level = AirQualityMsg::GasConcentration::WARNING;
+                } else if (this->co2 > 650) {
+                    level = AirQualityMsg::GasConcentration::NORM;
+                }
+
                 this->sendMessage(new AirQualityMsg(AirQualityMsg::GasType::CO2, 
-                    this->co2 < 600 ? AirQualityMsg::GasConcentration::MINIMAL : (
-                        this->co2 > 2500 ? AirQualityMsg::GasConcentration::DANGER : (
-                            this->co2 > 800 ? AirQualityMsg::GasConcentration::WARNING : AirQualityMsg::GasConcentration::NORM
-                        )
-                    ),
+                    level,
                     (float)this->co2)
                 );
 

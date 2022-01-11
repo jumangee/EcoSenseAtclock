@@ -21,6 +21,7 @@ ButtonClickMessage* ButtonSensor::update() {
                     #endif
                         // remember this tap!)
                         lastClick = curTime;
+                        lastBtnState = false;
                     #if BTN_SUPPORT_DBLCLCK == 1
                     }
                     #endif
@@ -30,6 +31,7 @@ ButtonClickMessage* ButtonSensor::update() {
             } else if (lastBtnState == false) {
                 if (isPressed == true) {
                     pressDn = curTime;
+                    lastBtnState = true;
                 } else if (lastClick > 0 && (millis() - lastClick < BTNCLICK_TIME)) {
                     // react on single click
                     return this->getBtnEvent( BUTTON_EVENT::CLICK );
@@ -42,5 +44,5 @@ ButtonClickMessage* ButtonSensor::getBtnEvent(BUTTON_EVENT type) {
     lastClick = 0;
     pressDn = 0;
     lastBtnState = false;
-    return new ButtonClickMessage( type );
+    return new ButtonClickMessage( btnPin, type );
 }

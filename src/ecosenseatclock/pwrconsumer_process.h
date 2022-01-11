@@ -33,7 +33,7 @@ class PwrConsumerProcess: public IFirmwareProcess {
         byte        	keyPin;
         uint32_t    	poweredTime;
 
-		TaskInfo		tasks[MAXTASKCOUNT];
+		TaskInfo*		tasks[MAXTASKCOUNT];
 		byte			tasksCnt = 0;
 
 	public:
@@ -47,21 +47,29 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			this->poweredTime = 0;
 		}
 
-		//@implement
-		void addTask(uint16_t prcId) {
-			tasks[tasksCnt].prcId = prcId;
-			tasks[tasksCnt].state = NONE;
-			tasksCnt++;
+		virtual ~PwrConsumerProcess() {
+			for (byte i = 0; i < tasksCnt; i++) {
+				delete tasks[i];
+			}
 		}
 
 		//@implement
-		int findTask(uint16_t id) {
+		void addTask(uint16_t prcId) {
+			TaskInfo* t = new TaskInfo();
+			t->prcId = prcId;
+			t->state = NONE;
+			tasks[tasksCnt] = t;
+			tasksCnt++;
+		}
+
+		PwrConsumerProcess::TaskInfo* findTask(uint16_t id) {
 			for (byte i = 0; i < tasksCnt; i++) {
-				if (this->tasks[i].prcId == id) {
-					return i;
+				TaskInfo* t = this->tasks[i];
+				if (t->prcId == id) {
+					return t;
 				}
 			}
-			return -1;
+			return NULL;
 		}
 
 		/**
@@ -92,8 +100,9 @@ class PwrConsumerProcess: public IFirmwareProcess {
 				case START: {
 					TRACELNF("PwrConsumer: start tasks");
 					for (byte i = 0; i < tasksCnt; i++) {
-						this->getHost()->addProcess(tasks[i].prcId);
-						tasks[i].state = ACTIVE;
+						TaskInfo* t = tasks[i];
+						this->getHost()->addProcess(t->prcId);
+						t->state = ACTIVE;
 					}
 					return;
 				}
@@ -103,10 +112,7 @@ class PwrConsumerProcess: public IFirmwareProcess {
 					// unlock pwr key
 					this->releaseLoad();
 
-					uint16_t nextId = this->getNextConsumerId();
-					if (nextId > 0) {
-						this->getHost()->addProcess(nextId);	// start next of process list
-					}
+					this->getHost()->addProcess(this->getNextConsumerId());	// start next of process list
 					return;
 				}
 				default: {
@@ -122,13 +128,14 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			switch (msg->getType())
 			{
 				case TASKDONE_MESSAGE: {
-					uint16_t taskId = ((TaskDoneMessage*)msg)->getTaskId();
+					TaskInfo* t = this->findTask(((TaskDoneMessage*)msg)->getTaskId());
+					if (!t) {
+						TRACELNF("TASKDONE ERROR: id not found!")
+						return;
+					}
 
-					int pos = this->findTask(taskId);
-					if (pos == -1) return;
-
-					this->tasks[pos].state = DONE;
-					this->getHost()->stopProcess(taskId);
+					t->state = DONE;
+					this->getHost()->stopProcess(t->prcId);
 					return false;
 				}
 			}
@@ -141,7 +148,7 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			byte done = 0;
 
 			for (byte i = 0; i < tasksCnt; i++) {
-				WorkState s = this->tasks[i].state;
+				WorkState s = this->tasks[i]->state;
 				if (s == NONE) {
 					none++;
 				} else if (s == DONE) {

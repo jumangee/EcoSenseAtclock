@@ -25,7 +25,7 @@
 #include <math.h>
 
 struct WarningInfo {
-	uint16_t id;
+	uint8_t id;
 	float value;
 };
 
@@ -37,16 +37,15 @@ class DisplayProcess: public IFirmwareProcess {
 
 		float				temp = 0;
 		float				humidity = 0;
-		//float				co2 = 0;
 		uint16_t			pressure = 0;
 		uint8_t				timeH = 0;
 		uint8_t				timeM = 0;
 		bool				timeDots = true;
 
-		WarningInfo			*warnings[MAX_DISPLAY_WARNINGS];
-		uint8_t				warningsCount;
+		WarningInfo*		warnings[MAX_DISPLAY_WARNINGS];
+		uint8_t				warningsCount = 0;
 		int					showWarningNum = -1;
-		bool				wifiOn = true;
+		bool				online = false;
 
 	public:
 		PROCESSID(PRC_DISPLAY);
@@ -64,6 +63,7 @@ class DisplayProcess: public IFirmwareProcess {
 			oled.setFont(MAIN_FONT);
 		}
 
+		//@implement
 		void addWarning(uint32_t id, float value) {
 			int warnPos = this->findWarning(id);
 			if (warnPos > -1) {
@@ -88,6 +88,7 @@ class DisplayProcess: public IFirmwareProcess {
 			} 
 		}
 
+		//@implement
 		int findWarning(uint32_t id) {
 			for (uint8_t i = 0; i < MAX_DISPLAY_WARNINGS; i++) {
 				if (this->warnings[i] != NULL && this->warnings[i]->id == id) {
@@ -97,15 +98,18 @@ class DisplayProcess: public IFirmwareProcess {
 			return -1;
 		}
 
+		//@implement
 		void removeWarning(uint32_t id) {
 			int warnPos = this->findWarning(id);
 			if (warnPos == -1) {
 				return;
 			}
-			delete this->warnings[warnPos];
-			this->warnings[warnPos] = NULL;
-			warningsCount--;
-			updateWarnings = true;
+			if (this->warnings[warnPos] != NULL) {
+				delete this->warnings[warnPos];
+				this->warnings[warnPos] = NULL;
+				warningsCount -= warningsCount > 0 ? 1 : 0;
+				updateWarnings = true;
+			}
 		}
 
 		//@implement
@@ -168,7 +172,11 @@ class DisplayProcess: public IFirmwareProcess {
 			oled.print(this->timeM);
 			oled.set1X();
 
-			showEvent(0, 4, F(".............."));
+			oled.setCursor(0, 4);
+			char c = online ? '-' : '.';
+			for (byte i = 0; i < 14; i++) {
+				oled.print(c);
+			}
 
 			// info
 
@@ -185,44 +193,26 @@ class DisplayProcess: public IFirmwareProcess {
 				oled.print(round(this->pressure));
 				oled.print(F("mm"));
 			}
-
-			/*IFirmware* f = this->getHost();
-			if (f->getProcess(PRC_CONSUMER1)) {
-				showEvent(0, 5, F("PWR: 1"));
-			} else if (f->getProcess(PRC_CONSUMER2)) {
-				showEvent(0, 5, F("PWR: 2"));
-			} else if (f->getProcess(PRC_CONSUMER3)) {
-				showEvent(0, 5, F("PWR: 3"));
-			} else {
-				showEvent(0, 5, F("PWR: -"));
-			}*/
-
-			/*if (this->co2 > 0) {
-				oled.setCursor(95, 7);
-				oled.print((uint16_t)co2);
-				oled.print(F("co2"));
-				oled.print(F(" "));
-			}*/
+			
 		}
 
-		const __FlashStringHelper* getTitle(uint16_t code) {
+		//@implement
+		const __FlashStringHelper* getTitle(uint8_t code) {
 			switch (code) {
-				case 1: return F("TEMPERATURE");
-				case 2: return F("HUMIDITY");
-				case 10: return F("GASes");
+				case 1: return	F("TEMPERATURE");
+				case 2: return	F("HUMIDITY");
+				case 10: return F("GAS");
 				case 11: return F("H2S");
 				case 12: return F("CO");
-				//case 13: return F("SO2");
 				case 14: return F("CO2");
 				case 15: return F("CH4");
-				//case 16: return F("CH2O");
-				//case 17: return F("C6H5_CH3");
 				//case 18: return F("PM1");
 				case 19: return F("PM25");
 				case 20: return F("VOCs");
 			}
 		}
 
+		//@implement
 		int warnNumToPos(uint8_t num) {
 			uint8_t cur = 0;
 			for (uint8_t i = 0; i < warningsCount; i++) {
@@ -244,6 +234,8 @@ class DisplayProcess: public IFirmwareProcess {
 				return;
 			}
 			WarningInfo* warn = this->warnings[warnPos];
+			oled.setCursor(0, 5);
+			oled.clearToEOL();
 			showEvent(0, 2, getTitle(warn->id));
 			oled.setCursor(0, 5);
 			oled.print(warn->value);
@@ -263,12 +255,11 @@ class DisplayProcess: public IFirmwareProcess {
 			this->updateScreen = false;
 		}
 
+		//@implement
 		void renderWarnings() {
 			oled.setCursor(0, 0);
 			oled.set2X();
 			oled.clearToEOL();
-			//oled.print(F("                  "));
-			//oled.setInvertMode(true);
 			uint16_t i;
 			for (i = 0; i < warningsCount; i++) {
 				uint8_t pos = 118-i*10;
@@ -296,8 +287,6 @@ class DisplayProcess: public IFirmwareProcess {
 		//@implement
 		//@include "ecosense_messages.h"
 		bool handleMessage(IProcessMessage* msg) {
-			//oled.setCursor(0, 6);
-
 			switch (msg->getType())
 			{
 				case ENVDATA_MESSAGE: {
@@ -312,53 +301,26 @@ class DisplayProcess: public IFirmwareProcess {
 					this->handleTimeMsg((CurrentTimeMsg*)msg);
 					return false;
 				}
-				case BTNCLICK_MESSAGE: {
-					switch (((ButtonClickMessage*)msg)->event)
-					{
-						case ButtonClickMessage::ButtonEvent::CLICK: {
-							if (warningsCount > 0) {
-								if (this->showWarningNum == -1) {
-									oled.clear();
-								}
-								this->showWarningNum++;
-								this->updateWarnings = true;
-								this->updateScreen = true;
-							}
-							return true; // dispose
-						}
-						/*case ButtonClickMessage::ButtonEvent::HOLD: {
+				case BTNCLICK_MESSAGE: {	// this is always a click
+					if (warningsCount > 0) {
+						if (this->showWarningNum == -1) {
 							oled.clear();
-							oled.set2X();
-							wifiOn = !wifiOn;
-							showEvent(0, 3, wifiOn ? F("WIFI ON") : F("WIFI OFF"));
-							oled.set1X();
-							this->pause(1000);
-							this->updateWarnings = true;
-							this->updateScreen = true;
-							return false;
-						}*/
+						}
+						this->showWarningNum++;
+						this->updateWarnings = true;
+						this->updateScreen = true;
 					}
+					return true; // dispose
 				}
-				/*case TASKDONE_MESSAGE: {
-					TaskDoneMessage* e = (TaskDoneMessage*)msg;
-					showEvent(0, 7, F("DONE: "));
-					oled.print(e->getTaskId());
-					return false;
-				}*/
-				/*case WIFIEVENT_MESSAGE: {
-					WifiEventMessage* e = (WifiEventMessage*)msg;
-					if (e->event == WifiEventMessage::WifiEvent::ERROR) {
-						showEvent(0, 7, F("WIFI: ERR "));
-					}
-					else if (e->event == WifiEventMessage::WifiEvent::NONE) {
-						showEvent(0, 7, F("WIFI: OK  "));
-					}
+				/*case WIFISTATE_MESSAGE: {
+					this->online = ((WifiStateMessage*)msg)->online;
 					return false;
 				}*/
 			}
 			return false;
 		}
 
+		//@implement
 		void showEvent(uint8_t x, uint8_t y, const __FlashStringHelper *pstr) {
 			oled.setCursor(x, y);
 			oled.print(pstr);
@@ -391,11 +353,6 @@ class DisplayProcess: public IFirmwareProcess {
 			} else {
 				this->removeWarning(gasCode);
 			}
-
-			/*printTitle(gasCode);
-			oled.print(F(": "));
-			oled.print(round(msg->getAmount()));
-			oled.print(F("   "));*/
 
 			if (gas == AirQualityMsg::GasType::CO2 && showWarningNum == -1) {
 				showEvent(0, 6, getTitle(gasCode));

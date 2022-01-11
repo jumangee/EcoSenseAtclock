@@ -24,10 +24,6 @@
                 }
             }
 
-            /*static byte signalPin() {
-                return ADCMuxManagement::get()->signalPin;
-            }*/
-			
 			uint32_t requestChannel(byte channel) {
 				return PinSwitchManager::requestPin(channel);
 			}
@@ -40,14 +36,7 @@
             //@implement
             void usePin(byte num) {
                 if (num < 16) {
-                    /*TRACEF("ADCMuxChannel: ")
-                    TRACELN(num)*/
                     for (byte i = 0; i < 4; i++) {
-                        //byte v = pgm_read_byte(&(ADCMuxManagement::channelTruthTable[num][i]));
-                        /*TRACEF("ADCMux pin: ")
-                        TRACE(this->keyPins[i])
-                        TRACEF(" v=")
-                        TRACELN(v)*/
                         digitalWrite(this->keyPins[i], pgm_read_byte(&(ADCMuxManagement::channelTruthTable[num][i]))); 
                     }
                     this->currentPin = num;

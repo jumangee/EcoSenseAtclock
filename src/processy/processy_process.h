@@ -40,6 +40,9 @@ class IFirmwareProcess {
 			this->handleMessage(msg);
 		}
 
+		virtual ~IFirmwareProcess() {
+		};
+
 		IFirmwareProcess::ProcessState getState() {
 			return this->state;
 		}
@@ -59,8 +62,8 @@ class IFirmwareProcess {
 		}
 
 		//@implement
-		virtual bool isPaused(unsigned long start) {
-			if (this->state == ProcessState::PAUSE) {
+		bool isPaused(unsigned long start) {
+			if (getState() == ProcessState::PAUSE) {
 				if (start < this->pausedUpTo) {
 					return true;
 				}
@@ -87,7 +90,7 @@ class IFirmwareProcess {
 		virtual void update(unsigned long ms) = 0;
 
 		//@implement
-		virtual void pause(unsigned long upTo = 0) {
+		void pause(unsigned long upTo = 0) {
 			if (this->state == ProcessState::STOP) return;
 
 			this->state = ProcessState::PAUSE;
@@ -95,7 +98,7 @@ class IFirmwareProcess {
 		}
 
 		//@implement
-		virtual void unPause() {
+		void unPause() {
 			if (this->state == ProcessState::STOP) return;
 
 			this->state = ProcessState::ACTIVE;

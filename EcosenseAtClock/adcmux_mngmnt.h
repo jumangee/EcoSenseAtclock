@@ -24,10 +24,6 @@
                 }
             }
 
-            /*static byte signalPin() {
-                return ADCMuxManagement::get()->signalPin;
-            }*/
-			
 			uint32_t requestChannel(byte channel) {
 				return PinSwitchManager::requestPin(channel);
 			}

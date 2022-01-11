@@ -36,6 +36,7 @@ void WifiProcess::espStop() {
 		espSerial->end();
 		espSerial = SoftwareSerialSingleton::unlock();
 	}
+	sendState(false);
 	state = ReportState::NONE;
 }
 
@@ -54,6 +55,7 @@ void WifiProcess::update(unsigned long ms) {
 						this->pause();
 						return;
 					}
+					sendState(true);
 					TRACELNF("[WiFi] OK");
 					state = ReportState::READY;
 				}
@@ -66,7 +68,6 @@ void WifiProcess::update(unsigned long ms) {
 				state = ReportState::CONNECTED;
 				this->pause(100);
 			} else {
-				//this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::ERROR));
 				this->pause(15000);
 				espStop();
 			}
@@ -84,8 +85,6 @@ void WifiProcess::update(unsigned long ms) {
 		}
 		case ReportState::SENT: {
 			espStop();
-			//this->sendMessage(new WifiEventMessage(WifiEventMessage::WifiEvent::OK));
-			
 			this->pause(REPORT_TIMEOUT);
 			return;
 		}
@@ -98,7 +97,7 @@ bool WifiProcess::WiFiConnect() {
 		TRACELNF("[WIFI] Attempting to connect");
 		if (EspDrv::wifiConnect(SF(WIFI_SSID).c_str(), SF(WIFI_PWD).c_str())) {
 			//TRACELNF("[WIFI] Connected to the network");
-			//this->dataSendTask.setParam(7, uint16_t(abs(EspDrv::getCurrentRSSI())));	//byte((double(EspDrv::getCurrentRSSI()) / 65535.0*100.0))
+			dataSendTask[THINGSPEAKCHANNEL_COMMON]->getParam(THINGSPEAK_PARAM_RSSI)->setValue(uint16_t(abs(EspDrv::getCurrentRSSI())));
 			return true;
 		}/* else {
 			TRACELNF("[WIFI] Connection error");
@@ -111,7 +110,7 @@ bool WifiProcess::WiFiConnect() {
 
 void WifiProcess::simpleSendData(ThingspeakWebSendTask *task) {
 	//uint8_t _sock = 1;
-	String server = THINGSPEAK_SERVER;
+	String server = SF(THINGSPEAK_SERVER);
 	if (EspDrv::startClient(server.c_str(), 80, 1, TCP_MODE)) {
 		TRACEF("Connected to server ");
 		TRACELN(server);
@@ -121,12 +120,16 @@ void WifiProcess::simpleSendData(ThingspeakWebSendTask *task) {
 			buf += task->getApiKey();
 			sendPacket(buf);
 			for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-				UrlParam p = task->getParam(i);
-				if (p.active) {
-					sendPacket(SF("&field"));
-					sendPacket(String(i + 1));
-					sendPacket(SF("="));
-					sendPacket(p.getValue());
+				if (task->isParam(i)) {
+					UrlParam* p = task->getParam(i);
+					String packet = SF("&field");
+					sendPacket(packet);
+					packet = String(i + 1);
+					sendPacket(packet);
+					packet = SF("=");
+					sendPacket(packet);
+					packet = p->getValue();
+					sendPacket(packet);
 				}
 			}
 			buf = F(" HTTP/1.1\r\nHost: ");
@@ -146,9 +149,9 @@ bool WifiProcess::handleMessage(IProcessMessage* msg) {
 			EnvDataMessage* env = (EnvDataMessage*)msg;
 			ThingspeakWebSendTask* task = dataSendTask[THINGSPEAKCHANNEL_COMMON];
 			
-			task->getParam(THINGSPEAK_PARAM_TEMP).setValue(env->temp);
-			task->getParam(THINGSPEAK_PARAM_HUMIDITY).setValue(env->humidity);
-			task->getParam(THINGSPEAK_PARAM_PRESSURE).setValue(env->pressure);
+			task->getParam(THINGSPEAK_PARAM_TEMP)->setValue(env->temp);
+			task->getParam(THINGSPEAK_PARAM_HUMIDITY)->setValue(env->humidity);
+			task->getParam(THINGSPEAK_PARAM_PRESSURE)->setValue(env->pressure);
 			task->recount();
 			return false;
 		}
@@ -156,8 +159,9 @@ bool WifiProcess::handleMessage(IProcessMessage* msg) {
 			SelfReportMessage* report = (SelfReportMessage*)msg;
 			ThingspeakWebSendTask* task = dataSendTask[THINGSPEAKCHANNEL_COMMON];
 			
-			task->getParam(THINGSPEAK_PARAM_PROCESSES).setValue((uint16_t)report->processCount);
-			task->getParam(THINGSPEAK_PARAM_FREEMEM).setValue(report->freemem);
+			task->getParam(THINGSPEAK_PARAM_PROCESSES)->setValue((uint16_t)report->processCount);
+			task->getParam(THINGSPEAK_PARAM_FREEMEM)->setValue(report->freemem);
+			task->getParam(THINGSPEAK_PARAM_WORKTIME)->setValue((float)(millis() / 60000));
 			task->recount();
 			return false;
 		}
@@ -167,27 +171,31 @@ bool WifiProcess::handleMessage(IProcessMessage* msg) {
 			switch (gas->gasType())
 			{
 				case AirQualityMsg::GasType::COMMON: {
-					task->getParam(THINGSPEAK_PARAM_COMMON).setValue(gas->getAmount());
+					task->getParam(THINGSPEAK_PARAM_COMMON)->setValue(gas->getAmount());
 					break;
 				}
 				case AirQualityMsg::GasType::CO2: {
-					task->getParam(THINGSPEAK_PARAM_CO2).setValue((uint16_t)gas->getAmount());
+					task->getParam(THINGSPEAK_PARAM_CO2)->setValue((uint16_t)gas->getAmount());
 					break;
 				}
 				case AirQualityMsg::GasType::H2S: {
-					task->getParam(THINGSPEAK_PARAM_H2S).setValue(gas->getAmount());
+					task->getParam(THINGSPEAK_PARAM_H2S)->setValue(gas->getAmount());
 					break;
 				}
 				case AirQualityMsg::GasType::VOCs: {
-					task->getParam(THINGSPEAK_PARAM_VOCS).setValue(gas->getAmount());
+					task->getParam(THINGSPEAK_PARAM_VOCS)->setValue(gas->getAmount());
 					break;
 				}
 				case AirQualityMsg::GasType::CO: {
-					task->getParam(THINGSPEAK_PARAM_CO).setValue(gas->getAmount());
+					task->getParam(THINGSPEAK_PARAM_CO)->setValue(gas->getAmount());
 					break;
 				}
 				case AirQualityMsg::GasType::PM25: {
-					task->getParam(THINGSPEAK_PARAM_PM25).setValue(gas->getAmount());
+					task->getParam(THINGSPEAK_PARAM_PM25)->setValue(gas->getAmount());
+					break;
+				}
+				case AirQualityMsg::GasType::CH4: {
+					task->getParam(THINGSPEAK_PARAM_CH4)->setValue(gas->getAmount());
 					break;
 				}
 			}

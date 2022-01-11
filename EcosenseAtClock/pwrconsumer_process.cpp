@@ -9,18 +9,11 @@ PwrConsumerProcess::PwrConsumerProcess(byte keyPin, IProcessMessage* msg) : IFir
 }
 
 void PwrConsumerProcess::addTask(uint16_t prcId) {
-	tasks[tasksCnt].prcId = prcId;
-	tasks[tasksCnt].state = NONE;
+	TaskInfo* t = new TaskInfo();
+	t->prcId = prcId;
+	t->state = NONE;
+	tasks[tasksCnt] = t;
 	tasksCnt++;
-}
-
-int PwrConsumerProcess::findTask(uint16_t id) {
-	for (byte i = 0; i < tasksCnt; i++) {
-		if (this->tasks[i].prcId == id) {
-			return i;
-		}
-	}
-	return -1;
 }
 
 unsigned long PwrConsumerProcess::run(unsigned long start) {
@@ -40,8 +33,9 @@ void PwrConsumerProcess::update(unsigned long ms) {
 		case START: {
 			TRACELNF("PwrConsumer: start tasks");
 			for (byte i = 0; i < tasksCnt; i++) {
-				this->getHost()->addProcess(tasks[i].prcId);
-				tasks[i].state = ACTIVE;
+				TaskInfo* t = tasks[i];
+				this->getHost()->addProcess(t->prcId);
+				t->state = ACTIVE;
 			}
 			return;
 		}
@@ -49,10 +43,7 @@ void PwrConsumerProcess::update(unsigned long ms) {
 			this->stop();
 			// unlock pwr key
 			this->releaseLoad();
-			uint16_t nextId = this->getNextConsumerId();
-			if (nextId > 0) {
-				this->getHost()->addProcess(nextId);	// start next of process list
-			}
+			this->getHost()->addProcess(this->getNextConsumerId());	// start next of process list
 			return;
 		}
 		default: {
@@ -66,11 +57,13 @@ bool PwrConsumerProcess::handleMessage(IProcessMessage* msg) {
 	switch (msg->getType())
 	{
 		case TASKDONE_MESSAGE: {
-			uint16_t taskId = ((TaskDoneMessage*)msg)->getTaskId();
-			int pos = this->findTask(taskId);
-			if (pos == -1) return;
-			this->tasks[pos].state = DONE;
-			this->getHost()->stopProcess(taskId);
+			TaskInfo* t = this->findTask(((TaskDoneMessage*)msg)->getTaskId());
+			if (!t) {
+				TRACELNF("TASKDONE ERROR: id not found!")
+				return;
+			}
+			t->state = DONE;
+			this->getHost()->stopProcess(t->prcId);
 			return false;
 		}
 	}

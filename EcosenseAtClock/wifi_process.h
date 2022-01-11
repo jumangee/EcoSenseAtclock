@@ -33,7 +33,7 @@ class WifiProcess: public IFirmwareProcess {
 			SENT,
 			DISABLED
 		}						state;
-		
+
 	public:
 		PROCESSID(PRC_WIFI);
 
@@ -43,6 +43,10 @@ class WifiProcess: public IFirmwareProcess {
 
 		~WifiProcess();
 
+		void sendState(bool state) {
+			//this->sendMessage(new WifiStateMessage(state));
+		}
+
 		void espStop();
 
 		void update(unsigned long ms);
@@ -51,7 +55,7 @@ class WifiProcess: public IFirmwareProcess {
 
 		void simpleSendData(ThingspeakWebSendTask *task);
 
-		void sendPacket(String data) {
+		void sendPacket(String& data) {
 			EspDrv::sendData(1, data.c_str(), data.length());
 		}
 

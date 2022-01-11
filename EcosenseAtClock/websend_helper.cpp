@@ -1,12 +1,8 @@
 #include "websend_helper.h"
 
-UrlParam::UrlParam() {
-    this->active = false;
-}
-
 void UrlParam::set(vType type) {
     this->valueType = type;
-    this->active = true;
+    //this->active = true;
 }
 
 void UrlParam::setValue(uint16_t v) {
@@ -25,7 +21,10 @@ String UrlParam::getValue() {
 
 void ThingspeakWebSendTask::clear() {
     for (byte i = 0; i < THINGSPEAKPARAMS; i++) {
-        this->params[i].active = false;
+        if (isParam(i)) {
+            delete this->params[i];
+        }
+        this->params[i] = NULL;
     }
     size = 0;
 }

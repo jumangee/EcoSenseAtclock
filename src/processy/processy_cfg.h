@@ -2,7 +2,7 @@
 #define _PROCESSY_CFG_H
 
     /*** processy config ***/
-	#define	PROCESSY_MAX_LIST		30	
+	#define	PROCESSY_MAX_LIST		15	
     
 	/**
 	 * @brief Add system debug info

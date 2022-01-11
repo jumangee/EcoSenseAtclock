@@ -16,6 +16,7 @@ class IFirmwareProcess;
 #define SELFREPORT_MESSAGE	1007
 #define TASKDONE_MESSAGE	1008
 #define BTNCLICK_MESSAGE	1009
+#define WIFISTATE_MESSAGE	1010
 //---------------------------------
 
 class EnvDataMessage: public IProcessMessage {
@@ -31,6 +32,13 @@ class EnvDataMessage: public IProcessMessage {
 		uint16_t	pressure;
 };
 
+class WifiStateMessage: public IProcessMessage {
+	public:
+		bool online = false;
+		WifiStateMessage(bool state): IProcessMessage(NULL, WIFISTATE_MESSAGE) {
+			online = state;
+		}
+};
 
 class CurrentTimeMsg: public IProcessMessage {
 	public:
@@ -144,8 +152,11 @@ class ButtonClickMessage: public IProcessMessage {
 			DBLCLICK
 		} event;
 
-		ButtonClickMessage(ButtonEvent e = CLICK): IProcessMessage(NULL, BTNCLICK_MESSAGE) {
-			this->event = e;
+		uint8_t btnId;
+
+		ButtonClickMessage(uint8_t id, ButtonEvent e = CLICK): IProcessMessage(NULL, BTNCLICK_MESSAGE) {
+			event = e;
+			btnId = id;
 		}
 };
 

@@ -25,7 +25,7 @@
 #include <math.h>
 
 struct WarningInfo {
-	uint16_t id;
+	uint8_t id;
 	float value;
 };
 
@@ -37,65 +37,26 @@ class DisplayProcess: public IFirmwareProcess {
 
 		float				temp = 0;
 		float				humidity = 0;
-		//float				co2 = 0;
 		uint16_t			pressure = 0;
 		uint8_t				timeH = 0;
 		uint8_t				timeM = 0;
 		bool				timeDots = true;
 
-		WarningInfo			*warnings[MAX_DISPLAY_WARNINGS];
-		uint8_t				warningsCount;
+		WarningInfo*		warnings[MAX_DISPLAY_WARNINGS];
+		uint8_t				warningsCount = 0;
 		int					showWarningNum = -1;
-		bool				wifiOn = true;
+		bool				online = false;
 
 	public:
 		PROCESSID(PRC_DISPLAY);
 	
 		DisplayProcess(IProcessMessage* msg);
 
-		void addWarning(uint32_t id, float value) {
-			int warnPos = this->findWarning(id);
-			if (warnPos > -1) {
-				this->warnings[warnPos]->value = value;
-				return;
-			}
-			if (warningsCount >= MAX_DISPLAY_WARNINGS) {
-				return;
-			}
+		void addWarning(uint32_t id, float value);
 
-			for (warnPos = 0; warnPos < MAX_DISPLAY_WARNINGS; warnPos++) {
-				if (this->warnings[warnPos] == NULL) {
-					WarningInfo* warning = new WarningInfo();
-					warning->id = id;
-					warning->value = value;
-					warningsCount++;
+		int findWarning(uint32_t id);
 
-					this->warnings[warnPos] = warning;
-					updateWarnings = true;
-					return;
-				}
-			} 
-		}
-
-		int findWarning(uint32_t id) {
-			for (uint8_t i = 0; i < MAX_DISPLAY_WARNINGS; i++) {
-				if (this->warnings[i] != NULL && this->warnings[i]->id == id) {
-					return i;
-				}
-			}
-			return -1;
-		}
-
-		void removeWarning(uint32_t id) {
-			int warnPos = this->findWarning(id);
-			if (warnPos == -1) {
-				return;
-			}
-			delete this->warnings[warnPos];
-			this->warnings[warnPos] = NULL;
-			warningsCount--;
-			updateWarnings = true;
-		}
+		void removeWarning(uint32_t id);
 
 		static IFirmwareProcess* factory(IProcessMessage* msg);
 
@@ -103,77 +64,19 @@ class DisplayProcess: public IFirmwareProcess {
 
 		void renderMainScreen();
 
-		const __FlashStringHelper* getTitle(uint16_t code) {
-			switch (code) {
-				case 1: return F("TEMPERATURE");
-				case 2: return F("HUMIDITY");
-				case 10: return F("GASes");
-				case 11: return F("H2S");
-				case 12: return F("CO");
-				//case 13: return F("SO2");
-				case 14: return F("CO2");
-				case 15: return F("CH4");
-				//case 16: return F("CH2O");
-				//case 17: return F("C6H5_CH3");
-				//case 18: return F("PM1");
-				case 19: return F("PM25");
-				case 20: return F("VOCs");
-			}
-		}
+		const __FlashStringHelper* getTitle(uint8_t code);
 
-		int warnNumToPos(uint8_t num) {
-			uint8_t cur = 0;
-			for (uint8_t i = 0; i < warningsCount; i++) {
-				if (this->warnings[i] != NULL) {
-					if (cur == num) {
-						return i;
-					}
-					cur++;
-				}
-			}
-			return -1;
-		}
+		int warnNumToPos(uint8_t num);
 
 		void renderWarningScreen();
 
 		void render();
 
-		void renderWarnings() {
-			oled.setCursor(0, 0);
-			oled.set2X();
-			oled.clearToEOL();
-			//oled.print(F("                  "));
-			//oled.setInvertMode(true);
-			uint16_t i;
-			for (i = 0; i < warningsCount; i++) {
-				uint8_t pos = 118-i*10;
-				if (pos < 1) {
-					break;
-				}
-				oled.setCursor(pos, 0);
-				if (i == this->showWarningNum) {
-					oled.setInvertMode(true);
-				}
-				oled.print(F("!"));
-				if (i == this->showWarningNum) {
-					oled.setInvertMode(false);
-				}
-			}
-			if (this->showWarningNum > -1) {
-				oled.setCursor(118-i*10, 0);
-				oled.print(F("*"));
-			}
-			oled.set1X();
-
-			this->updateWarnings = false;
-		}
+		void renderWarnings();
 
 		bool handleMessage(IProcessMessage* msg);
 
-		void showEvent(uint8_t x, uint8_t y, const __FlashStringHelper *pstr) {
-			oled.setCursor(x, y);
-			oled.print(pstr);
-		}
+		void showEvent(uint8_t x, uint8_t y, const __FlashStringHelper *pstr);
 
 		void handleEnvDataMsg(EnvDataMessage* msg);
 

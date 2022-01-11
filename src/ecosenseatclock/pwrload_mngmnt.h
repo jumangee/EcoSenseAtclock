@@ -6,22 +6,15 @@
     #include "pinswitch_mngmnt.h"
     
     class PowerloadManagement: public PinSwitchManager {
-        protected:
+        public:
             PowerloadManagement(byte *pins, byte keysCnt): PinSwitchManager(pins, keysCnt) {
             }
 
-            static PowerloadManagement* instance;
-
-        public:
+            //@implement
+            //@include "ecosenseatclock.h"
             static PowerloadManagement* get() {
-                return PowerloadManagement::instance;
-            }
-
-            //static void init(const byte pins[], byte cnt) {
-            static void init(byte *pins, byte cnt) {
-                if (!PowerloadManagement::instance) {
-                    PowerloadManagement::instance = new PowerloadManagement(pins, cnt);
-                }
+                EcosenseAtClockFirmware* host = EcosenseAtClockFirmware::get();
+                return host->getPwrLoadMngmnt();
             }
     };
        

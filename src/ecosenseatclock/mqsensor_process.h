@@ -50,10 +50,6 @@ class MQSensorProcess: public SimpleSensorProcess {
             return analogRead( ADCMUX_SIGNAL_PIN );
         }
 
-		/*byte getQuality(float k = .6) {
-			return exp((getVoltage()-5)*k)*127;
-		}*/
-
 		//@implement
 		//@include "ecosense_cfg.h"
 		//@include "ecosense_messages.h"

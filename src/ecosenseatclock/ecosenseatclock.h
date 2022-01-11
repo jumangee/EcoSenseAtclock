@@ -43,6 +43,8 @@
 #include "stuff.h"
 
 class EcosenseAtClockFirmware: public IFirmware {
+	PowerloadManagement* pwrLoadMngmnt;
+
 	const static byte PwrMngmtPins[];
 	const static byte AdcMuxMngmtPins[];
 
@@ -98,7 +100,7 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 		addProcess(PRC_MHZ19);
 
 		#if SLIM_BUILD != 1
-			PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));
+			pwrLoadMngmnt = new PowerloadManagement(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins)); //PowerloadManagement::init(ARR2PTR(EcosenseAtClockFirmware::PwrMngmtPins));
 			ADCMuxManagement::init(EcosenseAtClockFirmware::AdcMuxMngmtPins);
 		
 			addProcess(PRC_CONSUMER1);
@@ -114,25 +116,37 @@ const static byte EcosenseAtClockFirmware::AdcMuxMngmtPins[] = ADCMUXPINS;
 			return IFirmware::instance;
 		}
 
+		/**
+		 * @brief Used by PowerloadManagement::get()
+		 * 
+		 * @return PowerloadManagement* 
+		 */
+		PowerloadManagement* getPwrLoadMngmnt() {
+			return pwrLoadMngmnt;
+		}
+
 	protected:
 		//@implement
 		//@include "stuff.h"
 		//@include "MemoryFree.h"
 		virtual void handlerProcessDebugTimer(unsigned long dT) {
-			byte processCount = 0;
-			for (uint16_t i = 0; i < this->processListSize; i++) {
-				IFirmwareProcessRegistration* reg = this->processList[i];
-				if (reg->isActive()) {
-					processCount++;
+			#if DEBUG_PRO_MS == 2
+				byte processCount = 0;
+				for (uint16_t i = 0; i < this->processListSize; i++) {
+					IFirmwareProcessRegistration* reg = this->processList[i];
+					if (reg->isActive()) {
+						processCount++;
+					}
 				}
-			}
-			this->sendMessage(new SelfReportMessage(processCount, freeMemory()));
-			TRACEF("SYS REPORT: processes=")
-			TRACE(processCount)
-			TRACEF(", freemem=")
-			TRACELN(freeMemory())
+				this->sendMessage(new SelfReportMessage(processCount, freeMemory()));
+				TRACEF("SYS REPORT: processes=")
+				TRACE(processCount)
+				TRACEF(", freemem=")
+				TRACELN(freeMemory())
+			#else
+				IFirmware::handlerProcessDebugTimer(dT);
+			#endif
 		}
-
 };
 
 #endif

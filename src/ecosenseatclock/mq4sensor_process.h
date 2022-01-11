@@ -12,9 +12,6 @@
 #include "ecosense_cfg.h"
 #include "mqsensor_process.h"
 
-//#define MQ136_RL 2.3
-//#define MQ136_FRESH_RO 1
-
 class MQ4SensorProcess: public MQSensorProcess {
 	public:
 		PROCESSID(PRC_MQ4);
