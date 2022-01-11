@@ -13,7 +13,7 @@ Photos and more description at [Hackaday.io](https://hackaday.io/project/183222-
 - .96" SSD1306 OLED display
 - 5V and 3.3V power adapter
 - Intelligent power management (no more than .4A current)
-- Event-driven architecture (using [Processy Firmware Framework](https://github.com/jumangee/arduino-nano-taskman))
+- Modular, event-driven architecture (using [Processy Firmware Framework](https://github.com/jumangee/arduino-nano-taskman))
 - Small memoty consuption and footprint
 - Easy support and upgrade
 
